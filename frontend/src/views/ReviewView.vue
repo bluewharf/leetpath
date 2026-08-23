@@ -25,7 +25,10 @@
       <div class="seg" :style="{ width: `${(rememberedCount / deck.length) * 100}%`, background: 'var(--accent)' }"></div>
     </div>
 
-    <div v-if="loading" class="empty">加载中…</div>
+    <div v-if="loading" class="card" style="padding:24px;max-width:720px;margin:0 auto">
+      <Skeleton :count="1" height="32px" width="60%" radius="6px" gap="16px" />
+      <Skeleton :count="4" height="20px" width="100%" radius="6px" gap="12px" />
+    </div>
     <div v-else-if="deck.length === 0" class="empty">题解还在生成中，稍后再来</div>
 
     <template v-else-if="current">
@@ -41,7 +44,7 @@
               <div class="rc-title">{{ current.title }}</div>
               <div class="rc-slug mono">{{ current.slug }}</div>
               <div class="rc-tags">{{ current.tags.join(' · ') }}</div>
-              <div class="rc-hint">点击卡片翻看题解</div>
+              <div class="rc-hint">点击卡片翻看题解（或按 Space / Enter）</div>
             </div>
             <div v-else key="back" class="rc-face rc-back" @click.stop>
               <div class="statement rc-solution" v-html="solutionHtml"></div>
@@ -66,9 +69,9 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import DOMPurify from 'dompurify'
-import { marked } from 'marked'
 import { api } from '../api'
+import { renderMarkdown } from '../markdown'
+import Skeleton from '../components/Skeleton.vue'
 import type { Difficulty, ProblemListItem } from '../types'
 
 const loading = ref(true)
@@ -83,9 +86,7 @@ const rememberedCount = computed(
   () => deck.value.filter((p) => p.memory === 'remembered').length,
 )
 const current = computed(() => deck.value[index.value])
-const solutionHtml = computed(() =>
-  DOMPurify.sanitize(marked.parse(solutionMd.value, { async: false })),
-)
+const solutionHtml = computed(() => renderMarkdown(solutionMd.value))
 
 function difficultyText(d: Difficulty) {
   return d === 'easy' ? '简单' : d === 'medium' ? '中等' : '困难'
@@ -146,7 +147,6 @@ onMounted(async () => {
   try {
     const all = await api.get<ProblemListItem[]>('/api/problems')
     const withSol = all.filter((p) => p.has_solution)
-    // 未背过/没记住的排前面，已记住的沉底
     deck.value = withSol.sort((a, b) => {
       const ra = a.memory === 'remembered' ? 1 : 0
       const rb = b.memory === 'remembered' ? 1 : 0

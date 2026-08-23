@@ -22,13 +22,13 @@
     </div>
 
     <div v-if="!loading && problems.length" class="progress-track" title="按难度统计已通过">
-      <div class="seg easy" :style="{ width: pct(stats.easySolved) }"></div>
-      <div class="seg medium" :style="{ width: pct(stats.mediumSolved) }"></div>
-      <div class="seg hard" :style="{ width: pct(stats.hardSolved) }"></div>
+      <div class="seg easy" :style="{ width: pct(stats.easySolved) }" title="简单通过"></div>
+      <div class="seg medium" :style="{ width: pct(stats.mediumSolved) }" title="中等通过"></div>
+      <div class="seg hard" :style="{ width: pct(stats.hardSolved) }" title="困难通过"></div>
     </div>
 
     <div class="filters">
-      <input v-model="q" class="input" placeholder="搜索题目标题 / slug" />
+      <input v-model="searchInput" class="input" placeholder="搜索题目标题 / slug (支持实时检索)" />
       <select v-model="difficulty" class="select">
         <option value="">全部难度</option>
         <option value="easy">简单</option>
@@ -48,15 +48,17 @@
     </div>
 
     <div class="card list-card">
-      <div v-if="loading" class="empty">加载中…</div>
+      <div v-if="loading" style="padding:20px">
+        <Skeleton :count="8" height="42px" width="100%" radius="8px" gap="10px" />
+      </div>
       <div v-else-if="filtered.length === 0" class="empty">没有匹配的题目</div>
       <template v-else>
         <div class="list-head">
-          <span>#</span>
-          <span></span>
-          <span>题目</span>
-          <span>难度</span>
-          <span>来源</span>
+          <span class="sortable-th" @click="toggleSort('id')"># {{ sortField === 'id' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          <span class="sortable-th" @click="toggleSort('status')">状态 {{ sortField === 'status' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          <span class="sortable-th" @click="toggleSort('title')">题目 {{ sortField === 'title' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          <span class="sortable-th" @click="toggleSort('difficulty')">难度 {{ sortField === 'difficulty' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          <span class="sortable-th" @click="toggleSort('source')">来源 {{ sortField === 'source' ? (sortAsc ? '▲' : '▼') : '' }}</span>
           <span>标签</span>
           <span></span>
         </div>
@@ -87,20 +89,43 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
+import Skeleton from '../components/Skeleton.vue'
 import type { Difficulty, ProblemListItem } from '../types'
 
 const problems = ref<ProblemListItem[]>([])
 const loading = ref(true)
+const searchInput = ref('')
 const q = ref('')
 const difficulty = ref('')
 const source = ref('')
 const tag = ref('')
 
+const sortField = ref<'id' | 'title' | 'difficulty' | 'status' | 'source'>('id')
+const sortAsc = ref(true)
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(searchInput, (val) => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    q.value = val
+  }, 200)
+})
+
+function toggleSort(field: 'id' | 'title' | 'difficulty' | 'status' | 'source') {
+  if (sortField.value === field) {
+    sortAsc.value = !sortAsc.value
+  } else {
+    sortField.value = field
+    sortAsc.value = true
+  }
+}
+
 const allTags = computed(() => {
   const s = new Set<string>()
-  problems.value.forEach((p) => p.tags.forEach((t) => s.add(t)))
+  problems.value.forEach((p) => (p.tags || []).forEach((t) => s.add(t)))
   return [...s].sort()
 })
 
@@ -121,14 +146,36 @@ function pct(n: number) {
   return problems.value.length ? `${(n / problems.value.length) * 100}%` : '0%'
 }
 
+const difficultyWeight: Record<Difficulty, number> = {
+  easy: 1,
+  medium: 2,
+  hard: 3,
+}
+
+const statusWeight: Record<string, number> = {
+  solved: 2,
+  attempted: 1,
+}
+
 const filtered = computed(() => {
   const kw = q.value.trim().toLowerCase()
-  return problems.value.filter((p) => {
+  const list = problems.value.filter((p) => {
     if (difficulty.value && p.difficulty !== difficulty.value) return false
     if (source.value && p.source !== source.value) return false
     if (tag.value && !p.tags.includes(tag.value)) return false
     if (kw && !p.title.toLowerCase().includes(kw) && !p.slug.includes(kw)) return false
     return true
+  })
+
+  return list.sort((a, b) => {
+    let cmp = 0
+    if (sortField.value === 'id') cmp = a.id - b.id
+    else if (sortField.value === 'title') cmp = a.title.localeCompare(b.title, 'zh-CN')
+    else if (sortField.value === 'difficulty') cmp = difficultyWeight[a.difficulty] - difficultyWeight[b.difficulty]
+    else if (sortField.value === 'status') cmp = (statusWeight[a.my_status || ''] || 0) - (statusWeight[b.my_status || ''] || 0)
+    else if (sortField.value === 'source') cmp = a.source.localeCompare(b.source)
+
+    return sortAsc.value ? cmp : -cmp
   })
 })
 

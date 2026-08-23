@@ -5,6 +5,7 @@ import { router } from './router'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/jetbrains-mono'
 import '@fontsource-variable/noto-serif-sc'
+import 'katex/dist/katex.min.css'
 import './styles.css'
 import { initTheme } from './theme'
 
