@@ -38,7 +38,8 @@ function themeExt() {
 
 function baseTheme() {
   return EditorView.theme({
-    '&': { backgroundColor: 'var(--surface)', color: 'var(--text)' },
+    '&': { backgroundColor: 'var(--surface)', color: 'var(--text)', fontSize: 'var(--font-editor)' },
+    '.cm-content': { fontSize: 'var(--font-editor)' },
     '.cm-gutters': {
       backgroundColor: 'var(--surface)',
       color: 'var(--text-faint)',
@@ -82,7 +83,7 @@ function onThemeChange() {
 
 onMounted(() => {
   createView()
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-font-size'] })
 })
 
 onBeforeUnmount(() => {
