@@ -1,0 +1,6 @@
+5
+MinStack
+push 1
+push 2
+top
+getMin

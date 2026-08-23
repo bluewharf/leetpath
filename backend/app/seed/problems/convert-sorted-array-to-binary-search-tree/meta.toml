@@ -1,0 +1,8 @@
+slug = "convert-sorted-array-to-binary-search-tree"
+title = "将有序数组转换为二叉搜索树"
+difficulty = "easy"
+source = "hot100"
+tags = ["树", "BST", "分治"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,10 @@
+# Python 3.14：优先选用已有 cp314 wheel 的版本；若安装失败再按注释换包。
+fastapi>=0.116.0
+uvicorn[standard]>=0.35.0
+sqlalchemy>=2.0.40
+pydantic>=2.11.0
+pydantic-settings>=2.10.0
+PyJWT>=2.10.0
+bcrypt>=4.3.0
+pytest>=8.4.0
+httpx>=0.28.0

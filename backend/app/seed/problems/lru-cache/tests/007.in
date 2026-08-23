@@ -1,0 +1,9 @@
+8
+LRUCache 2
+put 1 1
+put 2 2
+put 1 10
+put 3 3
+get 1
+get 2
+get 3

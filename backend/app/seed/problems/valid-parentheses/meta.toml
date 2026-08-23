@@ -1,0 +1,8 @@
+slug = "valid-parentheses"
+title = "有效的括号"
+difficulty = "easy"
+source = "hot100"
+tags = ["栈", "字符串"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

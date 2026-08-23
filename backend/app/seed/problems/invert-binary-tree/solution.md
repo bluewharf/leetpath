@@ -1,0 +1,179 @@
+## 思路
+
+- 翻转整棵树 = 每个节点都交换左右孩子，再对两棵子树各自翻转。
+- 先交换再递归，或先递归再交换，结果相同；注意 C++ 里不要边赋值边递归，否则会把刚换过来的孩子再翻一次。
+- 空节点是递归终点，单节点左右都空，交换无副作用。
+- 层序输出时要把内部空位写成 `null`，但末尾连续 `null` 必须丢掉，否则和题面序列化约定对不上。
+
+## 复杂度
+
+- 时间：O(n)
+- 空间：O(h)，h 为树高（递归栈）
+
+## 模板代码
+
+### Python3
+
+```python
+import sys
+from collections import deque
+
+
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+
+def read_tree():
+    data = sys.stdin.read().split()
+    n = int(data[0])
+    if n == 0:
+        return None
+    tokens = data[1 : 1 + n]
+
+    def parse(i):
+        if tokens[i] == "null":
+            return None
+        return TreeNode(int(tokens[i]))
+
+    root = parse(0)
+    q = deque([root])
+    i = 1
+    while q and i < n:
+        node = q.popleft()
+        if i < n:
+            node.left = parse(i)
+            if node.left:
+                q.append(node.left)
+            i += 1
+        if i < n:
+            node.right = parse(i)
+            if node.right:
+                q.append(node.right)
+            i += 1
+    return root
+
+
+def write_tree(root):
+    if root is None:
+        print(0)
+        return
+    tokens = []
+    q = deque([root])
+    while q:
+        node = q.popleft()
+        if node is None:
+            tokens.append("null")
+        else:
+            tokens.append(str(node.val))
+            q.append(node.left)
+            q.append(node.right)
+    while tokens and tokens[-1] == "null":
+        tokens.pop()
+    print(len(tokens))
+    print(" ".join(tokens))
+
+
+def invert(root):
+    if root is None:
+        return None
+    root.left, root.right = root.right, root.left
+    invert(root.left)
+    invert(root.right)
+    return root
+
+
+def main():
+    write_tree(invert(read_tree()))
+
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+struct TreeNode {
+    int val;
+    TreeNode *left, *right;
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+TreeNode* parse(const string& s) {
+    if (s == "null") return nullptr;
+    return new TreeNode(stoi(s));
+}
+
+TreeNode* read_tree() {
+    int n;
+    if (!(cin >> n) || n == 0) return nullptr;
+    vector<string> tokens(n);
+    for (int i = 0; i < n; i++) cin >> tokens[i];
+    TreeNode* root = parse(tokens[0]);
+    queue<TreeNode*> q;
+    q.push(root);
+    int i = 1;
+    while (!q.empty() && i < n) {
+        TreeNode* node = q.front();
+        q.pop();
+        if (i < n) {
+            node->left = parse(tokens[i++]);
+            if (node->left) q.push(node->left);
+        }
+        if (i < n) {
+            node->right = parse(tokens[i++]);
+            if (node->right) q.push(node->right);
+        }
+    }
+    return root;
+}
+
+void write_tree(TreeNode* root) {
+    if (!root) {
+        cout << 0 << "\n";
+        return;
+    }
+    vector<string> tokens;
+    queue<TreeNode*> q;
+    q.push(root);
+    while (!q.empty()) {
+        TreeNode* node = q.front();
+        q.pop();
+        if (!node) {
+            tokens.push_back("null");
+        } else {
+            tokens.push_back(to_string(node->val));
+            q.push(node->left);
+            q.push(node->right);
+        }
+    }
+    while (!tokens.empty() && tokens.back() == "null") tokens.pop_back();
+    cout << tokens.size() << "\n";
+    for (size_t i = 0; i < tokens.size(); i++) {
+        if (i) cout << " ";
+        cout << tokens[i];
+    }
+    cout << "\n";
+}
+
+TreeNode* invert(TreeNode* root) {
+    if (!root) return nullptr;
+    swap(root->left, root->right);
+    invert(root->left);
+    invert(root->right);
+    return root;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    write_tree(invert(read_tree()));
+    return 0;
+}
+```

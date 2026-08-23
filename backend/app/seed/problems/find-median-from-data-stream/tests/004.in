@@ -1,0 +1,11 @@
+10
+MedianFinder
+addNum 1
+addNum 3
+findMedian
+addNum 2
+addNum 6
+findMedian
+addNum 7
+addNum 8
+findMedian

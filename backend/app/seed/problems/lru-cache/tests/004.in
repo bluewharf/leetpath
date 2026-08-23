@@ -1,0 +1,7 @@
+6
+LRUCache 3
+get 0
+get 1
+get 10000
+put 1 1
+get 2

@@ -1,0 +1,8 @@
+slug = "largest-rectangle-in-histogram"
+title = "柱状图中最大的矩形"
+difficulty = "hard"
+source = "hot100"
+tags = ["栈", "数组", "单调栈"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

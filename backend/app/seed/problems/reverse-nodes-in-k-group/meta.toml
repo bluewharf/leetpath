@@ -1,0 +1,8 @@
+slug = "reverse-nodes-in-k-group"
+title = "K 个一组翻转链表"
+difficulty = "hard"
+source = "hot100"
+tags = ["递归", "链表"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

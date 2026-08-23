@@ -1,0 +1,12 @@
+11
+MinStack
+push 5
+push 2
+push 2
+getMin
+pop
+getMin
+top
+pop
+getMin
+top

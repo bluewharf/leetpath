@@ -1,0 +1,8 @@
+slug = "find-first-and-last-position-of-element-in-sorted-array"
+title = "在排序数组中查找元素的第一个和最后一个位置"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "二分查找"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

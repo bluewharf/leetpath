@@ -1,0 +1,8 @@
+slug = "path-sum-iii"
+title = "路径总和 III"
+difficulty = "medium"
+source = "hot100"
+tags = ["树", "DFS", "前缀和"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

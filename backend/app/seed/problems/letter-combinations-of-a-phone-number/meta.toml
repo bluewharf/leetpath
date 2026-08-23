@@ -1,0 +1,8 @@
+slug = "letter-combinations-of-a-phone-number"
+title = "电话号码的字母组合"
+difficulty = "medium"
+source = "hot100"
+tags = ["哈希表", "字符串", "回溯"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,8 @@
+slug = "find-the-duplicate-number"
+title = "寻找重复数"
+difficulty = "medium"
+source = "hot100"
+tags = ["位运算", "数组", "双指针", "二分"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

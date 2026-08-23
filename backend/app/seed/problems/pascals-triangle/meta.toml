@@ -1,0 +1,8 @@
+slug = "pascals-triangle"
+title = "杨辉三角"
+difficulty = "easy"
+source = "hot100"
+tags = ["数组", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

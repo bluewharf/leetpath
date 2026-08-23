@@ -1,0 +1,8 @@
+slug = "trapping-rain-water"
+title = "接雨水"
+difficulty = "hard"
+source = "hot100"
+tags = ["栈", "数组", "双指针", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

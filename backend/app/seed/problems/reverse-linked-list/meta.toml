@@ -1,0 +1,6 @@
+slug = "reverse-linked-list"
+title = "反转链表"
+difficulty = "easy"
+source = "hot100"
+tags = ["递归", "链表"]
+samples = [1, 2]

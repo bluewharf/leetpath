@@ -1,0 +1,22 @@
+21
+Trie
+insert a
+insert app
+insert apple
+insert apply
+search a
+search ap
+search app
+search appl
+search apple
+search apply
+search apples
+startsWith a
+startsWith ap
+startsWith app
+startsWith appl
+startsWith apple
+startsWith apply
+startsWith apples
+startsWith b
+search banana

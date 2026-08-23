@@ -1,0 +1,287 @@
+286
+MinStack
+push 1
+push 2
+push 3
+push 4
+getMin
+top
+push 5
+push 6
+push 7
+push 8
+getMin
+top
+push 9
+push 10
+push 11
+push 12
+getMin
+top
+push 13
+push 14
+push 15
+push 16
+getMin
+top
+push 17
+push 18
+push 19
+push 20
+getMin
+top
+push 21
+push 22
+push 23
+push 24
+getMin
+top
+push 25
+push 26
+push 27
+push 28
+getMin
+top
+push 29
+push 30
+push 31
+push 32
+getMin
+top
+push 33
+push 34
+push 35
+push 36
+getMin
+top
+push 37
+push 38
+push 39
+push 40
+getMin
+top
+push 41
+push 42
+push 43
+push 44
+getMin
+top
+push 45
+push 46
+push 47
+push 48
+getMin
+top
+push 49
+push 50
+push 51
+push 52
+getMin
+top
+push 53
+push 54
+push 55
+push 56
+getMin
+top
+push 57
+push 58
+push 59
+push 60
+getMin
+top
+push 61
+push 62
+push 63
+push 64
+getMin
+top
+push 65
+push 66
+push 67
+push 68
+getMin
+top
+push 69
+push 70
+push 71
+push 72
+getMin
+top
+push 73
+push 74
+push 75
+push 76
+getMin
+top
+push 77
+push 78
+push 79
+push 80
+getMin
+top
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+pop
+getMin
+push 0
+getMin
+push -1
+getMin
+push -2
+getMin
+push -3
+getMin
+push -4
+getMin
+push -5
+getMin
+push -6
+getMin
+push -7
+getMin
+push -8
+getMin
+push -9
+getMin
+push -10
+getMin
+push -11
+getMin
+push -12
+getMin
+push -13
+getMin
+push -14
+getMin
+push -15
+getMin
+push -16
+getMin
+push -17
+getMin
+push -18
+getMin
+push -19
+getMin
+push -20
+getMin
+push -21
+getMin
+push -22
+getMin
+push -23
+getMin
+push -24
+getMin
+push -25
+getMin
+push -26
+getMin
+push -27
+getMin
+push -28
+getMin
+push -29
+getMin
+push -30
+getMin
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+pop
+getMin
+top
+push -100
+push -100
+getMin
+pop
+getMin
+top

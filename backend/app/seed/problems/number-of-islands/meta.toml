@@ -1,0 +1,8 @@
+slug = "number-of-islands"
+title = "岛屿数量"
+difficulty = "medium"
+source = "hot100"
+tags = ["DFS", "BFS", "并查集", "矩阵"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

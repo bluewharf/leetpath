@@ -1,0 +1,8 @@
+slug = "majority-element"
+title = "多数元素"
+difficulty = "easy"
+source = "hot100"
+tags = ["数组", "哈希表", "分治", "计数", "排序"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,8 @@
+slug = "word-break"
+title = "单词拆分"
+difficulty = "medium"
+source = "hot100"
+tags = ["字典树", "记忆化", "哈希表", "字符串", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

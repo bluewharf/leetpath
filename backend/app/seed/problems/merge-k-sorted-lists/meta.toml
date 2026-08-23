@@ -1,0 +1,8 @@
+slug = "merge-k-sorted-lists"
+title = "合并 K 个升序链表"
+difficulty = "hard"
+source = "hot100"
+tags = ["链表", "分治", "堆"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

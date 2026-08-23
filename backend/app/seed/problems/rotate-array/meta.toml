@@ -1,0 +1,8 @@
+slug = "rotate-array"
+title = "轮转数组"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "数学", "双指针"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

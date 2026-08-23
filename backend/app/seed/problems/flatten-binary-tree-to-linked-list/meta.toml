@@ -1,0 +1,8 @@
+slug = "flatten-binary-tree-to-linked-list"
+title = "二叉树展开为链表"
+difficulty = "medium"
+source = "hot100"
+tags = ["栈", "树", "DFS", "链表"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

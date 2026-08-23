@@ -1,0 +1,8 @@
+slug = "implement-trie-prefix-tree"
+title = "实现 Trie (前缀树)"
+difficulty = "medium"
+source = "hot100"
+tags = ["设计", "字典树", "哈希表", "字符串"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

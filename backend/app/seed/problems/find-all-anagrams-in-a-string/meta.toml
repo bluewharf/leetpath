@@ -1,0 +1,8 @@
+slug = "find-all-anagrams-in-a-string"
+title = "找到字符串中所有字母异位词"
+difficulty = "medium"
+source = "hot100"
+tags = ["哈希表", "字符串", "滑动窗口"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

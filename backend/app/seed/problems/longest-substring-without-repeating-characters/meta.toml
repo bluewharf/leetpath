@@ -1,0 +1,8 @@
+slug = "longest-substring-without-repeating-characters"
+title = "无重复字符的最长子串"
+difficulty = "medium"
+source = "hot100"
+tags = ["哈希表", "字符串", "滑动窗口"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

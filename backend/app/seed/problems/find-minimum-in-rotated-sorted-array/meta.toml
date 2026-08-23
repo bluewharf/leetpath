@@ -1,0 +1,8 @@
+slug = "find-minimum-in-rotated-sorted-array"
+title = "寻找旋转排序数组中的最小值"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "二分查找"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

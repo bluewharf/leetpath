@@ -1,0 +1,15 @@
+14
+MinStack
+push 1
+getMin
+push 2
+getMin
+push 3
+getMin
+push 4
+getMin
+push 5
+getMin
+pop
+getMin
+top
