@@ -60,3 +60,39 @@ def test_jobs_non_admin_forbidden(user_client):
     assert r.status_code == 403
     listed = user_client.get("/api/jobs")
     assert listed.status_code == 200
+
+
+def test_job_track_sync(admin_client, user_client):
+    # admin_client / user_client 共享同一 TestClient，注册 bob 后会话已切到 bob，
+    # 需要用 login 显式切换回管理员 alice 建岗
+    r = admin_client.post("/api/auth/login", json={"username": "alice", "password": "password123"})
+    assert r.status_code == 200
+    job = admin_client.post("/api/jobs", json={"company": "腾讯", "position": "后端"}).json()
+    job_id = job["id"]
+
+    r = user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
+    assert r.status_code == 200
+    assert user_client.get("/api/jobs/track").json() == {}
+
+    r = user_client.put(f"/api/jobs/{job_id}/track", json={"status": "applied"})
+    assert r.status_code == 200
+    assert r.json()["status"] == "applied"
+    assert user_client.get("/api/jobs/track").json() == {str(job_id): "applied"}
+
+    r = user_client.put(f"/api/jobs/{job_id}/track", json={"status": "interview"})
+    assert r.json()["status"] == "interview"
+
+    # 非法状态与不存在岗位
+    assert user_client.put(f"/api/jobs/{job_id}/track", json={"status": "hacked"}).status_code == 422
+    assert user_client.put("/api/jobs/99999/track", json={"status": "applied"}).status_code == 404
+
+    # none 清除
+    user_client.put(f"/api/jobs/{job_id}/track", json={"status": "none"})
+    assert user_client.get("/api/jobs/track").json() == {}
+
+    # 另一个用户的标记互不影响
+    admin_client.post("/api/auth/login", json={"username": "alice", "password": "password123"})
+    admin_client.put(f"/api/jobs/{job_id}/track", json={"status": "offer"})
+    assert admin_client.get("/api/jobs/track").json() == {str(job_id): "offer"}
+    user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
+    assert user_client.get("/api/jobs/track").json() == {}

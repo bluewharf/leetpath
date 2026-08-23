@@ -19,9 +19,9 @@
       <!-- 秋招批次选择 -->
       <select v-model="batchFilter" class="select">
         <option value="">全部秋招批次</option>
-        <option value="urgent">🔥 7天内急投</option>
-        <option value="early">⚡ 秋招提前批</option>
-        <option value="regular">🎯 秋招正式批</option>
+        <option value="urgent">7 天内急投</option>
+        <option value="early">秋招提前批</option>
+        <option value="regular">秋招正式批</option>
       </select>
 
       <!-- 公司规模与梯队 -->
@@ -215,23 +215,29 @@ const expandedCompanies = ref(new Set<string>())
 const expandedJd = ref(new Set<number>())
 const selectedRole = reactive<Record<string, string>>({})
 
-// 本地个人投递进度存储
+// 个人投递进度（入库，多端同步）
 const trackerData = ref<Record<number, string>>({})
 
 const STATUS_STEPS = [
   { key: 'none', label: '未标记' },
-  { key: 'applied', label: '📝 已投简历' },
-  { key: 'test', label: '💻 笔试中' },
-  { key: 'interview', label: '👥 面试中' },
-  { key: 'offer', label: '🪪 已获 Offer' },
-  { key: 'rejected', label: '🥀 流程结束' },
+  { key: 'applied', label: '已投简历' },
+  { key: 'test', label: '笔试中' },
+  { key: 'interview', label: '面试中' },
+  { key: 'offer', label: '已获 Offer' },
+  { key: 'rejected', label: '流程结束' },
 ]
 
 function getTrackedStatus(jobId: number) {
   return trackerData.value[jobId] || 'none'
 }
 
-function setTrackedStatus(jobId: number, status: string) {
+async function setTrackedStatus(jobId: number, status: string) {
+  try {
+    await api.put(`/api/jobs/${jobId}/track`, { status })
+  } catch {
+    toast.error('标记失败，请稍后重试')
+    return
+  }
   if (status === 'none') {
     delete trackerData.value[jobId]
   } else {
@@ -239,7 +245,6 @@ function setTrackedStatus(jobId: number, status: string) {
     const label = STATUS_STEPS.find((s) => s.key === status)?.label || ''
     toast.success(`已标记为: ${label}`)
   }
-  localStorage.setItem('leetpath_job_tracker', JSON.stringify(trackerData.value))
 }
 
 const trackedJobIds = computed(() => {
@@ -297,10 +302,10 @@ const companyList = computed<CompanyGroup[]>(() => {
     let ddayCls = 'ok'
     if (minDays !== null) {
       if (minDays === 0) {
-        ddayText = '🔥 今天截止'
+        ddayText = '今天截止'
         ddayCls = 'urgent'
       } else if (minDays <= 7) {
-        ddayText = `🔥 最早 D-${minDays} 截止`
+        ddayText = `最早 D-${minDays} 截止`
         ddayCls = 'urgent'
       } else {
         ddayText = `最早 D-${minDays} 截止`
@@ -440,13 +445,13 @@ async function load() {
   }
 }
 
-onMounted(() => {
-  const saved = localStorage.getItem('leetpath_job_tracker')
-  if (saved) {
-    try {
-      trackerData.value = JSON.parse(saved)
-    } catch {}
-  }
+onMounted(async () => {
+  try {
+    const saved = await api.get<Record<string, string>>('/api/jobs/track')
+    const parsed: Record<number, string> = {}
+    for (const [id, st] of Object.entries(saved)) parsed[Number(id)] = st
+    trackerData.value = parsed
+  } catch {}
   load()
 })
 

@@ -17,7 +17,6 @@
           :title="langPref === 'python3' ? '当前全局语言: Python 3（点击切换到 C++）' : '当前全局语言: C++（点击切换到 Python 3）'"
           @click="toggleLang"
         >
-          <span class="lang-icon">{{ langPref === 'python3' ? '🐍' : '⚡' }}</span>
           <span class="lang-text mono">{{ langPref === 'python3' ? 'Python3' : 'C++' }}</span>
         </button>
 
@@ -44,7 +43,7 @@
         <span class="tab-icon">✦</span>背题
       </RouterLink>
       <RouterLink to="/handbook" :class="{ active: route.path === '/handbook' }">
-        <span class="tab-icon">📖</span>手册
+        <span class="tab-icon">§</span>手册
       </RouterLink>
       <RouterLink to="/jobs" :class="{ active: route.path === '/jobs' }">
         <span class="tab-icon">▦</span>秋招
