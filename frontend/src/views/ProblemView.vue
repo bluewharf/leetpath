@@ -224,7 +224,8 @@ import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useToast } from '../stores/toast'
-import { renderMarkdown } from '../markdown'
+import { useLangPref } from '../stores/pref'
+import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import {
   isFinal,
   type Draft,
@@ -236,10 +237,11 @@ import {
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 const toast = useToast()
+const { langPref } = useLangPref()
 
 const loading = ref(true)
 const problem = ref<ProblemDetail | null>(null)
-const language = ref<Language>('python3')
+const language = ref<Language>(langPref.value)
 const code = ref('')
 const submission = ref<Submission | null>(null)
 const submitting = ref(false)
@@ -307,7 +309,7 @@ const statementHtml = computed(() =>
 )
 
 const solutionHtml = computed(() =>
-  solutionMd.value ? renderMarkdown(solutionMd.value) : '',
+  solutionMd.value ? renderMarkdown(filterSolutionMarkdown(solutionMd.value, language.value)) : '',
 )
 
 const difficultyText = computed(() => {
