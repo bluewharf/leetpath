@@ -20,8 +20,13 @@
           <span class="lang-text mono">{{ langPref === 'python3' ? 'Python3' : 'C++' }}</span>
         </button>
 
-        <button class="theme-btn" :title="isDark ? '切换到浅色' : '切换到深色'" @click="onToggleTheme">
-          {{ isDark ? '☾' : '☀' }}
+        <!-- 三态主题切换：浅色 ➔ 深色 ➔ 赛博霓虹 -->
+        <button
+          class="theme-btn"
+          :title="themeTooltip"
+          @click="onToggleTheme"
+        >
+          {{ themeIcon }}
         </button>
         <span class="avatar">{{ auth.me.username.slice(0, 1).toUpperCase() }}</span>
         <span class="username">{{ auth.me.username }}</span>
@@ -59,21 +64,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Toast from './components/Toast.vue'
 import { useAuthStore } from './stores/auth'
 import { useLangPref } from './stores/pref'
-import { getTheme, toggleTheme } from './theme'
+import { getTheme, toggleTheme, type Theme } from './theme'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const { langPref, toggleLang } = useLangPref()
 
-const isDark = ref(getTheme() === 'dark')
+const currentTheme = ref<Theme>(getTheme())
+
+const themeIcon = computed(() => {
+  if (currentTheme.value === 'light') return '☀'
+  if (currentTheme.value === 'dark') return '☾'
+  return '🌌'
+})
+
+const themeTooltip = computed(() => {
+  if (currentTheme.value === 'light') return '当前：极简冷白（点击切换为黑曜石深色）'
+  if (currentTheme.value === 'dark') return '当前：黑曜石深色（点击切换为赛博极客霓虹）'
+  return '当前：赛博极客霓虹（点击切换为极简冷白）'
+})
+
 function onToggleTheme() {
-  isDark.value = toggleTheme() === 'dark'
+  currentTheme.value = toggleTheme()
 }
 
 async function onLogout() {

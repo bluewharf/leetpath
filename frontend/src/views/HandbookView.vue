@@ -7,8 +7,8 @@
       </div>
       <div class="head-stats">
         <div class="stat">
-          <span class="num accent">8</span>
-          <span class="lbl">数据结构扫盲</span>
+          <span class="num accent">9</span>
+          <span class="lbl">基础扫盲条目</span>
         </div>
         <div class="stat">
           <span class="num">7</span>
@@ -57,9 +57,15 @@
         </p>
       </div>
 
-      <h3 class="basics-sub-title">八大核心数据结构扫盲</h3>
+      <h3 class="basics-sub-title">核心数据结构与基础手法扫盲（点卡片看用法代码）</h3>
       <div class="curated-grid">
-        <div v-for="d in BASICS_DS" :key="d.name" class="card curated-card ds-card">
+        <div
+          v-for="(d, idx) in BASICS_DS"
+          :key="d.name"
+          class="card curated-card ds-card"
+          :class="{ selected: selectedDsIdx === idx }"
+          @click="selectedDsIdx = idx"
+        >
           <div class="curated-top">
             <span class="curated-badge">{{ d.badge }}</span>
             <span class="curated-star">{{ d.cost }}</span>
@@ -68,7 +74,28 @@
           <p class="curated-desc">{{ d.what }}</p>
           <div class="curated-footer">
             <span class="curated-tag">{{ d.usage }}</span>
+            <span class="curated-link">{{ selectedDsIdx === idx ? '收起 ▴' : '看用法 ▾' }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 数据结构详情：介绍 + 基础用法代码 -->
+      <div class="card rule-card ds-detail" v-if="currentDs">
+        <div class="tpl-header">
+          <div>
+            <h2>{{ currentDs.name }} · 基础用法</h2>
+            <p class="tpl-desc">{{ currentDs.intro }}</p>
+          </div>
+          <div class="tpl-actions">
+            <div class="lang-switch-pills">
+              <button :class="{ active: tplLang === 'python3' }" @click="tplLang = 'python3'">Python 3</button>
+              <button :class="{ active: tplLang === 'cpp' }" @click="tplLang = 'cpp'">C++ 20</button>
+            </div>
+            <button class="btn btn-sm btn-primary" @click="copy(currentDs[tplLang])">复制代码</button>
+          </div>
+        </div>
+        <div class="tpl-code-block">
+          <pre class="mono">{{ currentDs[tplLang] }}</pre>
         </div>
       </div>
 
@@ -98,7 +125,7 @@
           </table>
         </div>
         <p class="rule-intro" style="margin:14px 0 0">
-          拿到题先看数据范围 $n$，再对照「数据规模与复杂度速查」页倒推允许的复杂度——这是面试秒出思路的关键习惯。
+          拿到题先看数据范围 n，再对照「数据规模与复杂度速查」页倒推允许的复杂度——这是面试秒出思路的关键习惯。
         </p>
       </div>
     </section>
@@ -133,7 +160,7 @@
       <div class="card rule-card">
         <h2>数据规模与时间复杂度倒推法则（面试秒出思路）</h2>
         <p class="rule-intro">
-          在算法面试和 OJ 中，<strong>看一眼题目给出的数据范围 $n$，就能直接倒推本题允许的理论最大时间复杂度</strong>（以单核 1 秒运算 $10^8$ 次为基准）：
+          在算法面试和 OJ 中，<strong>看一眼题目给出的数据范围 n，就能直接倒推本题允许的理论最大时间复杂度</strong>（以单核 1 秒运算 10⁸ 次为基准）：
         </p>
 
         <div class="table-wrap">
@@ -271,6 +298,8 @@ const toast = useToast()
 const { langPref } = useLangPref()
 const currentTab = ref<'basics' | 'links' | 'complexity' | 'syntax' | 'templates'>('basics')
 const selectedTemplateIdx = ref(0)
+const selectedDsIdx = ref(0)
+const currentDs = computed(() => BASICS_DS[selectedDsIdx.value])
 const tplLang = ref<'python3' | 'cpp'>(langPref.value)
 
 watch(langPref, (newLang) => {
@@ -289,6 +318,29 @@ const BASICS_DS = [
     cost: '访问 O(1)',
     what: '一块连续内存，按下标直接取元素。插入/删除中间元素要整体搬移，是 O(n)。',
     usage: '几乎所有题的起点',
+    intro: '刷题里 80% 的输入都是数组。必须熟练的四件事：遍历、排序、切片、前缀和（prefix[i] 表示前 i 个元素之和，区间求和从 O(n) 降到 O(1)）。',
+    python3: `nums = [3, 1, 2]
+nums.append(4)      # 尾部追加，O(1)
+nums.sort()         # 原地升序，O(n log n)
+print(nums[0])      # 按下标访问，O(1)
+
+# 前缀和：区间 [l, r) 求和只需 prefix[r] - prefix[l]
+prefix = [0]
+for x in nums:
+    prefix.append(prefix[-1] + x)
+print(prefix[2] - prefix[0])   # 前 2 个元素之和`,
+    cpp: `#include <vector>
+#include <algorithm>
+using namespace std;
+
+vector<int> nums = {3, 1, 2};
+nums.push_back(4);                   // 尾部追加，O(1)
+sort(nums.begin(), nums.end());      // 升序，O(n log n)
+
+// 前缀和：区间 [l, r) 求和只需 prefix[r] - prefix[l]
+vector<int> prefix(nums.size() + 1, 0);
+for (int i = 0; i < (int)nums.size(); ++i)
+    prefix[i + 1] = prefix[i] + nums[i];`,
   },
   {
     name: '链表 Linked List',
@@ -296,6 +348,34 @@ const BASICS_DS = [
     cost: '插入 O(1)',
     what: '节点之间用指针串联，不连续存储。改指针就能插入删除，但想找第 k 个只能从头走。',
     usage: '反转 · 环检测 · 合并',
+    intro: 'OJ 会直接给你 ListNode 定义，你要做的只是操作 next 指针。做链表题的铁律：动手画指针变化图，别在脑子里空想。',
+    python3: `class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+# 遍历整条链表
+cur = head
+while cur:
+    print(cur.val)
+    cur = cur.next
+
+# 在 cur 后面插入新节点 node
+node.next = cur.next
+cur.next = node`,
+    cpp: `struct ListNode {
+    int val;
+    ListNode* next;
+    ListNode(int x) : val(x), next(nullptr) {}
+};
+
+// 遍历整条链表
+for (ListNode* cur = head; cur; cur = cur->next)
+    cout << cur->val << " ";
+
+// 在 cur 后面插入新节点 node
+node->next = cur->next;
+cur->next = node;`,
   },
   {
     name: '栈 Stack',
@@ -303,6 +383,32 @@ const BASICS_DS = [
     cost: '进出 O(1)',
     what: '后进先出，只能从栈顶放取。遇到「最近匹配」「成对消除」类问题先想它。',
     usage: '括号匹配 · 单调栈',
+    intro: '栈顶永远在「末尾」。Python 直接用 list 当栈（append/pop 都是 O(1)）；C++ 用 stack 适配器，注意 pop() 不返回值，要先 top()。',
+    python3: `stack = []          # list 就是栈
+stack.append(x)     # 入栈（栈顶在末尾）
+top = stack[-1]     # 看栈顶，不弹出
+stack.pop()         # 弹出栈顶
+if not stack:       # 判空
+    print("栈空了")
+
+# 经典：有效括号
+pairs = {')': '(', ']': '[', '}': '{'}
+for ch in s:
+    if ch in pairs.values():
+        stack.append(ch)
+    elif not stack or stack.pop() != pairs[ch]:
+        return False`,
+    cpp: `#include <stack>
+using namespace std;
+
+stack<int> st;
+st.push(x);      // 入栈
+st.top();        // 看栈顶，不弹出
+st.pop();        // 弹出（无返回值！先 top 再 pop）
+st.empty();      // 判空
+
+// 单调栈套路：维护一个单调递减栈
+// while (!st.empty() && nums[i] > st.top()) st.pop();`,
   },
   {
     name: '队列 Queue',
@@ -310,6 +416,31 @@ const BASICS_DS = [
     cost: '进出 O(1)',
     what: '先进先出，队尾进队头出。BFS 层序遍历的标配；双端队列（Deque）可两头操作。',
     usage: 'BFS · 层序遍历',
+    intro: '普通队列一头进一头出；双端队列 deque 两头都能 O(1) 操作，滑动窗口最大值靠它。Python 千万别用 list.pop(0) 当队列——那是 O(n)。',
+    python3: `from collections import deque
+
+q = deque()
+q.append(x)       # 队尾进
+q.popleft()       # 队头出，O(1)
+
+# BFS 骨架
+q = deque([start])
+while q:
+    node = q.popleft()
+    for nxt in neighbors(node):
+        q.append(nxt)`,
+    cpp: `#include <queue>
+#include <deque>
+using namespace std;
+
+queue<int> q;
+q.push(x);       // 队尾进
+q.front();       // 看队头
+q.pop();         // 队头出（无返回值）
+
+// 双端队列：滑动窗口最大值的核心
+deque<int> dq;
+dq.push_back(x); dq.pop_front();`,
   },
   {
     name: '哈希表 Hash Map',
@@ -317,6 +448,27 @@ const BASICS_DS = [
     cost: '查找 O(1)',
     what: 'key → value 的映射，查一个值平均只要 O(1)。「边遍历边记录见过什么」是它的灵魂。',
     usage: '两数之和 · 计数去重',
+    intro: '凡是「判断某个值之前见没见过」「统计出现次数」的题，哈希表几乎是最优解。Python 的 Counter/defaultdict 能省掉大量判空代码。',
+    python3: `from collections import Counter, defaultdict
+
+cnt = Counter(nums)        # 一行统计每个元素出现次数
+seen = set()               # 只要去重/判存在用 set
+seen.add(x)
+if x in seen: ...          # O(1) 判存在
+
+mp = defaultdict(int)      # 取值不存在时默认 0，不用判空
+for x in nums:
+    mp[x] += 1`,
+    cpp: `#include <unordered_map>
+#include <unordered_set>
+using namespace std;
+
+unordered_map<int, int> cnt;
+for (int x : nums) cnt[x]++;        // 不存在自动初始化为 0
+
+unordered_set<int> seen;
+seen.insert(x);
+if (seen.count(x)) { /* 存在 */ }   // O(1) 判存在`,
   },
   {
     name: '堆 Heap / 优先队列',
@@ -324,6 +476,28 @@ const BASICS_DS = [
     cost: '取顶 O(log n)',
     what: '一棵能自动维持最大/最小值在堆顶的二叉树，不用全排序就能反复取极值。',
     usage: 'Top K · 合并有序流',
+    intro: 'Python 的 heapq 是小顶堆，要取最大就把元素取负再入堆；C++ 的 priority_queue 默认大顶堆。Top K 问题用大小为 K 的堆，把 O(n log n) 降到 O(n log k)。',
+    python3: `import heapq
+
+h = []
+heapq.heappush(h, x)     # 入堆，O(log n)
+smallest = heapq.heappop(h)   # 弹出最小值
+heapq.heapify(nums)      # 原地建堆，O(n)
+
+# 大顶堆技巧：存负数
+heapq.heappush(h, -x)
+largest = -heapq.heappop(h)`,
+    cpp: `#include <queue>
+using namespace std;
+
+// 默认大顶堆
+priority_queue<int> pq;
+pq.push(x);          // 入堆，O(log n)
+pq.top();            // 看堆顶（最大值）
+pq.pop();            // 弹出堆顶
+
+// 小顶堆
+priority_queue<int, vector<int>, greater<int>> minPq;`,
   },
   {
     name: '二叉树 Binary Tree',
@@ -331,6 +505,33 @@ const BASICS_DS = [
     cost: '遍历 O(n)',
     what: '每个节点最多两个孩子。前/中/后序遍历就是三种递归时机；二叉搜索树满足左小右大。',
     usage: '遍历 · 最近公共祖先',
+    intro: '树的题 90% 是递归：先写「递」下去的终止条件，再想「归」回来时组装什么。前中后序唯一的区别只是「处理当前节点」这行代码的位置。',
+    python3: `class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+def traverse(root):
+    if not root:          # 递归出口：空节点直接返回
+        return
+    # print(root.val)     # 写在这 = 前序
+    traverse(root.left)
+    # print(root.val)     # 写在这 = 中序
+    traverse(root.right)
+    # print(root.val)     # 写在这 = 后序`,
+    cpp: `struct TreeNode {
+    int val;
+    TreeNode* left;
+    TreeNode* right;
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
+
+void traverse(TreeNode* root) {
+    if (!root) return;    // 递归出口
+    traverse(root->left); // 处理语句放哪，就是哪种序
+    traverse(root->right);
+}`,
   },
   {
     name: '图 Graph',
@@ -338,6 +539,78 @@ const BASICS_DS = [
     cost: '视算法而定',
     what: '节点加边的关系网，树是特殊的不带环的图。最短路径、拓扑排序、并查集都围绕它展开。',
     usage: '课程表 · 岛屿数量',
+    intro: '刷题中图一般用邻接表表示：g[i] 存 i 的所有邻居。网格题（岛屿数量）本身就是隐式的图——上下左右四个方向就是边。',
+    python3: `from collections import defaultdict, deque
+
+# 建邻接表：edges = [[0,1],[1,2],...]
+g = defaultdict(list)
+for u, v in edges:
+    g[u].append(v)
+    g[v].append(u)        # 无向图加双向
+
+# BFS 最短路骨架
+dist = {start: 0}
+q = deque([start])
+while q:
+    u = q.popleft()
+    for v in g[u]:
+        if v not in dist:
+            dist[v] = dist[u] + 1
+            q.append(v)`,
+    cpp: `#include <vector>
+#include <queue>
+using namespace std;
+
+// 建邻接表
+vector<vector<int>> g(n);
+for (auto& e : edges) {
+    g[e[0]].push_back(e[1]);
+    g[e[1]].push_back(e[0]);   // 无向图加双向
+}
+
+// BFS 骨架
+vector<int> dist(n, -1);
+queue<int> q;
+dist[0] = 0; q.push(0);
+while (!q.empty()) {
+    int u = q.front(); q.pop();
+    for (int v : g[u])
+        if (dist[v] == -1) { dist[v] = dist[u] + 1; q.push(v); }
+}`,
+  },
+  {
+    name: '双指针 Two Pointers',
+    badge: '基础手法',
+    cost: '一趟 O(n)',
+    what: '两个指针在数组上协同移动：对撞（两头往中间）或快慢（同向不同速）。把双重循环压成一趟。',
+    usage: '三数之和 · 回文判断',
+    intro: '双指针不是数据结构，是使用频率最高的基础手法。数组有序时想对撞指针（一头一尾向中间夹），判回文/去重/环形链表想快慢指针。',
+    python3: `# 对撞指针：有序数组找两数之和
+left, right = 0, len(nums) - 1
+while left < right:
+    s = nums[left] + nums[right]
+    if s == target:
+        break
+    elif s < target:
+        left += 1    # 偏小，左指针右移
+    else:
+        right -= 1   # 偏大，右指针左移
+
+# 快慢指针：判链表有环
+# slow = slow.next; fast = fast.next.next
+# 若相遇则有环`,
+    cpp: `// 对撞指针：有序数组找两数之和
+int left = 0, right = (int)nums.size() - 1;
+while (left < right) {
+    int s = nums[left] + nums[right];
+    if (s == target) break;
+    else if (s < target) ++left;   // 偏小，左指针右移
+    else --right;                  // 偏大，右指针左移
+}
+
+// 快慢指针：判链表有环
+// slow = slow->next; fast = fast->next->next;
+// 若相遇则有环`,
   },
 ]
 

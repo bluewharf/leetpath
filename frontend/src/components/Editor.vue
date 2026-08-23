@@ -32,7 +32,8 @@ function langExt(lang: Language) {
 }
 
 function themeExt() {
-  return getTheme() === 'dark' ? [oneDark, baseTheme()] : [baseTheme()]
+  const current = getTheme()
+  return (current === 'dark' || current === 'cyber') ? [oneDark, baseTheme()] : [baseTheme()]
 }
 
 function baseTheme() {
