@@ -146,6 +146,35 @@
 :root[data-theme="cyber"] .heatmap-cell.level-3 { background: rgba(0, 242, 254, 0.75); }
 :root[data-theme="cyber"] .heatmap-cell.level-4 { background: #00f2fe; box-shadow: 0 0 8px #00f2fe; }
 
+/* ========== 全站字号自由调节体系 (Font Sizing Scale) ========== */
+:root {
+  --font-base: 16px;
+  --font-editor: 14.5px;
+  --font-markdown: 15.5px;
+  --font-mono: 13.5px;
+}
+
+:root[data-font-size="sm"] {
+  --font-base: 14px;
+  --font-editor: 13px;
+  --font-markdown: 14px;
+  --font-mono: 12.5px;
+}
+
+:root[data-font-size="md"] {
+  --font-base: 16px;
+  --font-editor: 14.5px;
+  --font-markdown: 15.5px;
+  --font-mono: 13.5px;
+}
+
+:root[data-font-size="lg"] {
+  --font-base: 18px;
+  --font-editor: 16.5px;
+  --font-markdown: 17.5px;
+  --font-mono: 15px;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
@@ -154,12 +183,13 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
-  font-size: 16.5px;
+  font-size: var(--font-base);
   line-height: 1.65;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  transition: font-size 0.15s ease;
 }
 
 /* 背景：极简科技微光，去除任何颗粒与发黄点阵 */
@@ -473,6 +503,32 @@ code, pre, .mono { font-family: var(--mono); }
   color: var(--accent);
   background: var(--accent-soft);
 }
+.font-size-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 750;
+  transition: all 0.15s;
+  user-select: none;
+}
+.font-size-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.font-size-btn .font-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: 0.75;
+}
 .theme-btn {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -610,7 +666,7 @@ code, pre, .mono { font-family: var(--mono); }
 
 /* Markdown 题面渲染 */
 .markdown-body {
-  font-size: 16.5px;
+  font-size: var(--font-markdown);
   line-height: 1.75;
   color: var(--text);
 }
@@ -655,8 +711,24 @@ code, pre, .mono { font-family: var(--mono); }
 .editor-lang-label { font-size: 13px; font-weight: 650; color: var(--text-dim); padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
 .save-hint { font-size: 11.5px; color: var(--text-faint); font-family: var(--mono); margin-left: auto; }
 
+.acm-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+.acm-hint-link { color: var(--accent); text-decoration: none; white-space: nowrap; font-weight: 550; }
+.acm-hint-link:hover { text-decoration: underline; }
+
 .editor-wrap { height: 48vh; min-height: 320px; }
-.editor-wrap .cm-editor { height: 100%; font-size: 15px; }
+.editor-wrap .cm-editor { height: 100%; font-size: var(--font-editor) !important; }
 .editor-wrap .cm-editor .cm-content { font-family: var(--mono); padding: 12px 0; }
 .editor-wrap .cm-gutters { padding: 6px 0; }
 

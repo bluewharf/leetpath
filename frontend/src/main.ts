@@ -7,8 +7,10 @@ import '@fontsource-variable/jetbrains-mono'
 import 'katex/dist/katex.min.css'
 import './styles.css'
 import { initTheme } from './theme'
+import { initFontSize } from './stores/pref'
 
 initTheme()
+initFontSize()
 
 const app = createApp(App)
 app.use(createPinia())
