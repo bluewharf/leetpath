@@ -57,6 +57,68 @@
         </p>
       </div>
 
+      <!-- ACM 模式 vs 力扣模式扫盲 -->
+      <div class="card rule-card" style="margin-top:16px">
+        <h2>ACM 模式 vs 力扣模式（本站采用 ACM 模式）</h2>
+        <p class="rule-intro">
+          力扣上你只需要写一个函数，平台帮你处理输入输出；而<strong>校招笔试（牛客、各厂自家 OJ）几乎全是 ACM 模式</strong>——自己从标准输入读数据、把答案打印到标准输出。本站刻意采用 ACM 模式，就是为了让你提前适应真实笔试环境。
+        </p>
+        <div class="table-wrap">
+          <table class="handbook-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>力扣模式（函数式）</th>
+                <th>ACM 模式（本站 / 校招笔试）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="bold">你要写什么</td>
+                <td>只写 <code>class Solution</code> 里的函数体</td>
+                <td>完整的程序：<code>main</code> + 读输入 + 解题 + 打印输出</td>
+              </tr>
+              <tr>
+                <td class="bold">输入</td>
+                <td>平台把参数直接传给你的函数</td>
+                <td>自己读 stdin：<code>sys.stdin.read()</code> / <code>cin</code></td>
+              </tr>
+              <tr>
+                <td class="bold">输出</td>
+                <td>return 返回值即可</td>
+                <td>自己 print / cout，格式必须和题面完全一致</td>
+              </tr>
+              <tr>
+                <td class="bold">常见翻车点</td>
+                <td>几乎没有</td>
+                <td>输出多了空格/换行、读入没转 int、大数据量输入超时（需极速 I/O）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:24px;font-size:16px">同一道「两数之和」，两种模式的写法对比</h3>
+        <div class="io-templates-grid">
+          <div class="io-temp-box">
+            <div class="io-temp-head">
+              <span>力扣模式（只写函数）</span>
+              <button class="btn btn-xs" @click="copy(LC_STYLE_CODE)">复制</button>
+            </div>
+            <pre class="mono io-pre">{{ LC_STYLE_CODE }}</pre>
+          </div>
+          <div class="io-temp-box">
+            <div class="io-temp-head">
+              <span>ACM 模式（本站提交格式）</span>
+              <button class="btn btn-xs" @click="copy(ACM_STYLE_CODE)">复制</button>
+            </div>
+            <pre class="mono io-pre">{{ ACM_STYLE_CODE }}</pre>
+          </div>
+        </div>
+        <p class="rule-intro" style="margin:14px 0 0">
+          大数据量输入时记得用「语法对齐」页底部的极速 I/O 模板防 TLE；每道题的题面都写明了输入输出格式，照着读就行。
+        </p>
+      </div>
+
       <h3 class="basics-sub-title">核心数据结构与基础手法扫盲（点卡片看用法代码）</h3>
       <div class="curated-grid">
         <div
@@ -723,6 +785,35 @@ const SYNTAX_ALIGN = [
     cpp: 'std::sort(nums.begin(), nums.end(), [](const auto& a, const auto& b) {\n    return a[0] != b[0] ? a[0] < b[0] : a[1] > b[1];\n});',
   },
 ]
+
+const LC_STYLE_CODE = `# 力扣模式：平台调用你的函数，不需要碰输入输出
+class Solution:
+    def twoSum(self, nums: list[int], target: int) -> list[int]:
+        seen = {}
+        for i, x in enumerate(nums):
+            if target - x in seen:
+                return [seen[target - x], i]
+            seen[x] = i`
+
+const ACM_STYLE_CODE = `# ACM 模式：自己读 stdin、打印 stdout
+# 输入约定：第一行 n 和 target，第二行 n 个整数
+# 输出约定：一行两个下标，空格分隔
+import sys
+
+def main():
+    data = sys.stdin.read().split()
+    n, target = int(data[0]), int(data[1])
+    nums = [int(x) for x in data[2:2 + n]]
+
+    seen = {}
+    for i, x in enumerate(nums):
+        if target - x in seen:
+            print(seen[target - x], i)   # 直接打印答案
+            return
+        seen[x] = i
+
+if __name__ == "__main__":
+    main()`
 
 const PY_IO_CODE = `import sys
 

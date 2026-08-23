@@ -20,6 +20,16 @@
           <span class="lang-text mono">{{ langPref === 'python3' ? 'Python3' : 'C++' }}</span>
         </button>
 
+        <!-- 全站字号自由调节 -->
+        <button
+          class="font-size-btn"
+          :title="fontSizeTooltip"
+          @click="cycleFontSize"
+        >
+          <span>aA</span>
+          <span class="font-label">{{ fontSizeLabel }}</span>
+        </button>
+
         <!-- 三态主题切换：浅色 ➔ 深色 ➔ 赛博霓虹 -->
         <button
           class="theme-btn"
@@ -68,13 +78,14 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Toast from './components/Toast.vue'
 import { useAuthStore } from './stores/auth'
-import { useLangPref } from './stores/pref'
+import { useFontSize, useLangPref } from './stores/pref'
 import { getTheme, toggleTheme, type Theme } from './theme'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const { langPref, toggleLang } = useLangPref()
+const { fontSize, cycleFontSize } = useFontSize()
 
 const currentTheme = ref<Theme>(getTheme())
 
@@ -88,6 +99,18 @@ const themeTooltip = computed(() => {
   if (currentTheme.value === 'light') return '当前：极简冷白（点击切换为黑曜石深色）'
   if (currentTheme.value === 'dark') return '当前：黑曜石深色（点击切换为赛博极客霓虹）'
   return '当前：赛博极客霓虹（点击切换为极简冷白）'
+})
+
+const fontSizeLabel = computed(() => {
+  if (fontSize.value === 'sm') return '小'
+  if (fontSize.value === 'lg') return '大'
+  return '中'
+})
+
+const fontSizeTooltip = computed(() => {
+  if (fontSize.value === 'sm') return '当前字号：紧凑小号（点击切换为标准中号）'
+  if (fontSize.value === 'md') return '当前字号：标准中号（点击切换为护眼大号）'
+  return '当前字号：护眼大号（点击切换为紧凑小号）'
 })
 
 function onToggleTheme() {

@@ -158,6 +158,10 @@
               <span class="save-hint" :title="saveHint">{{ saveHint }}</span>
               <span class="shortcut-tip" v-if="isDesktop">Ctrl+Enter 提交 · Ctrl+S 保存</span>
             </div>
+            <div class="acm-hint">
+              <span>ACM 模式：提交完整程序，自己读 stdin / 打印 stdout，格式以题面「输入 / 输出格式」为准</span>
+              <RouterLink to="/handbook" class="acm-hint-link">写法对比 · 极速 I/O 模板 →</RouterLink>
+            </div>
             <Editor v-model="code" :language="language" />
           </div>
 
