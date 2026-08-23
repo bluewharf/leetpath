@@ -32,6 +32,7 @@ export function initFontSize() {
   const current = (localStorage.getItem(FONT_KEY) as FontSize | null) || 'md'
   fontSize.value = current
   document.documentElement.dataset.fontSize = current
+  document.documentElement.setAttribute('data-font-size', current)
 }
 
 export function useFontSize() {
@@ -39,6 +40,7 @@ export function useFontSize() {
     fontSize.value = size
     localStorage.setItem(FONT_KEY, size)
     document.documentElement.dataset.fontSize = size
+    document.documentElement.setAttribute('data-font-size', size)
   }
 
   function cycleFontSize() {
