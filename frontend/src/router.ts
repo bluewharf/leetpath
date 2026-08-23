@@ -9,6 +9,7 @@ const ProblemView = () => import('./views/ProblemView.vue')
 const ReviewView = () => import('./views/ReviewView.vue')
 const JobsView = () => import('./views/JobsView.vue')
 const LinksView = () => import('./views/LinksView.vue')
+const HandbookView = () => import('./views/HandbookView.vue')
 const AdminView = () => import('./views/AdminView.vue')
 
 export const router = createRouter({
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: '/problems', component: ProblemListView },
     { path: '/problems/:slug', component: ProblemView },
     { path: '/review', component: ReviewView },
+    { path: '/handbook', component: HandbookView },
     { path: '/jobs', component: JobsView },
     { path: '/links', component: LinksView },
     { path: '/admin', component: AdminView, meta: { admin: true } },

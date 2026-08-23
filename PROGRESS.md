@@ -31,3 +31,6 @@
 | 25 | 题解批次08（permutations ~ search-2d-matrix-ii） | grok | ✅ | solution.md ×10，validate_seed 全 OK（10 题 0 问题） | 2026-08-24 00:41 |
 | 26 | 题解批次09（search-rotated ~ subsets） | grok | ✅ | 10 题 solution.md，validate_seed 全 OK；用例 9/9/10/9/10/9/10/10/9/10 | 2026-08-24 00:41 |
 | 27 | 题解批次10（swap-nodes ~ word-search） | grok | ✅ | 10 题 solution.md，validate_seed 全 OK（10 题 0 问题） | 2026-08-24 00:42 |
+| 28 | 前端：背题模式 + 看板筛选 + jobs 分层 | Kimi | ✅ | /review 卡片翻面 + 记忆打卡；看板按大/中/小厂分组 + 公司/规模/关键词/在招筛选；typecheck+build 通过；全量 100 题题解校验 0 问题并已入库 | 2026-08-24 |
+| 29 | 前端 UI/UX 体验全方位升级 + 秋招公司聚合看板 + 算法新手速查手册 | Antigravity | ✅ | KaTeX 数学公式渲染；分栏拖拽/计时器/快捷键/题解Tab/代码回填；秋招公司聚合折叠+个人投递追踪；算法新手手册(/handbook)；年度打卡热力图+骨架屏+Toast；vue-tsc+build 0 报错通过 | 2026-08-24 |
+
