@@ -2,7 +2,7 @@
   <div class="container">
     <div class="page-head">
       <div>
-        <div class="kicker">Review</div>
+        <div class="kicker">Review Deck</div>
         <h1 class="display">背题模式</h1>
       </div>
       <div class="head-stats">
@@ -21,16 +21,38 @@
       </div>
     </div>
 
-    <div v-if="!loading && deck.length" class="progress-track" style="margin-bottom:32px">
+    <!-- 顶部进度条 -->
+    <div v-if="!loading && deck.length" class="progress-track" style="margin-bottom:24px">
       <div class="seg" :style="{ width: `${(rememberedCount / deck.length) * 100}%`, background: 'var(--accent)' }"></div>
     </div>
 
-    <div v-if="loading" class="card" style="padding:24px;max-width:720px;margin:0 auto">
-      <Skeleton :count="1" height="32px" width="60%" radius="6px" gap="16px" />
+    <!-- 语言切换工具栏 -->
+    <div class="review-toolbar" v-if="!loading && deck.length > 0">
+      <span class="review-lang-hint">当前背题语言：</span>
+      <div class="lang-switch-pills">
+        <button
+          :class="{ active: langPref === 'python3' }"
+          @click="setLang('python3')"
+        >
+          🐍 Python 3
+        </button>
+        <button
+          :class="{ active: langPref === 'cpp' }"
+          @click="setLang('cpp')"
+        >
+          ⚡ C++ 20
+        </button>
+      </div>
+    </div>
+
+    <!-- 骨架屏加载 -->
+    <div v-if="loading" class="card" style="padding:32px;max-width:720px;margin:0 auto">
+      <Skeleton :count="1" height="32px" width="50%" radius="6px" gap="16px" />
       <Skeleton :count="4" height="20px" width="100%" radius="6px" gap="12px" />
     </div>
     <div v-else-if="deck.length === 0" class="empty">题解还在生成中，稍后再来</div>
 
+    <!-- 背题卡片主体 -->
     <template v-else-if="current">
       <div class="review-stage">
         <div class="card review-card" :class="{ flipped }" @click="flipped = !flipped">
@@ -44,11 +66,13 @@
               <div class="rc-title">{{ current.title }}</div>
               <div class="rc-slug mono">{{ current.slug }}</div>
               <div class="rc-tags">{{ current.tags.join(' · ') }}</div>
-              <div class="rc-hint">点击卡片翻看题解（或按 Space / Enter）</div>
+              <div class="rc-hint">点击卡片翻看【{{ langPref === 'cpp' ? 'C++' : 'Python3' }}】题解（按 Space / Enter）</div>
             </div>
+
             <div v-else key="back" class="rc-face rc-back" @click.stop>
               <div class="statement rc-solution" v-html="solutionHtml"></div>
-              <div class="rc-hint" style="margin-top:14px">
+              <div class="rc-hint" style="margin-top:16px;display:flex;justify-content:space-between;align-items:center">
+                <button class="btn btn-xs btn-ghost" @click.stop="flipped = false">↺ 翻回正面</button>
                 <RouterLink :to="`/problems/${current.slug}`" @click.stop>去刷这道题 →</RouterLink>
               </div>
             </div>
@@ -70,9 +94,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api } from '../api'
-import { renderMarkdown } from '../markdown'
+import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import Skeleton from '../components/Skeleton.vue'
+import { useLangPref } from '../stores/pref'
 import type { Difficulty, ProblemListItem } from '../types'
+
+const { langPref, setLang } = useLangPref()
 
 const loading = ref(true)
 const deck = ref<ProblemListItem[]>([])
@@ -86,7 +113,13 @@ const rememberedCount = computed(
   () => deck.value.filter((p) => p.memory === 'remembered').length,
 )
 const current = computed(() => deck.value[index.value])
-const solutionHtml = computed(() => renderMarkdown(solutionMd.value))
+
+// 根据用户选择的语言过滤题解内容，只呈现选定语言
+const solutionHtml = computed(() => {
+  if (!solutionMd.value) return ''
+  const filtered = filterSolutionMarkdown(solutionMd.value, langPref.value)
+  return renderMarkdown(filtered)
+})
 
 function difficultyText(d: Difficulty) {
   return d === 'easy' ? '简单' : d === 'medium' ? '中等' : '困难'

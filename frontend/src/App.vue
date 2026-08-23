@@ -11,6 +11,16 @@
         <RouterLink v-if="auth.me.is_admin" to="/admin" :class="{ active: route.path === '/admin' }">管理</RouterLink>
       </nav>
       <div class="user">
+        <!-- 全局语言偏好切换 -->
+        <button
+          class="lang-toggle-btn"
+          :title="langPref === 'python3' ? '当前全局语言: Python 3（点击切换到 C++）' : '当前全局语言: C++（点击切换到 Python 3）'"
+          @click="toggleLang"
+        >
+          <span class="lang-icon">{{ langPref === 'python3' ? '🐍' : '⚡' }}</span>
+          <span class="lang-text mono">{{ langPref === 'python3' ? 'Python3' : 'C++' }}</span>
+        </button>
+
         <button class="theme-btn" :title="isDark ? '切换到浅色' : '切换到深色'" @click="onToggleTheme">
           {{ isDark ? '☾' : '☀' }}
         </button>
@@ -54,11 +64,13 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Toast from './components/Toast.vue'
 import { useAuthStore } from './stores/auth'
+import { useLangPref } from './stores/pref'
 import { getTheme, toggleTheme } from './theme'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const { langPref, toggleLang } = useLangPref()
 
 const isDark = ref(getTheme() === 'dark')
 function onToggleTheme() {

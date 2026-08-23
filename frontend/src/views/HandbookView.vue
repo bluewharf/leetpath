@@ -197,13 +197,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useToast } from '../stores/toast'
+import { useLangPref } from '../stores/pref'
 
 const toast = useToast()
+const { langPref } = useLangPref()
 const currentTab = ref<'links' | 'complexity' | 'syntax' | 'templates'>('links')
 const selectedTemplateIdx = ref(0)
-const tplLang = ref<'python3' | 'cpp'>('python3')
+const tplLang = ref<'python3' | 'cpp'>(langPref.value)
+
+watch(langPref, (newLang) => {
+  tplLang.value = newLang
+})
 
 function copy(text: string) {
   navigator.clipboard.writeText(text)

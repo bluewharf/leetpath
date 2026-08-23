@@ -114,6 +114,17 @@ class Draft(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
+class JobTrack(Base):
+    """求职进度标记：每个用户每个岗位一条（已投/笔试/面试/Offer/结束）。"""
+
+    __tablename__ = "job_tracks"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
