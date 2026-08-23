@@ -1,0 +1,8 @@
+slug = "subarray-sum-equals-k"
+title = "和为 K 的子数组"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "哈希表", "前缀和"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

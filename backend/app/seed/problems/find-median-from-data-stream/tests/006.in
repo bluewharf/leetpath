@@ -1,0 +1,13 @@
+12
+MedianFinder
+addNum -100000
+addNum 100000
+findMedian
+addNum -1
+findMedian
+addNum 0
+findMedian
+addNum 3
+findMedian
+addNum -50
+findMedian

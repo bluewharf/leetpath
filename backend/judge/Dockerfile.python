@@ -1,0 +1,2 @@
+# leetpath Python 判题镜像。无额外依赖；timeout/sh 来自基础镜像，运行命令由 worker 传入。
+FROM python:3.12-slim

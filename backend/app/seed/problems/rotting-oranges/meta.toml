@@ -1,0 +1,8 @@
+slug = "rotting-oranges"
+title = "腐烂的橘子"
+difficulty = "medium"
+source = "hot100"
+tags = ["BFS", "数组", "矩阵"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

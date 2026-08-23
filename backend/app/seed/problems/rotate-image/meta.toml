@@ -1,0 +1,8 @@
+slug = "rotate-image"
+title = "旋转图像"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "数学", "矩阵"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

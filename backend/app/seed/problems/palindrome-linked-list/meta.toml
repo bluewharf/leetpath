@@ -1,0 +1,6 @@
+slug = "palindrome-linked-list"
+title = "回文链表"
+difficulty = "easy"
+source = "hot100"
+tags = ["栈", "递归", "链表", "双指针"]
+samples = [1, 2]

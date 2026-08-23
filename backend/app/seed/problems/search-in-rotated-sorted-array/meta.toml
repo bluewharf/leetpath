@@ -1,0 +1,8 @@
+slug = "search-in-rotated-sorted-array"
+title = "搜索旋转排序数组"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "二分查找"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

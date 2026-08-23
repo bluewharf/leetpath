@@ -1,0 +1,8 @@
+slug = "move-zeroes"
+title = "移动零"
+difficulty = "easy"
+source = "hot100"
+tags = ["数组", "双指针"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

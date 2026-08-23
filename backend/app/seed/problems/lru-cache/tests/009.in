@@ -1,0 +1,278 @@
+277
+LRUCache 8
+put 1 10
+put 2 20
+put 3 30
+put 4 40
+put 5 50
+put 6 60
+put 7 70
+put 8 80
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 100
+get 101
+get 102
+get 103
+get 104
+get 105
+get 106
+get 107
+get 108
+get 109
+put 1 100
+put 2 200
+put 3 300
+put 4 400
+put 5 500
+put 6 600
+put 7 700
+put 8 800
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+put 20 20
+put 21 21
+put 22 22
+put 23 23
+put 24 24
+put 25 25
+put 26 26
+put 27 27
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 20
+get 21
+get 22
+get 23
+get 24
+get 25
+get 26
+get 27
+get 20
+get 21
+get 22
+put 30 30
+put 31 31
+put 32 32
+put 33 33
+put 34 34
+get 20
+get 21
+get 22
+get 23
+get 24
+get 25
+get 26
+get 27
+get 30
+get 31
+get 32
+get 33
+get 34
+get 0
+get 10000
+get 30
+get 31
+get 32
+get 33
+get 34
+put 40 40
+get 40
+get 30
+put 41 41
+get 41
+get 31
+put 42 42
+get 42
+get 32
+put 43 43
+get 43
+get 33
+put 44 44
+get 44
+get 34
+put 45 45
+get 45
+get 35
+put 46 46
+get 46
+get 36
+put 47 47
+get 47
+get 37
+put 48 48
+get 48
+get 38
+put 49 49
+get 49
+get 39

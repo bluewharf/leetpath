@@ -1,0 +1,22 @@
+21
+Trie
+search foo
+startsWith f
+insert foo
+search foo
+search fo
+startsWith fo
+insert food
+search foo
+search food
+search foody
+startsWith foo
+startsWith food
+startsWith foody
+insert fo
+search fo
+search foo
+insert f
+search f
+search g
+startsWith g

@@ -1,0 +1,8 @@
+slug = "binary-tree-right-side-view"
+title = "二叉树的右视图"
+difficulty = "medium"
+source = "hot100"
+tags = ["树", "DFS", "BFS"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

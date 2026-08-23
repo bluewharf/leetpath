@@ -1,0 +1,8 @@
+slug = "binary-tree-maximum-path-sum"
+title = "二叉树中的最大路径和"
+difficulty = "hard"
+source = "hot100"
+tags = ["树", "DFS", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

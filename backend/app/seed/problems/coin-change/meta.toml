@@ -1,0 +1,8 @@
+slug = "coin-change"
+title = "零钱兑换"
+difficulty = "medium"
+source = "hot100"
+tags = ["BFS", "数组", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

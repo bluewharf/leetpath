@@ -1,0 +1,8 @@
+slug = "longest-consecutive-sequence"
+title = "最长连续序列"
+difficulty = "medium"
+source = "hot100"
+tags = ["并查集", "数组", "哈希表"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

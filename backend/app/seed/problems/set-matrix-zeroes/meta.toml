@@ -1,0 +1,8 @@
+slug = "set-matrix-zeroes"
+title = "矩阵置零"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "哈希表", "矩阵"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,8 @@
+slug = "maximum-subarray"
+title = "最大子数组和"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "分治", "DP"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

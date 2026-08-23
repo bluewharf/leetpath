@@ -1,0 +1,8 @@
+slug = "first-missing-positive"
+title = "缺失的第一个正数"
+difficulty = "hard"
+source = "hot100"
+tags = ["数组", "哈希表"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

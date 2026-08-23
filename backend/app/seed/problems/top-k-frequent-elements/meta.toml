@@ -1,0 +1,8 @@
+slug = "top-k-frequent-elements"
+title = "前 K 个高频元素"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "哈希表", "分治", "堆", "排序"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

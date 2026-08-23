@@ -1,0 +1,8 @@
+slug = "group-anagrams"
+title = "字母异位词分组"
+difficulty = "medium"
+source = "hot100"
+tags = ["数组", "哈希表", "字符串"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

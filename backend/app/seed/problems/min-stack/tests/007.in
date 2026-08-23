@@ -1,0 +1,19 @@
+18
+MinStack
+push 7
+push -3
+getMin
+push 4
+getMin
+push -8
+getMin
+top
+pop
+getMin
+push 0
+getMin
+push -3
+getMin
+pop
+getMin
+top

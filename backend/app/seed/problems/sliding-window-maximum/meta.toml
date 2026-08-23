@@ -1,0 +1,8 @@
+slug = "sliding-window-maximum"
+title = "滑动窗口最大值"
+difficulty = "hard"
+source = "hot100"
+tags = ["队列", "数组", "滑动窗口", "单调队列"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

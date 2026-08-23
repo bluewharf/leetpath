@@ -1,0 +1,8 @@
+slug = "daily-temperatures"
+title = "每日温度"
+difficulty = "medium"
+source = "hot100"
+tags = ["栈", "数组", "单调栈"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

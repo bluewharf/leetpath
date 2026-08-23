@@ -1,0 +1,12 @@
+11
+LRUCache 3
+put 5 50
+put 6 60
+get 4
+get 5
+get 7
+put 7 70
+get 4
+get 6
+get 8
+get 7

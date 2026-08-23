@@ -1,0 +1,8 @@
+slug = "swap-nodes-in-pairs"
+title = "两两交换链表中的节点"
+difficulty = "medium"
+source = "hot100"
+tags = ["递归", "链表"]
+samples = [1, 2]
+time_limit_ms = 5000
+memory_limit_mb = 256

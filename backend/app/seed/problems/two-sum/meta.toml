@@ -1,0 +1,8 @@
+slug = "two-sum"
+title = "两数之和"
+difficulty = "easy"
+source = "hot100"
+tags = ["数组", "哈希表"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,8 @@
+slug = "palindrome-partitioning"
+title = "分割回文串"
+difficulty = "medium"
+source = "hot100"
+tags = ["字符串", "DP", "回溯"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

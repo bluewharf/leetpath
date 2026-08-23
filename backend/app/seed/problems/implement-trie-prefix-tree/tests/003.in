@@ -1,0 +1,7 @@
+6
+Trie
+search hello
+search a
+startsWith h
+startsWith a
+startsWith abc

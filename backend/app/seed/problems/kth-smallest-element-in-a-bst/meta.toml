@@ -1,0 +1,8 @@
+slug = "kth-smallest-element-in-a-bst"
+title = "二叉搜索树中第 K 小的元素"
+difficulty = "medium"
+source = "hot100"
+tags = ["树", "DFS", "BST"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

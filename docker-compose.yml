@@ -1,0 +1,59 @@
+# leetpath：nginx 静态 + /api 反代、FastAPI、判题 worker。
+# 判题镜像不随 up 启动，需先：docker compose build judge-python judge-cpp
+
+services:
+  backend:
+    image: leetpath-backend
+    build:
+      context: ./backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    env_file: .env
+    volumes:
+      - leetpath-data:/app/data
+    restart: unless-stopped
+
+  judge:
+    image: leetpath-backend
+    build:
+      context: ./backend
+    command: ["python", "-m", "judge.worker"]
+    env_file: .env
+    volumes:
+      - leetpath-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      # worker 用 tempfile 写用例后 docker -v 走宿主路径，需与容器内绝对路径一致
+      - /tmp:/tmp
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  judge-python:
+    image: leetpath-judge-python
+    build:
+      context: ./backend/judge
+      dockerfile: Dockerfile.python
+    profiles: ["judge-images"]
+    command: ["true"]
+    restart: "no"
+
+  judge-cpp:
+    image: leetpath-judge-cpp
+    build:
+      context: ./backend/judge
+      dockerfile: Dockerfile.cpp
+    profiles: ["judge-images"]
+    command: ["true"]
+    restart: "no"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  leetpath-data:
