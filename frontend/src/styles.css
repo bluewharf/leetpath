@@ -147,32 +147,35 @@
 :root[data-theme="cyber"] .heatmap-cell.level-4 { background: #00f2fe; box-shadow: 0 0 8px #00f2fe; }
 
 /* ========== 全站字号自由调节体系 (Font Sizing Scale) ========== */
-:root {
-  --font-base: 16px;
-  --font-editor: 14.5px;
-  --font-markdown: 15.5px;
-  --font-mono: 13.5px;
-}
-
-:root[data-font-size="sm"] {
-  --font-base: 14px;
-  --font-editor: 13px;
-  --font-markdown: 14px;
-  --font-mono: 12.5px;
-}
-
+:root,
+html[data-font-size="md"],
 :root[data-font-size="md"] {
   --font-base: 16px;
-  --font-editor: 14.5px;
-  --font-markdown: 15.5px;
-  --font-mono: 13.5px;
+  --font-editor: 15px;
+  --font-markdown: 16px;
+  --font-mono: 14px;
+  --font-title: 20px;
+  --font-display: 32px;
 }
 
+html[data-font-size="sm"],
+:root[data-font-size="sm"] {
+  --font-base: 13.5px;
+  --font-editor: 12.5px;
+  --font-markdown: 13.5px;
+  --font-mono: 12px;
+  --font-title: 17px;
+  --font-display: 26px;
+}
+
+html[data-font-size="lg"],
 :root[data-font-size="lg"] {
-  --font-base: 18px;
-  --font-editor: 16.5px;
-  --font-markdown: 17.5px;
-  --font-mono: 15px;
+  --font-base: 19.5px;
+  --font-editor: 18.5px;
+  --font-markdown: 19.5px;
+  --font-mono: 16.5px;
+  --font-title: 24px;
+  --font-display: 40px;
 }
 
 * { box-sizing: border-box; }
