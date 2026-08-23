@@ -170,12 +170,67 @@ html[data-font-size="sm"],
 
 html[data-font-size="lg"],
 :root[data-font-size="lg"] {
-  --font-base: 19.5px;
+  --font-base: 20px;
   --font-editor: 18.5px;
-  --font-markdown: 19.5px;
+  --font-markdown: 20px;
   --font-mono: 16.5px;
-  --font-title: 24px;
-  --font-display: 40px;
+  --font-title: 25px;
+  --font-display: 42px;
+}
+
+/* 强力全站缩放级联规则 */
+html[data-font-size="sm"] body { font-size: 13.5px !important; }
+html[data-font-size="sm"] .p-row,
+html[data-font-size="sm"] .p-title,
+html[data-font-size="sm"] .job-card,
+html[data-font-size="sm"] .pos-title,
+html[data-font-size="sm"] .curated-card,
+html[data-font-size="sm"] .curated-desc,
+html[data-font-size="sm"] .handbook-table,
+html[data-font-size="sm"] .statement,
+html[data-font-size="sm"] .markdown-body,
+html[data-font-size="sm"] .rc-solution,
+html[data-font-size="sm"] .template-content {
+  font-size: 13.5px !important;
+}
+html[data-font-size="sm"] .cm-editor,
+html[data-font-size="sm"] .cm-content,
+html[data-font-size="sm"] .cm-line {
+  font-size: 12.5px !important;
+}
+html[data-font-size="sm"] .display,
+html[data-font-size="sm"] .hero h1,
+html[data-font-size="sm"] .rc-title {
+  font-size: 26px !important;
+}
+
+html[data-font-size="lg"] body { font-size: 20px !important; }
+html[data-font-size="lg"] .p-row,
+html[data-font-size="lg"] .p-title,
+html[data-font-size="lg"] .job-card,
+html[data-font-size="lg"] .pos-title,
+html[data-font-size="lg"] .curated-card,
+html[data-font-size="lg"] .curated-desc,
+html[data-font-size="lg"] .handbook-table,
+html[data-font-size="lg"] .statement,
+html[data-font-size="lg"] .markdown-body,
+html[data-font-size="lg"] .rc-solution,
+html[data-font-size="lg"] .template-content {
+  font-size: 19.5px !important;
+}
+html[data-font-size="lg"] .cm-editor,
+html[data-font-size="lg"] .cm-content,
+html[data-font-size="lg"] .cm-line {
+  font-size: 18.5px !important;
+}
+html[data-font-size="lg"] .display,
+html[data-font-size="lg"] .hero h1,
+html[data-font-size="lg"] .rc-title {
+  font-size: 42px !important;
+}
+html[data-font-size="lg"] .btn {
+  font-size: 16px !important;
+  padding: 9px 18px !important;
 }
 
 * { box-sizing: border-box; }
