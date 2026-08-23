@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user, require_admin
-from app.models import Job, User
+from app.models import Job, JobTrack, User, utcnow
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -124,3 +124,48 @@ def delete_job(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="岗位不存在")
     db.delete(job)
     db.commit()
+
+
+TRACK_STATUSES = {"applied", "test", "interview", "offer", "rejected"}
+
+
+class TrackIn(BaseModel):
+    status: str  # TRACK_STATUSES 之一；"none" 表示清除标记
+
+
+@router.get("/track")
+def list_tracks(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[int, str]:
+    rows = db.execute(
+        select(JobTrack.job_id, JobTrack.status).where(JobTrack.user_id == user.id)
+    ).all()
+    return {job_id: st for job_id, st in rows}
+
+
+@router.put("/{job_id}/track")
+def set_track(
+    job_id: int,
+    body: TrackIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, str]:
+    if db.get(Job, job_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="岗位不存在")
+    track = db.get(JobTrack, (user.id, job_id))
+    if body.status == "none":
+        if track is not None:
+            db.delete(track)
+            db.commit()
+        return {"status": "none"}
+    if body.status not in TRACK_STATUSES:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="非法状态")
+    if track is None:
+        track = JobTrack(user_id=user.id, job_id=job_id, status=body.status)
+        db.add(track)
+    else:
+        track.status = body.status
+        track.updated_at = utcnow()
+    db.commit()
+    return {"status": body.status}

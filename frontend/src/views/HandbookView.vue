@@ -24,16 +24,16 @@
     <!-- 导航选项卡 -->
     <div class="handbook-nav-tabs">
       <button :class="{ active: currentTab === 'links' }" @click="currentTab = 'links'">
-        🌟 顶流开源笔记导航
+        顶流开源笔记导航
       </button>
       <button :class="{ active: currentTab === 'complexity' }" @click="currentTab = 'complexity'">
-        🧮 数据规模与复杂度速查
+        数据规模与复杂度速查
       </button>
       <button :class="{ active: currentTab === 'syntax' }" @click="currentTab = 'syntax'">
-        ⚡ Python ⇋ C++ 语法对齐
+        Python ⇋ C++ 语法对齐
       </button>
       <button :class="{ active: currentTab === 'templates' }" @click="currentTab = 'templates'">
-        🎯 7 大核心算法通用模板
+        7 大核心算法通用模板
       </button>
     </div>
 
@@ -96,7 +96,7 @@
     <!-- 模块 3: Python 3 ⇋ C++ 20 语法对齐 -->
     <section v-if="currentTab === 'syntax'" class="handbook-section">
       <div class="card rule-card">
-        <h2>⚡ Python 3 ⇋ C++ 20 高频数据结构与常用内置方法对照</h2>
+        <h2>Python 3 ⇋ C++ 20 高频数据结构与常用内置方法对照</h2>
         <p class="rule-intro">
           结对刷题或双语学习时随手查阅，涵盖竞赛与面试中最常用的标准库操作：
         </p>
@@ -121,7 +121,7 @@
         </div>
 
         <!-- ACM 模式极速 I/O 模板 -->
-        <h3 style="margin-top:28px;font-size:16px">🚀 ACM 模式极速 I/O 输入输出防 TLE 模板</h3>
+        <h3 style="margin-top:28px;font-size:16px">ACM 模式极速 I/O 输入输出防 TLE 模板</h3>
         <div class="io-templates-grid">
           <div class="io-temp-box">
             <div class="io-temp-head">
@@ -182,7 +182,7 @@
                 </button>
               </div>
               <button class="btn btn-sm btn-primary" @click="copy(currentTemplate[tplLang])">
-                📋 复制完整模板
+                复制完整模板
               </button>
             </div>
           </div>
@@ -220,7 +220,7 @@ const CURATED_RESOURCES = [
   {
     title: 'Hello 算法 (Hello Algo)',
     url: 'https://www.hello-algo.com/',
-    badge: '🌟 动画图解顶流',
+    badge: '动画图解顶流',
     stars: '100k+ Stars',
     desc: '全网零基础入门最友好的开源算法教程！动画生动展示数据结构与算法执行全过程，覆盖 Python/C++/Java/Go 全语言。',
     tag: '零基础 · 图解 · 交互式学习',
@@ -228,7 +228,7 @@ const CURATED_RESOURCES = [
   {
     title: '代码随想录 (Programmer Carl)',
     url: 'https://programmercarl.com/',
-    badge: '🏆 校招面试必读',
+    badge: '校招面试必读',
     stars: '50k+ Stars',
     desc: '国内程序员校招刷题人手一本的求职宝典！按专题（二叉树、动态规划五步法、回溯、双指针）归纳总结通用做题套路。',
     tag: '专题刷题 · 模板总结 · 面试高频',
@@ -236,7 +236,7 @@ const CURATED_RESOURCES = [
   {
     title: 'labuladong 的算法笔记',
     url: 'https://labuladong.online/',
-    badge: '🧠 算法框架思维',
+    badge: '算法框架思维',
     stars: '120k+ Stars',
     desc: '主打手把手拆解通用算法框架，将滑动窗口、二分查找、二叉树遍历框架化，掌握一个框架轻松秒杀一整类算法题。',
     tag: '框架思维 · 递归模式 · 核心模板',
@@ -244,7 +244,7 @@ const CURATED_RESOURCES = [
   {
     title: 'OI Wiki 算法竞赛百科',
     url: 'https://oi-wiki.org/',
-    badge: '📚 权威算法百科',
+    badge: '权威算法百科',
     stars: '30k+ Stars',
     desc: '由算法竞赛圈共同维护的最权威中文算法百科全书，数学推导严谨，涵盖从基础数据结构到高级图论算法的全部细节。',
     tag: '百科全书 · 严谨推导 · 竞赛进阶',

@@ -24,9 +24,9 @@
 
       <div class="hero-actions">
         <RouterLink class="btn btn-primary" to="/problems">进入题库 →</RouterLink>
-        <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷一题</button>
-        <RouterLink class="btn" to="/review">✦ 背题模式</RouterLink>
-        <RouterLink class="btn" to="/handbook">📖 新手手册</RouterLink>
+        <button class="btn btn-ghost" @click="pickRandomProblem">随机刷一题</button>
+        <RouterLink class="btn" to="/review">背题模式</RouterLink>
+        <RouterLink class="btn" to="/handbook">新手手册</RouterLink>
       </div>
     </div>
 
@@ -34,7 +34,7 @@
     <div class="card heatmap-card">
       <div class="heatmap-head">
         <div>
-          <h3>🔥 刷题活跃度与打卡记录</h3>
+          <h3>刷题活跃度与打卡记录</h3>
           <span class="heatmap-sub">过去 52 周提交记录</span>
         </div>
         <div class="heatmap-streak">
@@ -68,7 +68,7 @@
     <!-- 算法核心专题掌握度 -->
     <div class="card category-card" v-if="categoryStats.length > 0">
       <div class="section-title" style="margin:0 0 16px">
-        <h3>📊 经典算法专题掌握度</h3>
+        <h3>经典算法专题掌握度</h3>
         <RouterLink to="/problems">查看全部专题 →</RouterLink>
       </div>
 
@@ -87,7 +87,7 @@
 
     <!-- 秋招看板精选 -->
     <div class="section-title">
-      <h2>🍁 秋招高频在招看板</h2>
+      <h2>秋招高频在招看板</h2>
       <RouterLink to="/jobs">查看全部公司与岗位 →</RouterLink>
     </div>
     <JobBoard :limit="4" />

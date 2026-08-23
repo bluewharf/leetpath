@@ -34,13 +34,13 @@
           :class="{ active: langPref === 'python3' }"
           @click="setLang('python3')"
         >
-          🐍 Python 3
+          Python 3
         </button>
         <button
           :class="{ active: langPref === 'cpp' }"
           @click="setLang('cpp')"
         >
-          ⚡ C++ 20
+          C++ 20
         </button>
       </div>
     </div>

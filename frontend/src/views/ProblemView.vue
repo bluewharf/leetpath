@@ -13,7 +13,7 @@
       <div class="mobile-tabs">
         <button :class="{ active: tab === 'statement' }" @click="tab = 'statement'">题面</button>
         <button :class="{ active: tab === 'solution' }" @click="tab = 'solution'">
-          题解<span v-if="problem.has_solution"> 💡</span>
+          题解<span v-if="problem.has_solution"> ·</span>
         </button>
         <button :class="{ active: tab === 'code' }" @click="tab = 'code'">代码</button>
         <button :class="{ active: tab === 'result' }" @click="tab = 'result'">
@@ -32,7 +32,7 @@
         <div class="workspace-right">
           <!-- 计时器 -->
           <div class="stopwatch-badge" :class="{ running: timerRunning, urgent: timerMode === 'countdown' && timerSeconds <= 300 }">
-            <span class="timer-icon">⏱️</span>
+            <span class="timer-icon">◷</span>
             <span class="timer-text mono">{{ formattedTimer }}</span>
             <button class="timer-btn" :title="timerRunning ? '暂停' : '开始'" @click="toggleTimer">
               {{ timerRunning ? '⏸' : '▶' }}
@@ -45,7 +45,7 @@
 
           <!-- 禅模式切换 -->
           <button class="btn btn-sm zen-btn" :class="{ active: isZen }" :title="isZen ? '退出禅模式 (Esc)' : '开启沉浸禅模式'" @click="isZen = !isZen">
-            {{ isZen ? '✕ 退出全屏' : '⛶ 禅模式' }}
+            {{ isZen ? '✕ 退出全屏' : '禅模式' }}
           </button>
         </div>
       </div>
@@ -60,10 +60,10 @@
           <!-- 桌面端左面板 Tab（题面 / 题解思路） -->
           <div class="pane-tab-bar" v-if="isDesktop">
             <button class="pane-tab" :class="{ active: leftPaneTab === 'statement' }" @click="leftPaneTab = 'statement'">
-              📄 题目描述
+              题目描述
             </button>
             <button class="pane-tab" :class="{ active: leftPaneTab === 'solution' }" @click="leftPaneTab = 'solution'">
-              💡 官方题解
+              官方题解
             </button>
           </div>
 
@@ -106,10 +106,10 @@
                 <div v-if="expandedHistory.has(s.id)" class="history-code-box">
                   <div class="history-code-actions">
                     <button class="btn btn-xs" @click.stop="loadCodeIntoEditor(historyCode[s.id], s.language)">
-                      📥 载入编辑器
+                      载入编辑器
                     </button>
                     <button class="btn btn-xs" @click.stop="copyCode(historyCode[s.id])">
-                      📋 复制代码
+                      复制代码
                     </button>
                   </div>
                   <pre class="history-pre">{{ historyCode[s.id] }}</pre>
@@ -121,7 +121,7 @@
           <!-- 题解内容 -->
           <div v-show="!isDesktop ? tab === 'solution' : leftPaneTab === 'solution'" class="solution-pane-wrap">
             <h2 style="font-size:18px;margin-top:6px;display:flex;align-items:center;gap:8px">
-              <span>💡 {{ problem.title }} · 官方题解</span>
+              <span>{{ problem.title }} · 官方题解</span>
             </h2>
             <div v-if="solutionLoading" class="empty" style="padding:24px 0">题解加载中…</div>
             <div v-else-if="solutionHtml" class="markdown-body rc-solution" v-html="solutionHtml"></div>
@@ -144,17 +144,15 @@
         <section class="pane pane-right" v-show="isDesktop || tab === 'code' || tab === 'result'">
           <div class="card" v-show="isDesktop || tab === 'code'">
             <div class="editor-toolbar">
-              <select v-model="language" class="select" @change="onLanguageChange">
-                <option value="python3">Python3</option>
-                <option value="cpp">C++ (C++20)</option>
-              </select>
+              <!-- 语言由顶栏全局偏好统一控制，此处只读展示 -->
+              <span class="editor-lang-label mono" title="在页面右上角切换全局语言">{{ language === 'cpp' ? 'C++ (C++20)' : 'Python3' }}</span>
 
               <button class="btn btn-primary btn-sm" :disabled="submitting" @click="submit" title="快捷键: Ctrl + Enter">
                 {{ submitting ? '评测中…' : '提交评测' }}
               </button>
 
               <button class="btn btn-sm btn-ghost" @click="confirmResetCode" title="重置为初始模板代码">
-                🔄 重置
+                重置
               </button>
 
               <span class="save-hint" :title="saveHint">{{ saveHint }}</span>
@@ -237,7 +235,7 @@ import {
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 const toast = useToast()
-const { langPref } = useLangPref()
+const { langPref, setLang } = useLangPref()
 
 const loading = ref(true)
 const problem = ref<ProblemDetail | null>(null)
@@ -415,7 +413,7 @@ async function toggleHistory(id: number) {
 function loadCodeIntoEditor(historySnippet: string, lang: Language) {
   if (!historySnippet) return
   if (confirm('确认将此历史提交代码载入到编辑器中吗？当前未保存的修改将被覆盖。')) {
-    if (language.value !== lang) language.value = lang
+    if (language.value !== lang) setLang(lang)
     code.value = historySnippet
     dirty = true
     saveDraftNow()
@@ -489,6 +487,13 @@ async function onLanguageChange() {
   await loadDraft()
 }
 
+// 全局语言偏好变化时，编辑器语言与草稿同步切换
+watch(langPref, async (lang) => {
+  if (language.value === lang) return
+  language.value = lang
+  await onLanguageChange()
+})
+
 async function submit() {
   if (!problem.value || submitting.value) return
   if (saveTimer) clearTimeout(saveTimer)
@@ -517,7 +522,7 @@ async function poll(id: number) {
     if (isFinal(s.status)) {
       submitting.value = false
       if (s.status === 'AC') {
-        toast.success('🎉 恭喜！代码全部通过 (Accepted)')
+        toast.success('恭喜！代码全部通过 (Accepted)')
       } else {
         toast.info(`评测完成：状态为 ${s.status}`)
       }
