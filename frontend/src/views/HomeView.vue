@@ -1,20 +1,27 @@
 <template>
   <div class="container">
     <div class="hero">
-      <div class="kicker">LeetPath · 2026/2027 校招刷题与求职神器</div>
-      <h1>空余间隙，<span class="grad">刷一道题</span>。</h1>
+      <div class="kicker">Daily Practice & Career Board</div>
+      <h1>
+        专为校招求职打造的<br />
+        <span class="grad">极客刷题与算法手撕平台</span>
+      </h1>
       <p class="lede">
-        精选力扣热题 100 + 面经高频手撕，Python3 / C++ Docker 沙箱真机评测，全量官方题解与背题卡片，秋招大厂岗位聚合雷达。
+        力扣热题 100 + 面经高频手撕题库 · Python3 / C++ 在线沙箱评测 · 52周打卡热力图 · 秋招公司级聚合看板
       </p>
 
       <div class="hero-stats">
         <div class="hstat">
-          <span class="num grad-num">{{ solvedCount }}<span style="font-size:16px;color:var(--text-faint)"> / {{ problemCount }}</span></span>
-          <span class="lbl">已通过题数</span>
+          <span class="num grad-num">{{ problemCount }}</span>
+          <span class="lbl">精选精校题目</span>
         </div>
         <div class="hstat">
-          <span class="num accent">{{ rememberedCount }}</span>
-          <span class="lbl">已记住题解</span>
+          <span class="num">{{ solvedCount }}</span>
+          <span class="lbl">已解决题目</span>
+        </div>
+        <div class="hstat">
+          <span class="num">{{ rememberedCount }}</span>
+          <span class="lbl">已牢记题解</span>
         </div>
         <div class="hstat">
           <span class="num">{{ openJobCount }}</span>
@@ -24,11 +31,18 @@
 
       <div class="hero-actions">
         <RouterLink class="btn btn-primary" to="/problems">进入题库 →</RouterLink>
-        <button class="btn btn-ghost" @click="pickRandomProblem">随机刷一题</button>
+        <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷一题</button>
         <RouterLink class="btn" to="/review">背题模式</RouterLink>
         <RouterLink class="btn" to="/handbook">新手手册</RouterLink>
       </div>
     </div>
+
+    <!-- 刷题打卡计划看板组件 -->
+    <PlanCard
+      :problems="problems"
+      @open-modal="showPlanModal = true"
+      style="margin-bottom: 24px"
+    />
 
     <!-- 年度打卡热力图卡片 -->
     <div class="card heatmap-card">
@@ -38,7 +52,7 @@
           <span class="heatmap-sub">过去 52 周提交记录</span>
         </div>
         <div class="heatmap-streak">
-          <span class="streak-tag">持续打卡手感火热</span>
+          <span class="streak-tag">🔥 持续打卡手感火热</span>
         </div>
       </div>
 
@@ -91,6 +105,13 @@
       <RouterLink to="/jobs">查看全部公司与岗位 →</RouterLink>
     </div>
     <JobBoard :limit="4" />
+
+    <!-- 计划制定弹窗 -->
+    <PlanModal
+      v-if="showPlanModal"
+      :problems="problems"
+      @close="showPlanModal = false"
+    />
   </div>
 </template>
 
@@ -99,6 +120,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api'
 import JobBoard from '../components/JobBoard.vue'
+import PlanCard from '../components/PlanCard.vue'
+import PlanModal from '../components/PlanModal.vue'
 import type { Job, ProblemListItem, Submission } from '../types'
 
 const router = useRouter()
@@ -108,6 +131,7 @@ const solvedCount = ref(0)
 const rememberedCount = ref(0)
 const openJobCount = ref(0)
 const problems = ref<ProblemListItem[]>([])
+const showPlanModal = ref(false)
 
 interface HeatmapDay {
   date: string

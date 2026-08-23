@@ -7,8 +7,8 @@
       </div>
       <div class="head-stats">
         <div class="stat">
-          <span class="num accent">4</span>
-          <span class="lbl">顶流笔记</span>
+          <span class="num accent">8</span>
+          <span class="lbl">数据结构扫盲</span>
         </div>
         <div class="stat">
           <span class="num">7</span>
@@ -23,6 +23,9 @@
 
     <!-- 导航选项卡 -->
     <div class="handbook-nav-tabs">
+      <button :class="{ active: currentTab === 'basics' }" @click="currentTab = 'basics'">
+        零基础扫盲
+      </button>
       <button :class="{ active: currentTab === 'links' }" @click="currentTab = 'links'">
         顶流开源笔记导航
       </button>
@@ -36,6 +39,69 @@
         7 大核心算法通用模板
       </button>
     </div>
+
+    <!-- 模块 0: 零基础扫盲 -->
+    <section v-if="currentTab === 'basics'" class="handbook-section">
+      <div class="card rule-card">
+        <h2>刷题入门路线（先建立手感，再上强度）</h2>
+        <ol class="basics-roadmap">
+          <li><strong>数组 + 哈希表</strong>：最简单也最高频，先学会「以空间换时间」的思考方式（如两数之和）。</li>
+          <li><strong>双指针 + 链表</strong>：体会「原地操作」和指针移动的套路（反转链表、合并有序链表）。</li>
+          <li><strong>栈与队列</strong>：理解 LIFO / FIFO，为后面的 BFS、单调栈打底（有效括号、每日温度）。</li>
+          <li><strong>二叉树 + 递归</strong>：前中后序遍历是最好的递归思维训练场，卡住就先背遍历框架。</li>
+          <li><strong>二分 / 滑动窗口 / 回溯</strong>：中等题三大套路，配合右侧「模板」页直接背骨架。</li>
+          <li><strong>动态规划 + 图</strong>：放到最后，前面攒够手感再来啃。</li>
+        </ol>
+        <p class="rule-intro" style="margin-bottom:0">
+          每道题先想暴力解，再问自己「哪一步在重复劳动」，优化的方向往往就藏在这个答案里。题解看不懂很正常——去「背题」页把对应模板先背下来，回头再看就通了。
+        </p>
+      </div>
+
+      <h3 class="basics-sub-title">八大核心数据结构扫盲</h3>
+      <div class="curated-grid">
+        <div v-for="d in BASICS_DS" :key="d.name" class="card curated-card ds-card">
+          <div class="curated-top">
+            <span class="curated-badge">{{ d.badge }}</span>
+            <span class="curated-star">{{ d.cost }}</span>
+          </div>
+          <h3 class="curated-title">{{ d.name }}</h3>
+          <p class="curated-desc">{{ d.what }}</p>
+          <div class="curated-footer">
+            <span class="curated-tag">{{ d.usage }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rule-card" style="margin-top:16px">
+        <h2>大 O 复杂度直觉（越大越慢，从左到右恶化）</h2>
+        <p class="rule-intro">
+          大 O 描述的是「数据量 n 变大时，运行时间增长得多快」。面试中说出复杂度级别，比背出精确数字重要得多：
+        </p>
+        <div class="table-wrap">
+          <table class="handbook-table">
+            <thead>
+              <tr>
+                <th>复杂度</th>
+                <th>名字</th>
+                <th>代表操作</th>
+                <th>一句话直觉</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in BIGO_LEVELS" :key="r.big_o">
+                <td class="mono bold accent-cell">{{ r.big_o }}</td>
+                <td>{{ r.name }}</td>
+                <td>{{ r.typical }}</td>
+                <td style="color:var(--text-dim)">{{ r.intuition }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="rule-intro" style="margin:14px 0 0">
+          拿到题先看数据范围 $n$，再对照「数据规模与复杂度速查」页倒推允许的复杂度——这是面试秒出思路的关键习惯。
+        </p>
+      </div>
+    </section>
 
     <!-- 模块 1: 顶流开源笔记推荐 -->
     <section v-if="currentTab === 'links'" class="handbook-section">
@@ -65,7 +131,7 @@
     <!-- 模块 2: 数据规模倒推法则 -->
     <section v-if="currentTab === 'complexity'" class="handbook-section">
       <div class="card rule-card">
-        <h2>⏱️ 数据规模与时间复杂度倒推法则（面试秒出思路）</h2>
+        <h2>数据规模与时间复杂度倒推法则（面试秒出思路）</h2>
         <p class="rule-intro">
           在算法面试和 OJ 中，<strong>看一眼题目给出的数据范围 $n$，就能直接倒推本题允许的理论最大时间复杂度</strong>（以单核 1 秒运算 $10^8$ 次为基准）：
         </p>
@@ -203,7 +269,7 @@ import { useLangPref } from '../stores/pref'
 
 const toast = useToast()
 const { langPref } = useLangPref()
-const currentTab = ref<'links' | 'complexity' | 'syntax' | 'templates'>('links')
+const currentTab = ref<'basics' | 'links' | 'complexity' | 'syntax' | 'templates'>('basics')
 const selectedTemplateIdx = ref(0)
 const tplLang = ref<'python3' | 'cpp'>(langPref.value)
 
@@ -215,6 +281,74 @@ function copy(text: string) {
   navigator.clipboard.writeText(text)
   toast.success('模板代码已复制到剪贴板')
 }
+
+const BASICS_DS = [
+  {
+    name: '数组 Array',
+    badge: '入门第一课',
+    cost: '访问 O(1)',
+    what: '一块连续内存，按下标直接取元素。插入/删除中间元素要整体搬移，是 O(n)。',
+    usage: '几乎所有题的起点',
+  },
+  {
+    name: '链表 Linked List',
+    badge: '指针基本功',
+    cost: '插入 O(1)',
+    what: '节点之间用指针串联，不连续存储。改指针就能插入删除，但想找第 k 个只能从头走。',
+    usage: '反转 · 环检测 · 合并',
+  },
+  {
+    name: '栈 Stack',
+    badge: 'LIFO',
+    cost: '进出 O(1)',
+    what: '后进先出，只能从栈顶放取。遇到「最近匹配」「成对消除」类问题先想它。',
+    usage: '括号匹配 · 单调栈',
+  },
+  {
+    name: '队列 Queue',
+    badge: 'FIFO',
+    cost: '进出 O(1)',
+    what: '先进先出，队尾进队头出。BFS 层序遍历的标配；双端队列（Deque）可两头操作。',
+    usage: 'BFS · 层序遍历',
+  },
+  {
+    name: '哈希表 Hash Map',
+    badge: '空间换时间',
+    cost: '查找 O(1)',
+    what: 'key → value 的映射，查一个值平均只要 O(1)。「边遍历边记录见过什么」是它的灵魂。',
+    usage: '两数之和 · 计数去重',
+  },
+  {
+    name: '堆 Heap / 优先队列',
+    badge: 'Top K 神器',
+    cost: '取顶 O(log n)',
+    what: '一棵能自动维持最大/最小值在堆顶的二叉树，不用全排序就能反复取极值。',
+    usage: 'Top K · 合并有序流',
+  },
+  {
+    name: '二叉树 Binary Tree',
+    badge: '递归训练场',
+    cost: '遍历 O(n)',
+    what: '每个节点最多两个孩子。前/中/后序遍历就是三种递归时机；二叉搜索树满足左小右大。',
+    usage: '遍历 · 最近公共祖先',
+  },
+  {
+    name: '图 Graph',
+    badge: '关系网络',
+    cost: '视算法而定',
+    what: '节点加边的关系网，树是特殊的不带环的图。最短路径、拓扑排序、并查集都围绕它展开。',
+    usage: '课程表 · 岛屿数量',
+  },
+]
+
+const BIGO_LEVELS = [
+  { big_o: 'O(1)', name: '常数', typical: '哈希表查 key、数组按下标访问', intuition: '数据再涨也不慌' },
+  { big_o: 'O(log n)', name: '对数', typical: '二分查找', intuition: '每步砍掉一半，越砍越快' },
+  { big_o: 'O(n)', name: '线性', typical: '把数组完整遍历一遍', intuition: '中规中矩的底线' },
+  { big_o: 'O(n log n)', name: '线性对数', typical: '快排 / 归并 / 堆排序', intuition: '比较排序的天花板' },
+  { big_o: 'O(n²)', name: '平方', typical: '双重循环两两枚举', intuition: 'n 过千就要警惕' },
+  { big_o: 'O(2ⁿ) / O(n!)', name: '指数 / 阶乘', typical: '回溯爆搜、全排列', intuition: '只在 n ≤ 20 左右能用' },
+]
 
 const CURATED_RESOURCES = [
   {

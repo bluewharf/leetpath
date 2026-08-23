@@ -223,6 +223,7 @@ import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useToast } from '../stores/toast'
 import { useLangPref } from '../stores/pref'
+import { useStudyPlan } from '../stores/plan'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import {
   isFinal,
@@ -515,6 +516,8 @@ async function submit() {
   }
 }
 
+const { recordSolvedProblem, activePlan } = useStudyPlan()
+
 async function poll(id: number) {
   try {
     const s = await api.get<Submission>(`/api/submissions/${id}`)
@@ -523,6 +526,9 @@ async function poll(id: number) {
       submitting.value = false
       if (s.status === 'AC') {
         toast.success('恭喜！代码全部通过 (Accepted)')
+        if (activePlan.value) {
+          recordSolvedProblem(slug.value)
+        }
       } else {
         toast.info(`评测完成：状态为 ${s.status}`)
       }
