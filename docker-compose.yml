@@ -13,6 +13,7 @@ services:
     build:
       context: ./backend
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    user: "10001"
     env_file: ${LEETPATH_ENV_FILE:-.env}
     volumes:
       - leetpath-data:/app/data
@@ -65,6 +66,7 @@ services:
     build:
       context: ./backend
     command: ["python", "-m", "app.backup"]
+    user: "10001"
     env_file: ${LEETPATH_ENV_FILE:-.env}
     volumes:
       - leetpath-data:/app/data:ro
