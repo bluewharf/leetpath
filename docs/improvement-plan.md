@@ -324,7 +324,7 @@ RUN useradd --uid 10001 --create-home appuser \
 
 ### B4. 前端补错误态（HomeView / AdminView / LinksView）
 
-- [ ] **B4 完成**
+- [x] **B4 完成**
 
 **问题**：
 - `HomeView.vue` 数据加载失败被整段 catch 静默吞掉，弱网下呈现为无提示的空数据页；
@@ -335,7 +335,7 @@ RUN useradd --uid 10001 --create-home appuser \
 
 **验收**：`cd frontend && npm run typecheck && npm run build` 通过；手测：停掉后端后刷新首页/管理页/八股页，三页均显示错误提示与重试按钮，不再是空白或"暂无数据"。
 
-完成备注：
+完成备注：`frontend/src/views/HomeView.vue`, `frontend/src/views/AdminView.vue`, `frontend/src/views/LinksView.vue`, `frontend/src/styles.css`；`npm run typecheck` / `npm run build` 通过；手测待浏览器。
 
 ---
 
