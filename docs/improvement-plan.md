@@ -263,7 +263,7 @@ if not verify_password(body.password, user.password_hash):
 
 ### B2. judge 容器临时目录缩窄（不再挂载宿主整个 /tmp）
 
-- [ ] **B2 完成**
+- [x] **B2 完成**
 
 **问题**：`docker-compose.yml` 的 judge 服务挂载 `- /tmp:/tmp`，评测工作目录建在宿主 `/tmp/<提交id>` 且 `chmod 0o777`，宿主上任何进程都可在评测瞬间篡改代码与用例；裸数字目录名也可能与宿主已有文件冲突。
 
@@ -285,7 +285,7 @@ if not verify_password(body.password, user.password_hash):
 
 **验收**：`cd backend && pytest` 全过；最终判题功能在服务器部署后用真实提交验证（备注"待服务器验证"）。
 
-完成备注：
+完成备注：`docker-compose.yml`, `backend/judge/worker.py`；待服务器验证
 
 ---
 
