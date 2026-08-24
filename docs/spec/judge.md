@@ -19,7 +19,7 @@
 UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
 ```
 
-按 id 升序取最早 pending，rowcount=1 才算领取成功（防多 worker 重复）。单 worker 顺序处理即可，不做并发。
+按 id 升序取最早 pending，rowcount=1 才算领取成功（防多 worker 重复）。单 worker 顺序处理即可，不做并发。单 worker 启动时先把进程异常退出遗留的 `judging` 提交恢复为 `pending`。
 
 ## 评测流程（一次提交）
 
@@ -27,7 +27,9 @@ UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
 2. **cpp 先编译**（独立容器，输出到该目录）：
 
    ```
-   docker run --rm --network none --memory 512m --cpus 1 \
+   docker run --rm --network none --read-only --tmpfs /tmp:size=32m \
+     --memory 512m --memory-swap 512m --cpus 1 --pids-limit 64 \
+     --cap-drop ALL --security-opt no-new-privileges --user 65534:65534 \
      -v <dir>:/work -w /work leetpath-judge-cpp \
      g++ -O2 -std=c++17 -o main_bin main.cpp
    ```
@@ -36,17 +38,20 @@ UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
 3. **逐用例运行**（每个用例一个一次性容器，按 ordinal 升序）：
 
    ```
-   docker run --rm --network none --read-only --tmpfs /tmp:size=32m \
-     --memory <memory_limit_mb>m --cpus 0.5 --pids-limit 64 \
+   docker run --network none --read-only --tmpfs /tmp:size=32m \
+     --memory <memory_limit_mb>m --memory-swap <memory_limit_mb>m --cpus 0.5 --pids-limit 64 \
+     --cap-drop ALL --security-opt no-new-privileges --user 65534:65534 \
      -v <dir>:/work:ro -w /work <image> \
      sh -c "timeout -s KILL <limit_s> <cmd> < tests/NNN.in"
    ```
 
    - python3: image=`leetpath-judge-python`, cmd=`python3 main.py`
    - cpp: image=`leetpath-judge-cpp`, cmd=`./main_bin`（注意 main_bin 在 /work 下，--read-only 不影响执行）
-   - `<limit_s>` = ceil(time_limit_ms/1000)，另加外层 `subprocess.run(timeout=limit_s+15)` 兜底（含容器启动开销），外层超时视为 TLE。
+   - 运行容器不使用 `--rm`，以便检查 `OOMKilled`；worker 在 finally 中强制删除容器。
+   - `<limit_s>` = ceil(time_limit_ms/1000)，另加外层进程超时 `limit_s+15` 兜底（含容器启动开销），外层超时视为 TLE。
 4. 每个用例判定：
-   - 退出码 124 或 137（timeout KILL / OOM kill）→ 124 记 `TLE`，137 记 `MLE`
+   - 退出码 124 记 `TLE`；137 时根据 Docker `OOMKilled` 区分 `MLE`，否则记 `TLE`
+   - stdout + stderr 合计超过 1 MiB 时立即终止容器并记 `RE`；编译输出超限记 `CE`
    - 其他非零退出 → `RE`（stderr 截断 500 字符记入该用例 detail）
    - 零退出 → 比对 stdout 与 expected_output：**规范化**（每行去行尾空白、整体去末尾空行）后相等 → `AC`，否则 `WA`（记录实际输出截断 500 字符）
    - 单用例 runtime_ms：容器运行的外层 wall time（近似值，含启动开销，文档注明）

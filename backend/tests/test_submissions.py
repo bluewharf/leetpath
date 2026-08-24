@@ -39,10 +39,66 @@ def test_list_submissions_omits_code(admin_client):
 def test_submission_rate_limit(admin_client):
     payload = {"problem_slug": "two-sum", "language": "python3", "code": "print(1)"}
     codes = []
-    for _ in range(6):
+    for _ in range(3):
         codes.append(admin_client.post("/api/submissions", json=payload).status_code)
-    assert codes[:5] == [202] * 5
-    assert codes[5] == 429
+    assert codes[:2] == [202] * 2
+    assert codes[2] == 429
+
+
+def test_submission_per_minute_limit(admin_client):
+    from app import db as dbmod
+    from app.models import Submission
+
+    payload = {"problem_slug": "two-sum", "language": "python3", "code": "print(1)"}
+    statuses = []
+    for _ in range(11):
+        response = admin_client.post("/api/submissions", json=payload)
+        statuses.append(response.status_code)
+        if response.status_code == 202:
+            assert dbmod.SessionLocal is not None
+            with dbmod.SessionLocal() as db:
+                sub = db.get(Submission, response.json()["id"])
+                assert sub is not None
+                sub.status = "AC"
+                db.commit()
+    assert statuses[:10] == [202] * 10
+    assert statuses[10] == 429
+
+
+def test_submission_global_queue_limit(admin_client):
+    from app import db as dbmod
+    from app.auth import hash_password
+    from app.models import Problem, Submission, User
+
+    assert dbmod.SessionLocal is not None
+    with dbmod.SessionLocal() as db:
+        problem = db.query(Problem).filter_by(slug="two-sum").one()
+        for index in range(5):
+            user = User(
+                username=f"queue{index}",
+                password_hash=hash_password("password123"),
+                is_admin=False,
+            )
+            db.add(user)
+            db.flush()
+            for _ in range(2):
+                db.add(
+                    Submission(
+                        user_id=user.id,
+                        problem_id=problem.id,
+                        language="python3",
+                        code="print(1)",
+                        status="pending",
+                    )
+                )
+        db.commit()
+
+    response = admin_client.post(
+        "/api/submissions",
+        json={"problem_slug": "two-sum", "language": "python3", "code": "print(1)"},
+    )
+    assert response.status_code == 429
+    assert response.json()["detail"] == "评测队列繁忙，请稍后再试"
 
 
 def test_submission_other_user_forbidden(admin_client):
@@ -51,7 +107,12 @@ def test_submission_other_user_forbidden(admin_client):
         json={"problem_slug": "two-sum", "language": "python3", "code": "print(1)"},
     )
     sid = created.json()["id"]
-    admin_client.post("/api/auth/register", json={"username": "bob", "password": "password123"})
+    invite = admin_client.post("/api/admin/invites", json={"expires_in_days": 7}).json()["code"]
+    admin_client.post("/api/auth/logout")
+    admin_client.post(
+        "/api/auth/register",
+        json={"username": "bob", "password": "password123", "invite_code": invite},
+    )
     r = admin_client.get(f"/api/submissions/{sid}")
     assert r.status_code == 403
 

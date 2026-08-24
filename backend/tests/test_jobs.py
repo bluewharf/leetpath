@@ -1,5 +1,7 @@
 from datetime import date, timedelta
 
+import pytest
+
 
 def test_jobs_crud_admin(admin_client):
     empty = admin_client.get("/api/jobs")
@@ -64,8 +66,8 @@ def test_jobs_non_admin_forbidden(user_client):
 
 def test_job_track_sync(admin_client, user_client):
     # admin_client / user_client 共享同一 TestClient，注册 bob 后会话已切到 bob，
-    # 需要用 login 显式切换回管理员 alice 建岗
-    r = admin_client.post("/api/auth/login", json={"username": "alice", "password": "password123"})
+    # 需要用 login 显式切换回管理员 admin 建岗
+    r = admin_client.post("/api/auth/login", json={"username": "admin", "password": "password123"})
     assert r.status_code == 200
     job = admin_client.post("/api/jobs", json={"company": "腾讯", "position": "后端"}).json()
     job_id = job["id"]
@@ -91,8 +93,66 @@ def test_job_track_sync(admin_client, user_client):
     assert user_client.get("/api/jobs/track").json() == {}
 
     # 另一个用户的标记互不影响
-    admin_client.post("/api/auth/login", json={"username": "alice", "password": "password123"})
+    admin_client.post("/api/auth/login", json={"username": "admin", "password": "password123"})
     admin_client.put(f"/api/jobs/{job_id}/track", json={"status": "offer"})
     assert admin_client.get("/api/jobs/track").json() == {str(job_id): "offer"}
     user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
     assert user_client.get("/api/jobs/track").json() == {}
+
+
+def test_job_urls_must_use_https(admin_client):
+    base = {"company": "示例公司", "position": "开发", "tier": "small"}
+    javascript = admin_client.post("/api/jobs", json={**base, "apply_url": "javascript:alert(1)"})
+    assert javascript.status_code == 422
+    insecure = admin_client.post("/api/jobs", json={**base, "apply_url": "http://example.com"})
+    assert insecure.status_code == 422
+    secure = admin_client.post("/api/jobs", json={**base, "apply_url": "https://example.com/apply"})
+    assert secure.status_code == 201
+    assert secure.json()["apply_url"] == "https://example.com/apply"
+
+
+@pytest.mark.parametrize("field", ["company", "position", "tier", "status"])
+def test_job_update_rejects_null_required_fields(admin_client, field):
+    created = admin_client.post(
+        "/api/jobs",
+        json={"company": "示例公司", "position": "开发", "tier": "small"},
+    )
+    response = admin_client.put(f"/api/jobs/{created.json()['id']}", json={field: None})
+    assert response.status_code == 422
+
+
+def test_jobs_hide_legacy_non_https_urls(admin_client):
+    from app import db as dbmod
+    from app.models import Job
+
+    assert dbmod.SessionLocal is not None
+    with dbmod.SessionLocal() as db:
+        db.add(
+            Job(
+                company="历史数据",
+                position="开发",
+                tier="small",
+                apply_url="javascript:alert(document.domain)",
+                status="open",
+            )
+        )
+        db.commit()
+
+    listed = admin_client.get("/api/jobs")
+    assert listed.status_code == 200
+    legacy = next(job for job in listed.json() if job["company"] == "历史数据")
+    assert legacy["apply_url"] is None
+
+
+def test_job_import_discards_non_https_urls():
+    from app.seed.import_jobs import build_job
+
+    job = build_job(
+        {
+            "company": "导入公司",
+            "role": "开发",
+            "apply_url": "javascript:alert(1)",
+        },
+        today=date(2026, 1, 1),
+    )
+    assert job.apply_url is None
