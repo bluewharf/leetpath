@@ -341,7 +341,7 @@ RUN useradd --uid 10001 --create-home appuser \
 
 ### B5. 移动端底栏适配 iPhone 安全区
 
-- [ ] **B5 完成**
+- [x] **B5 完成**
 
 **问题**：`frontend/index.html` 已设 `viewport-fit=cover`，但 `styles.css` 未使用 `env(safe-area-inset-bottom)`，全面屏 iPhone 上底部 Tab 栏会与 Home Indicator 重叠。
 
@@ -351,7 +351,7 @@ RUN useradd --uid 10001 --create-home appuser \
 
 **验收**：`npm run typecheck && npm run build` 通过；浏览器 DevTools 选 iPhone 14 Pro 之类的机型模拟，底栏与屏幕底缘之间出现安全区留白。
 
-完成备注：
+完成备注：`frontend/src/styles.css`；`npm run typecheck` / `npm run build` 通过；手测待浏览器。
 
 ---
 
