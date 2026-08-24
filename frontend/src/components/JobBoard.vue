@@ -158,9 +158,9 @@
                   <span v-if="job.open_at">开投: {{ job.open_at }}</span>
                   <span v-if="job.deadline_at">截止: {{ job.deadline_at }}</span>
                   <span v-if="job.jd_text">
-                    <a href="javascript:;" class="jd-toggle" @click="toggleJd(job.id)">
+                    <button type="button" class="jd-toggle" @click="toggleJd(job.id)">
                       {{ expandedJd.has(job.id) ? '收起 JD ▴' : '查看 JD 要求 ▾' }}
-                    </a>
+                    </button>
                   </span>
                 </div>
 

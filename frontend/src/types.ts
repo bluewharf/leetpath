@@ -20,6 +20,18 @@ export interface User {
   is_admin: boolean
 }
 
+export interface InviteSummary {
+  id: number
+  expires_at: string
+  used_at: string | null
+  revoked_at: string | null
+  created_at: string
+}
+
+export interface InviteCreated extends InviteSummary {
+  code: string
+}
+
 export interface ProblemListItem {
   id: number
   slug: string

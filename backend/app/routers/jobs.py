@@ -3,12 +3,14 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from pydantic import field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user, require_admin
 from app.models import Job, JobTrack, User, utcnow
+from app.urls import safe_https_url, validate_https_url
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -24,6 +26,8 @@ class JobCreate(BaseModel):
     apply_url: str | None = None
     status: Literal["open", "closed"] = "open"
 
+    _https_apply_url = field_validator("apply_url")(validate_https_url)
+
 
 class JobUpdate(BaseModel):
     company: str | None = None
@@ -35,6 +39,15 @@ class JobUpdate(BaseModel):
     jd_text: str | None = None
     apply_url: str | None = None
     status: Literal["open", "closed"] | None = None
+
+    _https_apply_url = field_validator("apply_url")(validate_https_url)
+
+    @field_validator("company", "position", "tier", "status")
+    @classmethod
+    def required_fields_cannot_be_null(cls, value: str | None) -> str:
+        if value is None:
+            raise ValueError("必填字段不能为 null")
+        return value
 
 
 class JobOut(BaseModel):
@@ -65,7 +78,7 @@ def job_out(job: Job) -> JobOut:
         open_at=job.open_at,
         deadline_at=job.deadline_at,
         jd_text=job.jd_text,
-        apply_url=job.apply_url,
+        apply_url=safe_https_url(job.apply_url),
         status=job.status,
         created_at=job.created_at,
         days_left=days_left,
