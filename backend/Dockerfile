@@ -1,5 +1,5 @@
 # leetpath API / 判题 worker 共用镜像。worker 通过宿主 docker.sock 调用 docker CLI。
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
