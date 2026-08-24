@@ -35,7 +35,7 @@
 
 ### A2. 统一 Python 版本（Dockerfile 3.12 → 3.14）
 
-- [ ] **A2 完成**
+- [x] **A2 完成**
 
 **问题**：本地开发是 Python 3.14（`.venv` 与 pycache 均为 cp314），`backend/Dockerfile` 却用 `python:3.12-slim`，存在"本地测试通过、容器内行为不一致"的风险；`requirements.txt` 的注释也写明按 3.14 选包。
 
@@ -45,7 +45,7 @@
 
 **验收**：`docker build -t leetpath-backend ./backend` 构建成功；若本机无 Docker，备注"待服务器验证"。
 
-完成备注：
+完成备注：`backend/Dockerfile`（FROM python:3.12-slim → python:3.14-slim；本机构建成功）
 
 ---
 
