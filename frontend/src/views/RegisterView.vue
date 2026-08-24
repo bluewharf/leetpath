@@ -14,6 +14,10 @@
           <input v-model="email" class="input" type="email" autocomplete="email" />
         </div>
         <div class="field">
+          <label>邀请码</label>
+          <input v-model="inviteCode" class="input" autocomplete="off" required />
+        </div>
+        <div class="field">
           <label>密码（至少 8 位）</label>
           <input v-model="password" class="input" type="password" autocomplete="new-password" required minlength="8" />
         </div>
@@ -35,6 +39,7 @@ import { useAuthStore } from '../stores/auth'
 
 const username = ref('')
 const email = ref('')
+const inviteCode = ref('')
 const password = ref('')
 const confirm = ref('')
 const error = ref('')
@@ -50,7 +55,7 @@ async function onSubmit() {
   }
   loading.value = true
   try {
-    await auth.register(username.value, password.value, email.value)
+    await auth.register(username.value, password.value, inviteCode.value.trim(), email.value)
     router.push('/')
   } catch (e) {
     error.value = e instanceof Error ? e.message : '注册失败'

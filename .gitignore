@@ -3,7 +3,7 @@ dist/
 __pycache__/
 *.pyc
 .venv/
-data/
+/data/
 *.db
 *.db-wal
 *.db-shm

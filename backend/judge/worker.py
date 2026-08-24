@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import traceback
 import uuid
@@ -36,6 +37,8 @@ STDERR_LIMIT = 500
 WA_OUTPUT_LIMIT = 500
 SAMPLE_IO_LIMIT = 1000
 COMPILE_TIMEOUT_S = 60
+OUTPUT_LIMIT_BYTES = 1024 * 1024
+OUTPUT_LIMIT_RETURN_CODE = -2
 
 STATUS_AC = "AC"
 STATUS_WA = "WA"
@@ -134,22 +137,72 @@ def _run_docker(
         args = ["run", "--name", container_name, *args[1:]]
     cmd = [DOCKER_BIN, *args]
     try:
-        return subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-        )
+        result = _run_process_limited(cmd, timeout=timeout, output_limit=OUTPUT_LIMIT_BYTES)
+        if result.returncode in (-1, OUTPUT_LIMIT_RETURN_CODE) and container_name:
+            _force_rm_container(container_name)
+        return result
     except FileNotFoundError as e:
         raise JudgeInfraError(f"找不到 docker 可执行文件 ({DOCKER_BIN}): {e}") from e
-    except subprocess.TimeoutExpired as e:
-        if container_name:
-            _force_rm_container(container_name)
-        stdout = e.stdout if isinstance(e.stdout, str) else (e.stdout or b"").decode("utf-8", "replace")
-        stderr = e.stderr if isinstance(e.stderr, str) else (e.stderr or b"").decode("utf-8", "replace")
-        return subprocess.CompletedProcess(cmd, -1, stdout or "", stderr or "")
+
+
+def _run_process_limited(
+    cmd: list[str],
+    *,
+    timeout: float,
+    output_limit: int,
+) -> subprocess.CompletedProcess[str]:
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    buffers = {"stdout": bytearray(), "stderr": bytearray()}
+    lock = threading.Lock()
+    output_exceeded = threading.Event()
+
+    def read_stream(name: str, stream: Any) -> None:
+        while True:
+            chunk = stream.read(65536)
+            if not chunk:
+                return
+            with lock:
+                used = len(buffers["stdout"]) + len(buffers["stderr"])
+                remaining = max(0, output_limit - used)
+                buffers[name].extend(chunk[:remaining])
+                if len(chunk) > remaining:
+                    output_exceeded.set()
+                    return
+
+    threads = [
+        threading.Thread(target=read_stream, args=("stdout", process.stdout), daemon=True),
+        threading.Thread(target=read_stream, args=("stderr", process.stderr), daemon=True),
+    ]
+    for thread in threads:
+        thread.start()
+
+    deadline = time.monotonic() + timeout
+    timed_out = False
+    while process.poll() is None:
+        if output_exceeded.is_set():
+            process.kill()
+            break
+        if time.monotonic() >= deadline:
+            timed_out = True
+            process.kill()
+            break
+        time.sleep(0.01)
+    process.wait()
+    for thread in threads:
+        thread.join(timeout=1)
+
+    if output_exceeded.is_set():
+        returncode = OUTPUT_LIMIT_RETURN_CODE
+    elif timed_out:
+        returncode = -1
+    else:
+        returncode = process.returncode
+    return subprocess.CompletedProcess(
+        cmd,
+        returncode,
+        buffers["stdout"].decode("utf-8", "replace"),
+        buffers["stderr"].decode("utf-8", "replace"),
+    )
 
 
 def _image_inspect(image: str) -> subprocess.CompletedProcess[str]:
@@ -269,6 +322,19 @@ def claim_pending(session: Any, Submission: Any) -> int | None:
     return int(sub_id)
 
 
+def recover_orphaned_judging(session: Any, Submission: Any) -> int:
+    """单 worker 启动时回收上一次进程遗留的 judging 提交。"""
+    from sqlalchemy import update
+
+    result = session.execute(
+        update(Submission)
+        .where(Submission.status == STATUS_JUDGING)
+        .values(status=STATUS_PENDING)
+    )
+    session.commit()
+    return int(result.rowcount or 0)
+
+
 def _prepare_workdir(job: JobData) -> Path:
     root = Path(tempfile.gettempdir()) / str(job.submission_id)
     if root.exists():
@@ -283,6 +349,7 @@ def _prepare_workdir(job: JobData) -> Path:
             encoding="utf-8",
             newline="\n",
         )
+    root.chmod(0o777)
     return root
 
 
@@ -292,8 +359,15 @@ def _compile_cpp(work_dir: Path) -> str | None:
         "run",
         "--rm",
         "--network", "none",
+        "--read-only",
+        "--tmpfs", "/tmp:size=32m",
         "--memory", "512m",
+        "--memory-swap", "512m",
         "--cpus", "1",
+        "--pids-limit", "64",
+        "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
+        "--user", "65534:65534",
         "-v", _docker_volume(work_dir, "/work"),
         "-w", "/work",
         JUDGE_IMAGE_CPP,
@@ -306,6 +380,8 @@ def _compile_cpp(work_dir: Path) -> str | None:
     )
     if r.returncode == -1:
         return _truncate("编译超时", COMPILE_OUTPUT_LIMIT)
+    if r.returncode == OUTPUT_LIMIT_RETURN_CODE:
+        return "编译输出超过 1 MiB 限制"
     if r.returncode != 0 and (r.returncode == 125 or _looks_like_docker_failure(r)):
         raise JudgeInfraError(
             _truncate((r.stderr or r.stdout or "docker run 失败").strip(), COMPILE_OUTPUT_LIMIT)
@@ -352,6 +428,9 @@ def _run_case(
         "--memory-swap", mem,  # 关闭 swap，否则超内存往往变成 TLE
         "--cpus", "0.5",
         "--pids-limit", "64",
+        "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
+        "--user", "65534:65534",
         "-v", _docker_volume(work_dir, "/work", read_only=True),
         "-w", "/work",
         image,
@@ -369,6 +448,8 @@ def _run_case(
 
         if r.returncode == -1:
             return STATUS_TLE, runtime_ms, stdout, stderr
+        if r.returncode == OUTPUT_LIMIT_RETURN_CODE:
+            return STATUS_RE, runtime_ms, stdout, "程序输出超过 1 MiB 限制"
         if r.returncode == 124:
             return STATUS_TLE, runtime_ms, stdout, stderr
         if r.returncode == 137:
@@ -535,8 +616,12 @@ def main() -> None:
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
-    require_images()
     SessionLocal, Problem, Submission, Testcase = _import_app()
+    with SessionLocal() as session:
+        recovered = recover_orphaned_judging(session, Submission)
+    if recovered:
+        log.warning("已回收 %s 个遗留 judging 提交", recovered)
+    require_images()
     log.info(
         "worker 启动 poll=%.1fs python=%s cpp=%s",
         POLL_INTERVAL,

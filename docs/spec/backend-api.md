@@ -8,16 +8,20 @@
 - SQLAlchemy 2.x 风格（`Mapped[]` / `mapped_column`），SQLite 开 WAL：`PRAGMA journal_mode=WAL`。
 - 配置走环境变量（pydantic-settings），字段：
   - `SECRET_KEY`（默认 `dev-secret-change-me`，生产必须覆盖）
+  - `APP_ENV`（`development | test | production`，默认 development）
+  - `PUBLIC_ORIGIN`（生产站点的精确 HTTPS origin，用于 Origin 校验）
   - `DATABASE_URL`（默认 `sqlite:///data/leetpath.db`，相对 backend 目录；启动时自动建目录）
   - `TOKEN_TTL_DAYS`（默认 7）
   - `COOKIE_NAME`（默认 `leetpath_token`）
   - `COOKIE_SECURE`（默认 false）
-- 入口 `app/main.py`：`FastAPI(title="leetpath")`，挂所有 router（前缀 `/api`），启动时 `Base.metadata.create_all`。开发期 CORS 放行 `http://localhost:5173`（allow_credentials=True）。
+- production 下 `SECRET_KEY` 必须至少 32 字节且不能使用开发默认值，`COOKIE_SECURE` 必须为 true，`PUBLIC_ORIGIN` 必须为 HTTPS，否则启动失败。
+- 入口 `app/main.py`：挂所有 router（前缀 `/api`），启动时 `Base.metadata.create_all`。开发/测试启用配置的 CORS；production 关闭 CORS、OpenAPI 与文档，并对所有非安全方法校验精确 `Origin`。
 - 除 `/api/auth/*` 外的所有接口要求登录（依赖注入解析 cookie 中的 JWT，失败 401）。
 
 ## 数据模型（`app/models.py`）
 
 - `User`: id, username(唯一索引, 3-32), email(可空), password_hash, is_admin(bool, 默认 False), created_at
+- `Invite`: id, code_hash(SHA-256, 唯一), expires_at, used_at(可空), revoked_at(可空), created_by_id, used_by_id(可空), created_at
 - `Problem`: id, slug(唯一索引), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), created_at
 - `Testcase`: id, problem_id(FK, 索引), ordinal(int), input(Text), expected_output(Text), is_sample(bool)；UniqueConstraint(problem_id, ordinal)
 - `Submission`: id, user_id(FK, 索引), problem_id(FK), language(`python3|cpp`), code(Text), status(默认 `pending`, 索引), detail(JSON, 可空), compile_output(Text, 可空), runtime_ms(int, 可空), created_at(索引)
@@ -29,8 +33,9 @@
 ## 认证（`app/auth.py` + `app/routers/auth.py`）
 
 - bcrypt 哈希；JWT（HS256，payload: sub=user_id, exp）；登录成功写 HttpOnly Cookie（SameSite=Lax，secure 取 COOKIE_SECURE，path=/）。
-- `POST /api/auth/register` body `{username, password, email?}`：username 只允许 `[a-zA-Z0-9_]{3,32}`，password ≥ 8 位。用户名已存在 → 409。**第一个注册的用户自动 is_admin=True**。成功 201，返回用户 JSON 并种 cookie。
-- `POST /api/auth/login` `{username, password}`：成功 200 + cookie；失败 401（`用户名或密码错误`）。
+- `POST /api/auth/register` body `{username, password, email?, invite_code}`：username 只允许 `[a-zA-Z0-9_]{3,32}`，password 为 8-72 UTF-8 字节。邀请码必须未使用、未撤销且未过期，并通过条件更新原子认领；失败 → 400。用户名已存在 → 409。注册用户一律 `is_admin=False`。每 IP 每小时最多 5 次尝试。
+- 管理员通过 `python -m app.manage create-admin <username>` 初始化，不存在“首位注册自动管理员”。
+- `POST /api/auth/login` `{username, password}`：成功 200 + cookie；失败 401（`用户名或密码错误`）。每个 IP + username 每分钟最多 5 次尝试。
 - `POST /api/auth/logout`：清 cookie，204。
 - `GET /api/auth/me`：`{id, username, email, is_admin}`；未登录 401。
 - 用户 JSON 一律不含 password_hash。
@@ -44,7 +49,7 @@
 
 ### `app/routers/submissions.py`
 
-- `POST /api/submissions` body `{problem_slug, language, code}`：language ∈ {python3, cpp}，code ≤ 64KB。该用户 pending/judging 提交 ≥ 5 → 429。成功 202 → `{id, status: "pending"}`。
+- `POST /api/submissions` body `{problem_slug, language, code}`：language ∈ {python3, cpp}，code ≤ 64KB。全局 pending/judging ≥ 10、该用户最近一分钟提交 ≥ 10，或该用户 pending/judging ≥ 2 时返回 429。成功 202 → `{id, status: "pending"}`。
 - `GET /api/submissions/{id}` → 仅本人或管理员：`{id, problem_slug, problem_title, language, code, status, runtime_ms, compile_output, detail, created_at}`。detail 结构见 `judge.md`。
 - `GET /api/submissions?problem_slug=&limit=50` → 我的提交列表（不含 code，新→旧）。
 
@@ -57,7 +62,7 @@
 
 ### `app/routers/jobs.py`
 
-- `GET /api/jobs` → 全部，按 deadline_at 升序（NULL 最后），返回完整字段 + `days_left`（可空）。
+- `GET /api/jobs` → 全部，按 deadline_at 升序（NULL 最后），返回完整字段 + `days_left`（可空）。`apply_url` 只允许有效 HTTPS；历史非法值在输出边界清空。
 - 管理员：`POST /api/jobs`、`PUT /api/jobs/{id}`、`DELETE /api/jobs/{id}`（204）。非管理员 403。
 
 ### `app/routers/links.py`
@@ -69,6 +74,7 @@
 - `POST /api/admin/seed/reload` → 同步执行 seed loader，返回 `{imported: n}`。
 - `PUT /api/admin/problems/{id}` body `{is_published}` → 上下架。
 - `GET /api/admin/problems` → 含未发布的完整列表。
+- `POST /api/admin/invites` body `{expires_in_days: 1..30}` → 创建并仅本次返回原始邀请码；`GET /api/admin/invites` → 列表（不含原始码）；`DELETE /api/admin/invites/{id}` → 撤销尚未使用的邀请码。
 
 ## 种子加载（`app/seed/loader.py`）
 
@@ -78,7 +84,7 @@
 
 ## 测试（`backend/tests/`）
 
-pytest + FastAPI TestClient，用临时目录 SQLite（conftest 里 monkeypatch DATABASE_URL）。覆盖：注册/登录/me/登出、第一个用户是管理员、题目列表与详情（先跑 loader 导入 1 个 fixture 题目）、草稿读写与默认值、提交创建（状态 pending）、提交限流、jobs CRUD 权限、links。判题流程不在 pytest 范围。
+pytest + FastAPI TestClient，用临时目录 SQLite。覆盖邀请码注册、认证限流、生产 Origin/配置、题目与草稿、提交队列限制、jobs CRUD/URL、防御性备份和判题 worker 核心流程。
 
 ## 运行
 

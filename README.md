@@ -18,7 +18,7 @@
 - 后端：FastAPI + SQLAlchemy 2.x + SQLite（WAL），JWT HttpOnly Cookie（bcrypt）
 - 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked / dompurify，手写 CSS（断点 768px / 1024px）
 - 判题：独立 worker 轮询 SQLite，每次提交起一次性 Docker 容器（`--network none --read-only`）
-- 部署：docker compose（nginx 静态 + `/api` 反代 / backend / judge worker）
+- 部署：docker compose + Cloudflare Tunnel（nginx 静态 + `/api` 反代 / backend / judge worker / SQLite 备份）
 
 ## 本地开发
 
@@ -35,7 +35,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-第一个注册用户自动成为管理员。开发期 CORS 放行 `http://localhost:5173`。
+管理员不会通过公开注册产生。首次启动后执行 `python -m app.manage create-admin owner` 创建管理员，再由管理员在管理页生成一次性邀请码。开发期 CORS 放行 `http://localhost:5173`。
 
 ```bash
 cd backend && pytest
@@ -77,38 +77,54 @@ python -m judge.worker
 
 `DATABASE_URL` 需与后端一致（默认 `sqlite:///data/leetpath.db`，相对 `backend/`）。
 
-## Docker 部署
+## 生产部署（域名 + Cloudflare Tunnel）
 
-宿主机需要 Docker 与 Compose。judge 容器挂载 `/var/run/docker.sock`，在宿主 daemon 上启动一次性评测容器，因此**判题镜像必须打到宿主机**，而不是只存在于某个容器里。
+目标是浏览器直接打开 HTTPS 域名，使用者无需安装客户端；VPS 不开放 80/443/8000。宿主机需要 Linux、Docker 与 Compose。judge 容器挂载 `/var/run/docker.sock`，在宿主 daemon 上启动一次性评测容器，因此**判题镜像必须打到宿主机**。
 
-1. 复制环境变量并填写密钥：
+1. 将已购买域名接入 Cloudflare DNS。在 Zero Trust 的 Networks → Tunnels 新建 Cloudflared Tunnel，复制 Docker connector 的 token；为 Tunnel 添加 Public Hostname，例如 `learn.example.com`，Service 选择 `HTTP`，URL 填 `frontend:80`。建议再为该应用配置 Cloudflare Access，只允许好友邮箱。
+
+2. 复制并填写生产配置：
 
    ```bash
    cp .env.example .env
-   # 编辑 SECRET_KEY；生产且走 HTTPS 时把 COOKIE_SECURE 改为 true
+   python -c "import secrets; print(secrets.token_urlsafe(48))"
    ```
 
-2. 构建判题镜像（profile `judge-images`，不会随 `up` 启动）：
+   将生成值写入 `SECRET_KEY`，同时填写 `PUBLIC_ORIGIN=https://learn.example.com` 和 `CLOUDFLARE_TUNNEL_TOKEN`。`APP_ENV=production` 与 `COOKIE_SECURE=true` 必须保留；配置不安全时后端会拒绝启动。不要提交 `.env`。
+
+3. VPS 防火墙只保留必要的 SSH 入站，SSH 还应限制来源或使用密钥登录。应用所有容器都没有宿主端口映射，cloudflared 通过出站连接接入 Cloudflare。
+
+4. 构建判题镜像并启动生产 profile：
 
    ```bash
    docker compose build judge-python judge-cpp
+   docker compose --profile production up -d --build
    ```
 
-3. 启动 API、worker 与前端（80 端口）：
+5. 创建管理员并导入题库：
 
    ```bash
-   docker compose up -d --build
-   ```
-
-4. 导入题库（镜像内已含种子目录，空 volume 首次需导入）：
-
-   ```bash
+   docker compose exec backend python -m app.manage create-admin owner
    docker compose exec backend python -m app.seed.loader
    ```
 
-5. 浏览器打开 `http://localhost`，注册账号后即可刷题。
+6. 打开 `https://learn.example.com`，用管理员账号登录，在「管理 → 邀请码」生成邀请码并发给好友。邀请码只显示一次、只能使用一次，可设置 1-30 天有效期或在使用前撤销。
 
-常用命令：`docker compose logs -f`、`docker compose down`。数据在 named volume `leetpath-data`（对应容器内 `/app/data`，与 `DATABASE_URL=sqlite:///data/leetpath.db` 一致）。
+常用命令：`docker compose --profile production logs -f`、`docker compose --profile production down`。主数据库在 `leetpath-data`，每日在线快照在 `leetpath-backups`，默认保留 7 份。两者仍在同一台 VPS，需定期将 `/app/backups/leetpath-*.db` 导出到异机或对象存储，并实际演练恢复。
+
+### 备份恢复
+
+先用 `docker compose --profile production exec backup ls -lh /app/backups` 查看快照，再用 `docker compose --profile production cp backup:/app/backups/<文件名> ./restore/leetpath.db` 导出。恢复时：
+
+```bash
+docker compose --profile production stop backend judge backup
+docker compose run --rm --no-deps -v "$PWD/restore:/restore:ro" backend sh -c \
+  'cp /app/data/leetpath.db /app/data/leetpath.db.failed && rm -f /app/data/leetpath.db-wal /app/data/leetpath.db-shm && cp /restore/leetpath.db /app/data/leetpath.db'
+docker compose --profile production up -d
+docker compose exec backend python -c "import sqlite3; print(sqlite3.connect('/app/data/leetpath.db').execute('PRAGMA integrity_check').fetchone()[0])"
+```
+
+完整性检查必须输出 `ok`，随后再做登录和提交烟测。不要直接复制正在运行的 WAL 数据库文件替代在线备份。
 
 ## 目录结构
 
@@ -137,6 +153,6 @@ python -m judge.worker
 
 ## 安全注意事项
 
-- **docker.sock**：judge 服务把宿主 Docker 套接字挂进容器，等价于该容器可操控宿主机 Docker（通常即 root）。只用于自己信任的个人部署，不要暴露给不可信网络或多人共享主机。
+- **docker.sock**：judge 服务把宿主 Docker 套接字挂进容器，等价于该容器可操控宿主机 Docker（通常即 root）。应使用不承载其他重要服务的专用 VPS；评测子容器的隔离参数不能消除 worker 持有 socket 的风险。
 - **题库版权**：题面与用例仅限个人学习，请勿公开传播或用于商业用途。
-- **密钥**：不要提交 `.env`。生产环境必须替换 `SECRET_KEY`，并在 HTTPS 下启用 `COOKIE_SECURE=true`。
+- **入口与密钥**：不要提交 `.env` 或 Tunnel token。不要恢复任何宿主端口映射；生产环境必须使用随机 `SECRET_KEY`、HTTPS `PUBLIC_ORIGIN` 与 `COOKIE_SECURE=true`。
