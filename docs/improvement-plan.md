@@ -291,7 +291,7 @@ if not verify_password(body.password, user.password_hash):
 
 ### B3. backend / backup 容器以非 root 运行
 
-- [ ] **B3 完成**
+- [x] **B3 完成**
 
 **问题**：`backend/Dockerfile` 无 `USER` 指令，backend 与 backup 容器内进程以 root 运行。虽有 `read_only` + `cap_drop` 兜底，但非 root 是低成本的纵深防御。judge 容器需要访问宿主 docker.sock，**保持 root 不动**。
 
@@ -318,7 +318,7 @@ RUN useradd --uid 10001 --create-home appuser \
 
 **验收**：本机有 Docker 则 `docker compose up -d backend` 后 `docker compose exec backend id` 显示 `uid=10001`，注册/登录正常；无 Docker 则备注"待服务器验证"。
 
-完成备注：
+完成备注：`backend/Dockerfile`, `docker-compose.yml`；未清理 named volume（本机无旧卷，新卷由镜像内 appuser 属主继承）；`docker compose exec backend id` 为 `uid=10001(appuser)`，容器内 curl `/api/health` 返回 `{"status":"ok"}`；注册/登录接口可响应（无邀请码故注册 400、登录 401）。
 
 ---
 
