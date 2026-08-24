@@ -3,7 +3,7 @@
     <div class="card auth-card">
       <div class="brand-big">leet<span class="path">path</span></div>
       <div class="auth-sub">注册账号，开始刷题</div>
-      <div v-if="error" class="form-error">{{ error }}</div>
+      <div v-if="error" class="form-err">{{ error }}</div>
       <form @submit.prevent="onSubmit">
         <div class="field">
           <label>用户名（3-32 位字母/数字/下划线）</label>

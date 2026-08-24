@@ -88,15 +88,17 @@ python -m judge.worker
    ```bash
    cp .env.example .env
    python -c "import secrets; print(secrets.token_urlsafe(48))"
+   sed -i "s|^DOCKER_GID=.*|DOCKER_GID=$(stat -c %g /var/run/docker.sock)|" .env
    ```
 
-   将生成值写入 `SECRET_KEY`，同时填写 `PUBLIC_ORIGIN=https://learn.example.com` 和 `CLOUDFLARE_TUNNEL_TOKEN`。`APP_ENV=production` 与 `COOKIE_SECURE=true` 必须保留；配置不安全时后端会拒绝启动。不要提交 `.env`。
+   将生成值写入 `SECRET_KEY`，同时填写 `PUBLIC_ORIGIN=https://learn.example.com` 和 `CLOUDFLARE_TUNNEL_TOKEN`。`DOCKER_GID` 由上面的 sed 命令自动填入（judge 容器以非 root 运行，需借宿主 docker 组访问 docker.sock）。`APP_ENV=production` 与 `COOKIE_SECURE=true` 必须保留；配置不安全时后端会拒绝启动。不要提交 `.env`。
 
 3. VPS 防火墙只保留必要的 SSH 入站，SSH 还应限制来源或使用密钥登录。应用所有容器都没有宿主端口映射，cloudflared 通过出站连接接入 Cloudflare。
 
-4. 构建判题镜像并启动生产 profile：
+4. 创建判题临时目录（属主须与容器内用户 10001 一致），构建判题镜像并启动生产 profile：
 
    ```bash
+   sudo install -d -o 10001 -g 10001 /var/lib/leetpath/judge-tmp
    docker compose build judge-python judge-cpp
    docker compose --profile production up -d --build
    ```

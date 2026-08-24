@@ -39,7 +39,7 @@
     <div v-show="tab === 'jobs'">
       <div class="card" style="padding:18px 20px;margin-bottom:14px">
         <h3 style="margin-top:0">{{ editingJob ? '编辑岗位' : '新增岗位' }}</h3>
-        <div v-if="jobError" class="form-error">{{ jobError }}</div>
+        <div v-if="jobError" class="form-err">{{ jobError }}</div>
         <form @submit.prevent="saveJob">
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px">
             <div class="field"><label>公司 *</label><input v-model="jobForm.company" class="input" required /></div>

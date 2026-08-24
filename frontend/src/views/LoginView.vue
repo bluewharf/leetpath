@@ -3,7 +3,7 @@
     <div class="card auth-card">
       <div class="brand-big">leet<span class="path">path</span></div>
       <div class="auth-sub">登录后继续刷题，草稿自动同步</div>
-      <div v-if="error" class="form-error">{{ error }}</div>
+      <div v-if="error" class="form-err">{{ error }}</div>
       <form @submit.prevent="onSubmit">
         <div class="field">
           <label>用户名</label>

@@ -381,6 +381,12 @@ git status                                 # 无 .env / data / 构建产物待�
 
 全部通过后 push 到 GitHub，确认 Actions 两个 job 全绿。
 
+## 复查修复记录（复查后由评审方修复）
+
+- **B3 补充修复**：backend/backup 为 uid 10001 而 judge 为 root 时，三个进程混写同一 SQLite，WAL 辅助文件（`-wal`/`-shm`）属主随创建方漂移，会导致其余进程写库失败。已改为 judge 同样以 `user: "10001"` 运行，并通过 `group_add: ${DOCKER_GID}` 获得宿主 docker.sock 访问权限；`.env.example` 新增 `DOCKER_GID`；README 部署步骤新增 gid 自动写入与 `/var/lib/leetpath/judge-tmp` 目录授权命令。
+- **B5 补充修复**：`.bottom-tabs` 固定 `height: 56px` 在全局 border-box 下会被 safe-area padding 压缩内容高度，已改为 `height: calc(56px + env(safe-area-inset-bottom))`。
+- **样式修复**：登录/注册/管理页使用的 `form-error` 类名与样式表中的 `.form-err` 不一致（错误文案无样式），已统一为 `form-err`。
+
 ## 执行中发现的问题
 
 （只记录、不修改）

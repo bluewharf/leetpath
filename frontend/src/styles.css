@@ -624,7 +624,7 @@ code, pre, .mono { font-family: var(--mono); }
   bottom: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  height: calc(56px + env(safe-area-inset-bottom));
   background: rgba(247, 247, 248, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);

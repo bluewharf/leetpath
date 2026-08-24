@@ -42,6 +42,10 @@ services:
     build:
       context: ./backend
     command: ["python", "-m", "judge.worker"]
+    # 与 backend/backup 同 uid：SQLite WAL 辅助文件属主必须一致，否则跨进程写库会失败
+    user: "10001"
+    group_add:
+      - "${DOCKER_GID:-999}"
     env_file: ${LEETPATH_ENV_FILE:-.env}
     environment:
       TMPDIR: /var/lib/leetpath/judge-tmp
