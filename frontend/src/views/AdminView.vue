@@ -1,5 +1,9 @@
 <template>
   <div class="container">
+    <div v-if="error" class="error-banner">
+      <span>{{ error }}</span>
+      <button type="button" class="btn btn-sm" @click="loadAll">重试</button>
+    </div>
     <div class="page-head">
       <div>
         <div class="kicker">Admin</div>
@@ -136,6 +140,7 @@ interface AdminProblem extends ProblemListItem {
 }
 
 const tab = ref<'problems' | 'jobs' | 'invites'>('problems')
+const error = ref('')
 
 // 题目管理
 const problems = ref<AdminProblem[]>([])
@@ -293,9 +298,14 @@ function inviteState(invite: InviteSummary) {
   return { text: '可使用', className: 'badge-source' }
 }
 
-onMounted(() => {
-  loadProblems()
-  loadJobs()
-  loadInvites()
-})
+async function loadAll() {
+  try {
+    await Promise.all([loadProblems(), loadJobs(), loadInvites()])
+    error.value = ''
+  } catch {
+    error.value = '加载失败，请检查网络后重试'
+  }
+}
+
+onMounted(() => loadAll())
 </script>

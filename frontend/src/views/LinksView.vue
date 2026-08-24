@@ -1,5 +1,9 @@
 <template>
   <div class="container">
+    <div v-if="error" class="error-banner">
+      <span>{{ error }}</span>
+      <button type="button" class="btn btn-sm" @click="loadLinks">重试</button>
+    </div>
     <div class="page-head">
       <div>
         <div class="kicker">Interview Notes</div>
@@ -18,7 +22,7 @@
           </a>
         </div>
       </div>
-      <div v-if="Object.keys(grouped).length === 0" class="empty">暂无链接</div>
+      <div v-if="!error && Object.keys(grouped).length === 0" class="empty">暂无链接</div>
     </template>
   </div>
 </template>
@@ -30,6 +34,7 @@ import type { LinkItem } from '../types'
 
 const links = ref<LinkItem[]>([])
 const loading = ref(true)
+const error = ref('')
 
 const grouped = computed(() => {
   const g: Record<string, LinkItem[]> = {}
@@ -39,11 +44,17 @@ const grouped = computed(() => {
   return g
 })
 
-onMounted(async () => {
+async function loadLinks() {
+  loading.value = true
   try {
     links.value = await api.get<LinkItem[]>('/api/links')
+    error.value = ''
+  } catch {
+    error.value = '加载失败，请检查网络后重试'
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(() => loadLinks())
 </script>

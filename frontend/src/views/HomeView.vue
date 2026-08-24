@@ -1,5 +1,9 @@
 <template>
   <div class="container">
+    <div v-if="error" class="error-banner">
+      <span>{{ error }}</span>
+      <button type="button" class="btn btn-sm" @click="loadHome">重试</button>
+    </div>
     <div class="hero">
       <div class="kicker">Daily Practice & Career Board</div>
       <h1>
@@ -126,6 +130,7 @@ import type { Job, ProblemListItem, Submission } from '../types'
 
 const router = useRouter()
 
+const error = ref('')
 const problemCount = ref(0)
 const solvedCount = ref(0)
 const rememberedCount = ref(0)
@@ -195,7 +200,7 @@ function generateHeatmap(submissions: Submission[]) {
   heatmapDays.value = days
 }
 
-onMounted(async () => {
+async function loadHome() {
   try {
     const [pList, jobs, subs] = await Promise.all([
       api.get<ProblemListItem[]>('/api/problems'),
@@ -209,8 +214,11 @@ onMounted(async () => {
     openJobCount.value = jobs.filter((j) => j.status !== 'closed' && (j.days_left === null || j.days_left >= 0)).length
 
     generateHeatmap(subs)
+    error.value = ''
   } catch {
-    /* 统计异常优雅降级 */
+    error.value = '加载失败，请检查网络后重试'
   }
-})
+}
+
+onMounted(() => loadHome())
 </script>
