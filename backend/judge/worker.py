@@ -336,7 +336,7 @@ def recover_orphaned_judging(session: Any, Submission: Any) -> int:
 
 
 def _prepare_workdir(job: JobData) -> Path:
-    root = Path(tempfile.gettempdir()) / str(job.submission_id)
+    root = Path(tempfile.gettempdir()) / f"lpj-{job.submission_id}"
     if root.exists():
         shutil.rmtree(root, ignore_errors=False)
     tests_dir = root / "tests"
@@ -571,7 +571,7 @@ def process_submission(
     Testcase: Any,
     submission_id: int,
 ) -> None:
-    work_dir = Path(tempfile.gettempdir()) / str(submission_id)
+    work_dir = Path(tempfile.gettempdir()) / f"lpj-{submission_id}"
     try:
         with SessionLocal() as session:
             submission = session.get(Submission, submission_id)

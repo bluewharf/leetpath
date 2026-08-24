@@ -42,11 +42,13 @@ services:
       context: ./backend
     command: ["python", "-m", "judge.worker"]
     env_file: ${LEETPATH_ENV_FILE:-.env}
+    environment:
+      TMPDIR: /var/lib/leetpath/judge-tmp
     volumes:
       - leetpath-data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
-      # worker 用 tempfile 写用例后 docker -v 走宿主路径，需与容器内绝对路径一致
-      - /tmp:/tmp
+      # worker 在 /var/lib/leetpath/judge-tmp 写用例后 docker -v 走宿主路径，需与容器内绝对路径一致
+      - /var/lib/leetpath/judge-tmp:/var/lib/leetpath/judge-tmp
     networks:
       - app
     cap_drop:
