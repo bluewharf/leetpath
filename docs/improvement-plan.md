@@ -170,7 +170,7 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
 
 ### A6. GitHub Actions CI
 
-- [ ] **A6 完成**
+- [x] **A6 完成**
 
 **问题**：仓库无 CI。前端 `build` 脚本不含类型检查，类型错误能带病合入；后端测试也只靠手动跑。
 
@@ -215,7 +215,7 @@ jobs:
 
 **验收**：push 到 GitHub 后，`gh run list --limit 1` 显示最新 workflow 运行成功（或在网页 Actions 页确认两个 job 全绿）。
 
-完成备注：
+完成备注：`.github/workflows/ci.yml`（GitHub Actions 跑通待最终 push 后确认）
 
 ---
 
