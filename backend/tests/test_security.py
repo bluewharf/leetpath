@@ -34,3 +34,15 @@ def test_login_is_rate_limited(client):
         "/api/auth/login",
         json={"username": "other", "password": "password123"},
     ).status_code == 401
+
+
+def test_login_ip_is_rate_limited(client):
+    statuses = [
+        client.post(
+            "/api/auth/login",
+            json={"username": f"user{i}", "password": "password123"},
+        ).status_code
+        for i in range(21)
+    ]
+    assert statuses[:20] == [401] * 20
+    assert statuses[20] == 429
