@@ -123,7 +123,7 @@ x-logging: &default-logging
 
 ### A5. 健康检查端点 + compose healthcheck
 
-- [ ] **A5 完成**
+- [x] **A5 完成**
 
 **问题**：没有健康检查端点；compose 的 `depends_on` 只保证启动顺序，不保证后端真正可服务。
 
@@ -164,7 +164,7 @@ def health(db: Session = Depends(get_db)) -> dict[str, str]:
 
 **验收**：`cd backend && pytest` 全过；`docker compose --profile production config` 无报错。
 
-完成备注：
+完成备注：`backend/app/main.py`, `docker-compose.yml`, `backend/tests/test_health.py`
 
 ---
 
