@@ -51,7 +51,7 @@
 
 ### A3. 补齐 .dockerignore（两个文件）
 
-- [ ] **A3 完成**
+- [x] **A3 完成**
 
 **问题**：仓库没有任何 `.dockerignore`。后端镜像 `COPY . .` 会把本地 `.venv/`、`data/`（开发数据库，含密码哈希）、`__pycache__/` 送进构建上下文；前端构建上下文是仓库根目录，`COPY frontend/ ./` 会让本地 Windows 的 `node_modules/` 覆盖容器内 `npm ci` 装好的 Linux 依赖（esbuild 等平台二进制不兼容，构建损坏）。
 
@@ -89,7 +89,7 @@ frontend/dist/
 
 **验收**：`docker compose build backend frontend` 成功；若本机无 Docker，备注"待服务器验证"。
 
-完成备注：
+完成备注：`backend/.dockerignore`, `.dockerignore`
 
 ---
 
