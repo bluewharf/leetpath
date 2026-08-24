@@ -1,4 +1,5 @@
 slug = "maximum-subarray"
+leetcode_id = 53
 title = "最大子数组和"
 difficulty = "medium"
 source = "hot100"

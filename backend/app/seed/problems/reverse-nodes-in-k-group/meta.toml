@@ -1,4 +1,5 @@
 slug = "reverse-nodes-in-k-group"
+leetcode_id = 25
 title = "K 个一组翻转链表"
 difficulty = "hard"
 source = "hot100"

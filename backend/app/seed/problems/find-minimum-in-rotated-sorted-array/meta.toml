@@ -1,4 +1,5 @@
 slug = "find-minimum-in-rotated-sorted-array"
+leetcode_id = 153
 title = "寻找旋转排序数组中的最小值"
 difficulty = "medium"
 source = "hot100"

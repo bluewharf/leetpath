@@ -1,4 +1,5 @@
 slug = "search-insert-position"
+leetcode_id = 35
 title = "搜索插入位置"
 difficulty = "easy"
 source = "hot100"

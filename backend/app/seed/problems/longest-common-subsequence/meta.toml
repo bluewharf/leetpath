@@ -1,4 +1,5 @@
 slug = "longest-common-subsequence"
+leetcode_id = 1143
 title = "最长公共子序列"
 difficulty = "medium"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "add-two-numbers"
+leetcode_id = 2
 title = "两数相加"
 difficulty = "medium"
 source = "hot100"

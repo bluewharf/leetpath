@@ -1,4 +1,5 @@
 slug = "spiral-matrix"
+leetcode_id = 54
 title = "螺旋矩阵"
 difficulty = "medium"
 source = "hot100"

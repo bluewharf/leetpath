@@ -1,4 +1,5 @@
 slug = "palindrome-partitioning"
+leetcode_id = 131
 title = "分割回文串"
 difficulty = "medium"
 source = "hot100"

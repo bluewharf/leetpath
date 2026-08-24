@@ -1,4 +1,5 @@
 slug = "rotate-image"
+leetcode_id = 48
 title = "旋转图像"
 difficulty = "medium"
 source = "hot100"

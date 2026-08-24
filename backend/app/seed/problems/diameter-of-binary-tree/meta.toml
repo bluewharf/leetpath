@@ -1,4 +1,5 @@
 slug = "diameter-of-binary-tree"
+leetcode_id = 543
 title = "二叉树的直径"
 difficulty = "easy"
 source = "hot100"

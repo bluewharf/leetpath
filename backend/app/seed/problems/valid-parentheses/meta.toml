@@ -1,4 +1,5 @@
 slug = "valid-parentheses"
+leetcode_id = 20
 title = "有效的括号"
 difficulty = "easy"
 source = "hot100"

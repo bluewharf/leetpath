@@ -1,4 +1,5 @@
 slug = "longest-consecutive-sequence"
+leetcode_id = 128
 title = "最长连续序列"
 difficulty = "medium"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "permutations"
+leetcode_id = 46
 title = "全排列"
 difficulty = "medium"
 source = "hot100"

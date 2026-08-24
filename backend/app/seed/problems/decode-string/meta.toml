@@ -1,4 +1,5 @@
 slug = "decode-string"
+leetcode_id = 394
 title = "字符串解码"
 difficulty = "medium"
 source = "hot100"

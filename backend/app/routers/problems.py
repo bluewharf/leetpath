@@ -13,6 +13,7 @@ router = APIRouter(prefix="/problems", tags=["problems"])
 class ProblemListItem(BaseModel):
     id: int
     slug: str
+    leetcode_id: int | None
     title: str
     difficulty: str
     source: str
@@ -31,6 +32,7 @@ class SampleOut(BaseModel):
 class ProblemDetail(BaseModel):
     id: int
     slug: str
+    leetcode_id: int | None
     title: str
     difficulty: str
     source: str
@@ -79,7 +81,10 @@ def list_problems(
         stmt = stmt.where(Problem.source == source)
     if q:
         like = f"%{q}%"
-        stmt = stmt.where(or_(Problem.title.ilike(like), Problem.slug.ilike(like)))
+        q_filters = [Problem.title.ilike(like), Problem.slug.ilike(like)]
+        if q.isdigit():
+            q_filters.append(Problem.leetcode_id == int(q))
+        stmt = stmt.where(or_(*q_filters))
     problems = list(db.scalars(stmt).all())
     if tag:
         problems = [p for p in problems if tag in (p.tags or [])]
@@ -89,6 +94,7 @@ def list_problems(
         ProblemListItem(
             id=p.id,
             slug=p.slug,
+            leetcode_id=p.leetcode_id,
             title=p.title,
             difficulty=p.difficulty,
             source=p.source,
@@ -122,6 +128,7 @@ def get_problem(
     return ProblemDetail(
         id=problem.id,
         slug=problem.slug,
+        leetcode_id=problem.leetcode_id,
         title=problem.title,
         difficulty=problem.difficulty,
         source=problem.source,

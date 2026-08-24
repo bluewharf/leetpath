@@ -1,4 +1,5 @@
 slug = "next-permutation"
+leetcode_id = 31
 title = "下一个排列"
 difficulty = "medium"
 source = "hot100"

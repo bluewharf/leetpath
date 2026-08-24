@@ -18,6 +18,7 @@
 
 ```toml
 slug = "two-sum"
+leetcode_id = 1            # 力扣原题号，可省（面经自编题没有则省略）
 title = "两数之和"
 difficulty = "easy"        # easy | medium | hard
 source = "hot100"          # hot100 | mianjing

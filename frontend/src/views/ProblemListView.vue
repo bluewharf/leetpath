@@ -68,14 +68,14 @@
           class="p-row"
           :to="`/problems/${p.slug}`"
         >
-          <span class="p-idx">{{ String(i + 1).padStart(2, '0') }}</span>
+          <span class="p-idx">{{ p.leetcode_id ?? String(i + 1).padStart(2, '0') }}</span>
           <span class="p-check">
             <span v-if="p.my_status === 'solved'" class="solved" title="已通过">✓</span>
             <span v-else-if="p.my_status === 'attempted'" class="attempted" title="尝试过">●</span>
             <span v-else class="todo">·</span>
           </span>
           <span class="p-main">
-            <span class="p-title">{{ p.title }}</span>
+            <span class="p-title">{{ problemHeading(p) }}</span>
             <span class="p-slug">{{ p.slug }}</span>
           </span>
           <span class="badge" :class="`badge-${p.difficulty}`">{{ difficultyText(p.difficulty) }}</span>
@@ -92,7 +92,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import Skeleton from '../components/Skeleton.vue'
-import type { Difficulty, ProblemListItem } from '../types'
+import { problemHeading, type Difficulty, type ProblemListItem } from '../types'
 
 const problems = ref<ProblemListItem[]>([])
 const loading = ref(true)
@@ -163,13 +163,23 @@ const filtered = computed(() => {
     if (difficulty.value && p.difficulty !== difficulty.value) return false
     if (source.value && p.source !== source.value) return false
     if (tag.value && !p.tags.includes(tag.value)) return false
-    if (kw && !p.title.toLowerCase().includes(kw) && !p.slug.includes(kw)) return false
+    if (
+      kw &&
+      !p.title.toLowerCase().includes(kw) &&
+      !p.slug.includes(kw) &&
+      String(p.leetcode_id ?? '') !== kw
+    )
+      return false
     return true
   })
 
   return list.sort((a, b) => {
     let cmp = 0
-    if (sortField.value === 'id') cmp = a.id - b.id
+    if (sortField.value === 'id') {
+      const av = a.leetcode_id ?? a.id
+      const bv = b.leetcode_id ?? b.id
+      cmp = av - bv
+    }
     else if (sortField.value === 'title') cmp = a.title.localeCompare(b.title, 'zh-CN')
     else if (sortField.value === 'difficulty') cmp = difficultyWeight[a.difficulty] - difficultyWeight[b.difficulty]
     else if (sortField.value === 'status') cmp = (statusWeight[a.my_status || ''] || 0) - (statusWeight[b.my_status || ''] || 0)

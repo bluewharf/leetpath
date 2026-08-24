@@ -1,4 +1,5 @@
 slug = "product-of-array-except-self"
+leetcode_id = 238
 title = "除自身以外数组的乘积"
 difficulty = "medium"
 source = "hot100"

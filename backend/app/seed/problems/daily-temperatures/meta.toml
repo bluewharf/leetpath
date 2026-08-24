@@ -1,4 +1,5 @@
 slug = "daily-temperatures"
+leetcode_id = 739
 title = "每日温度"
 difficulty = "medium"
 source = "hot100"

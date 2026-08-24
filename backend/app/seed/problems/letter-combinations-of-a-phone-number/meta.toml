@@ -1,4 +1,5 @@
 slug = "letter-combinations-of-a-phone-number"
+leetcode_id = 17
 title = "电话号码的字母组合"
 difficulty = "medium"
 source = "hot100"

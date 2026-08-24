@@ -1,4 +1,5 @@
 slug = "generate-parentheses"
+leetcode_id = 22
 title = "括号生成"
 difficulty = "medium"
 source = "hot100"

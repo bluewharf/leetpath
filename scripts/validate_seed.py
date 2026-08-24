@@ -57,6 +57,10 @@ def check(slug: str) -> list[str]:
         errs.append(f"{slug}: difficulty 非法: {meta.get('difficulty')}")
     if meta.get("source") not in SOURCES:
         errs.append(f"{slug}: source 非法: {meta.get('source')}")
+    if "leetcode_id" in meta:
+        lc = meta.get("leetcode_id")
+        if not isinstance(lc, int) or isinstance(lc, bool) or lc < 1:
+            errs.append(f"{slug}: leetcode_id 必须是正整数")
     samples = meta.get("samples")
     if not isinstance(samples, list) or not samples:
         errs.append(f"{slug}: samples 必须是非空列表")

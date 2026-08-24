@@ -1,4 +1,5 @@
 slug = "word-break"
+leetcode_id = 139
 title = "单词拆分"
 difficulty = "medium"
 source = "hot100"

@@ -49,8 +49,11 @@ def _upsert_problem(session: Session, directory: Path) -> bool:
     sample_ordinals = {int(x) for x in samples}
     cases = _parse_tests(directory / "tests", sample_ordinals)
     solution_path = directory / "solution.md"
+    raw_lc = meta.get("leetcode_id")
+    leetcode_id = int(raw_lc) if raw_lc is not None else None
     fields = {
         "slug": slug,
+        "leetcode_id": leetcode_id,
         "title": title,
         "difficulty": meta.get("difficulty", "easy"),
         "source": meta.get("source", "hot100"),
@@ -97,6 +100,7 @@ def load_problems(
 
             assert dbmod.engine is not None
             Base.metadata.create_all(bind=dbmod.engine)
+            dbmod.ensure_schema(dbmod.engine)
         assert dbmod.SessionLocal is not None
         session = dbmod.SessionLocal()
     assert session is not None

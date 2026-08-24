@@ -1,4 +1,5 @@
 slug = "sliding-window-maximum"
+leetcode_id = 239
 title = "滑动窗口最大值"
 difficulty = "hard"
 source = "hot100"

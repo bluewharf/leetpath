@@ -1,4 +1,5 @@
 slug = "partition-equal-subset-sum"
+leetcode_id = 416
 title = "分割等和子集"
 difficulty = "medium"
 source = "hot100"

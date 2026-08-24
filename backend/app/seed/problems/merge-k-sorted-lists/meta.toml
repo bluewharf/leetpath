@@ -1,4 +1,5 @@
 slug = "merge-k-sorted-lists"
+leetcode_id = 23
 title = "合并 K 个升序链表"
 difficulty = "hard"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "find-median-from-data-stream"
+leetcode_id = 295
 title = "数据流的中位数"
 difficulty = "hard"
 source = "hot100"

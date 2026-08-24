@@ -1,4 +1,5 @@
 slug = "median-of-two-sorted-arrays"
+leetcode_id = 4
 title = "寻找两个正序数组的中位数"
 difficulty = "hard"
 source = "hot100"

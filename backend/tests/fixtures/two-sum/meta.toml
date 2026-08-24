@@ -1,4 +1,5 @@
 slug = "two-sum"
+leetcode_id = 1
 title = "两数之和"
 difficulty = "easy"
 source = "hot100"

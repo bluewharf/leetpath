@@ -1,4 +1,5 @@
 slug = "rotting-oranges"
+leetcode_id = 994
 title = "腐烂的橘子"
 difficulty = "medium"
 source = "hot100"

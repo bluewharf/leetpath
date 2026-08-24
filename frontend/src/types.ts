@@ -35,6 +35,7 @@ export interface InviteCreated extends InviteSummary {
 export interface ProblemListItem {
   id: number
   slug: string
+  leetcode_id: number | null
   title: string
   difficulty: Difficulty
   source: 'hot100' | 'mianjing'
@@ -42,6 +43,10 @@ export interface ProblemListItem {
   my_status: 'solved' | 'attempted' | null
   has_solution: boolean
   memory: 'remembered' | 'unremembered' | null
+}
+
+export function problemHeading(p: { leetcode_id?: number | null; title: string }): string {
+  return p.leetcode_id != null ? `${p.leetcode_id}. ${p.title}` : p.title
 }
 
 export interface SampleTest {

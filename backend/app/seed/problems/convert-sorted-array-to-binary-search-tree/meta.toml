@@ -1,4 +1,5 @@
 slug = "convert-sorted-array-to-binary-search-tree"
+leetcode_id = 108
 title = "将有序数组转换为二叉搜索树"
 difficulty = "easy"
 source = "hot100"

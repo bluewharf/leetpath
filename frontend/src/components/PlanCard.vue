@@ -90,7 +90,7 @@
               <span class="badge" :class="`badge-${p.difficulty}`">
                 {{ p.difficulty === 'easy' ? '简单' : p.difficulty === 'medium' ? '中等' : '困难' }}
               </span>
-              <span class="tp-title">{{ p.title }}</span>
+              <span class="tp-title">{{ problemHeading(p) }}</span>
               <span class="tp-slug mono">{{ p.slug }}</span>
             </div>
 
@@ -127,7 +127,7 @@
 import { computed } from 'vue'
 import { useStudyPlan } from '../stores/plan'
 import { useToast } from '../stores/toast'
-import type { ProblemListItem } from '../types'
+import { problemHeading, type ProblemListItem } from '../types'
 
 const props = defineProps<{
   problems: ProblemListItem[]

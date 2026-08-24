@@ -1,4 +1,5 @@
 slug = "number-of-islands"
+leetcode_id = 200
 title = "岛屿数量"
 difficulty = "medium"
 source = "hot100"

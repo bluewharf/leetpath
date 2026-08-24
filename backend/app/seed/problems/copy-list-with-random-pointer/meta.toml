@@ -1,4 +1,5 @@
 slug = "copy-list-with-random-pointer"
+leetcode_id = 138
 title = "随机链表的复制"
 difficulty = "medium"
 source = "hot100"

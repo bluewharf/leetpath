@@ -1,4 +1,5 @@
 slug = "linked-list-cycle-ii"
+leetcode_id = 142
 title = "环形链表 II"
 difficulty = "medium"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "implement-trie-prefix-tree"
+leetcode_id = 208
 title = "实现 Trie (前缀树)"
 difficulty = "medium"
 source = "hot100"

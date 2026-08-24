@@ -1,4 +1,5 @@
 slug = "path-sum-iii"
+leetcode_id = 437
 title = "路径总和 III"
 difficulty = "medium"
 source = "hot100"
