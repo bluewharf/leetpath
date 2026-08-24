@@ -18,6 +18,8 @@ from app.invites import hash_invite_code
 from app.models import Invite, User, utcnow
 from app.rate_limit import client_ip, request_limiter
 
+_DUMMY_PASSWORD_HASH = hash_password("timing-equalizer-dummy")
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,32}$")
@@ -114,17 +116,18 @@ def login(
     response: Response,
     db: Session = Depends(get_db),
 ) -> UserOut:
+    request_limiter.check(f"login-ip:{client_ip(request)}", limit=20, window_seconds=60)
     request_limiter.check(
         f"login:{client_ip(request)}:{body.username}",
         limit=5,
         window_seconds=60,
     )
     user = db.scalar(select(User).where(User.username == body.username))
-    if user is None or not verify_password(body.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户名或密码错误",
-        )
+    if user is None:
+        verify_password(body.password, _DUMMY_PASSWORD_HASH)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误")
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误")
     set_auth_cookie(response, create_access_token(user.id))
     return user_out(user)
 

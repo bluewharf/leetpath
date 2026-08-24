@@ -223,7 +223,7 @@ jobs:
 
 ### B1. 登录防用户名枚举 + IP 维度限流兜底
 
-- [ ] **B1 完成**
+- [x] **B1 完成**
 
 **问题**（`backend/app/routers/auth.py`）：
 1. 用户名不存在时直接返回 401，不执行 bcrypt 校验；bcrypt 验证约 100ms，攻击者可通过响应时间差枚举有效用户名。
@@ -257,7 +257,7 @@ if not verify_password(body.password, user.password_hash):
 
 **验收**：`cd backend && pytest` 全过（含新增测试）。
 
-完成备注：
+完成备注：`backend/app/routers/auth.py`, `backend/tests/test_security.py`
 
 ---
 
