@@ -10,6 +10,7 @@
     <div class="admin-tabs">
       <button :class="{ active: tab === 'problems' }" @click="tab = 'problems'">题目管理</button>
       <button :class="{ active: tab === 'jobs' }" @click="tab = 'jobs'">看板管理</button>
+      <button :class="{ active: tab === 'invites' }" @click="tab = 'invites'">邀请码</button>
     </div>
 
     <!-- 题目管理 -->
@@ -78,19 +79,63 @@
         </div>
       </div>
     </div>
+
+    <div v-show="tab === 'invites'">
+      <div class="card" style="padding:18px 20px;margin-bottom:14px">
+        <h3 style="margin-top:0">创建一次性邀请码</h3>
+        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+          <div class="field" style="margin:0;min-width:180px">
+            <label>有效期</label>
+            <select v-model="inviteDays" class="select">
+              <option :value="1">1 天</option>
+              <option :value="3">3 天</option>
+              <option :value="7">7 天</option>
+              <option :value="30">30 天</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" :disabled="creatingInvite" @click="createInvite">
+            {{ creatingInvite ? '生成中…' : '生成邀请码' }}
+          </button>
+        </div>
+        <div v-if="newInviteCode" class="invite-result">
+          <code>{{ newInviteCode }}</code>
+          <button class="btn btn-sm" @click="copyInvite">复制</button>
+        </div>
+        <div v-if="inviteMessage" style="margin-top:10px;color:var(--text-dim);font-size:13px">
+          {{ inviteMessage }}
+        </div>
+      </div>
+
+      <div class="card">
+        <div v-if="invites.length === 0" class="empty">还没有邀请码</div>
+        <div v-for="invite in invites" :key="invite.id" class="admin-row">
+          <span class="grow">
+            <b>#{{ invite.id }}</b>
+            <span style="color:var(--text-faint);font-size:12px"> 有效至 {{ formatInviteTime(invite.expires_at) }}</span>
+          </span>
+          <span class="badge" :class="inviteState(invite).className">{{ inviteState(invite).text }}</span>
+          <button
+            v-if="!invite.used_at && !invite.revoked_at"
+            class="btn btn-sm"
+            style="color:var(--red)"
+            @click="revokeInvite(invite.id)"
+          >撤销</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
-import type { Job, ProblemListItem } from '../types'
+import type { InviteCreated, InviteSummary, Job, ProblemListItem } from '../types'
 
 interface AdminProblem extends ProblemListItem {
   is_published: boolean
 }
 
-const tab = ref<'problems' | 'jobs'>('problems')
+const tab = ref<'problems' | 'jobs' | 'invites'>('problems')
 
 // 题目管理
 const problems = ref<AdminProblem[]>([])
@@ -196,8 +241,61 @@ async function deleteJob(j: Job) {
   await loadJobs()
 }
 
+const invites = ref<InviteSummary[]>([])
+const inviteDays = ref(7)
+const creatingInvite = ref(false)
+const newInviteCode = ref('')
+const inviteMessage = ref('')
+
+async function loadInvites() {
+  invites.value = await api.get<InviteSummary[]>('/api/admin/invites')
+}
+
+async function createInvite() {
+  creatingInvite.value = true
+  inviteMessage.value = ''
+  newInviteCode.value = ''
+  try {
+    const invite = await api.post<InviteCreated>('/api/admin/invites', {
+      expires_in_days: inviteDays.value,
+    })
+    newInviteCode.value = invite.code
+    inviteMessage.value = '邀请码只在这里显示一次，请立即发给需要注册的朋友。'
+    await loadInvites()
+  } catch (e) {
+    inviteMessage.value = e instanceof Error ? e.message : '邀请码生成失败'
+  } finally {
+    creatingInvite.value = false
+  }
+}
+
+async function copyInvite() {
+  if (!newInviteCode.value) return
+  await navigator.clipboard.writeText(newInviteCode.value)
+  inviteMessage.value = '邀请码已复制'
+}
+
+async function revokeInvite(id: number) {
+  await api.del(`/api/admin/invites/${id}`)
+  await loadInvites()
+}
+
+function formatInviteTime(value: string) {
+  return new Date(value).toLocaleString('zh-CN')
+}
+
+function inviteState(invite: InviteSummary) {
+  if (invite.revoked_at) return { text: '已撤销', className: 'badge-hard' }
+  if (invite.used_at) return { text: '已使用', className: 'badge-easy' }
+  if (new Date(invite.expires_at).getTime() <= Date.now()) {
+    return { text: '已过期', className: 'badge-medium' }
+  }
+  return { text: '可使用', className: 'badge-source' }
+}
+
 onMounted(() => {
   loadProblems()
   loadJobs()
+  loadInvites()
 })
 </script>

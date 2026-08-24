@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,12 +8,14 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user
-from app.models import Problem, Submission, User
+from app.models import Problem, Submission, User, utcnow
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
 CODE_MAX_BYTES = 64 * 1024
-MAX_IN_FLIGHT = 5
+MAX_IN_FLIGHT = 2
+MAX_GLOBAL_IN_FLIGHT = 10
+MAX_SUBMISSIONS_PER_MINUTE = 10
 
 
 class SubmissionCreate(BaseModel):
@@ -68,6 +70,29 @@ def create_submission(
     )
     if problem is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="题目不存在")
+    global_in_flight = db.scalar(
+        select(func.count())
+        .select_from(Submission)
+        .where(Submission.status.in_(("pending", "judging")))
+    )
+    if (global_in_flight or 0) >= MAX_GLOBAL_IN_FLIGHT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="评测队列繁忙，请稍后再试",
+        )
+    recent = db.scalar(
+        select(func.count())
+        .select_from(Submission)
+        .where(
+            Submission.user_id == user.id,
+            Submission.created_at >= utcnow() - timedelta(minutes=1),
+        )
+    )
+    if (recent or 0) >= MAX_SUBMISSIONS_PER_MINUTE:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="提交过于频繁，请稍后再试",
+        )
     in_flight = db.scalar(
         select(func.count())
         .select_from(Submission)

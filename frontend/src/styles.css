@@ -1094,7 +1094,14 @@ code, pre, .mono { font-family: var(--mono); }
   display: flex;
   gap: 14px;
 }
-.jd-toggle { color: var(--accent); }
+.jd-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
 .pos-jd-content pre {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1442,6 +1449,21 @@ code, pre, .mono { font-family: var(--mono); }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* ========== 响应式 (Responsive) ========== */
+.invite-result {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.invite-result code {
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1023px) {
   .topbar { padding: 0 16px; gap: 12px; }
   .topbar nav { display: none; }

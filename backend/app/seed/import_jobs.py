@@ -24,6 +24,7 @@ from pathlib import Path
 from app import db as dbmod
 from app.db import Base
 from app.models import Job
+from app.urls import safe_https_url
 
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -68,6 +69,26 @@ def build_jd_text(raw: dict) -> str:
     return "\n\n".join(parts)
 
 
+def build_job(raw: dict, *, today: date) -> Job:
+    deadline_raw = (raw.get("deadline") or "").strip()
+    deadline = (
+        datetime.strptime(deadline_raw, "%Y-%m-%d").date()
+        if ISO_DATE.match(deadline_raw)
+        else None
+    )
+    return Job(
+        company=raw["company"].strip(),
+        position=raw["role"].strip(),
+        tier=classify_tier(raw["company"].strip()),
+        batch=(raw.get("batch") or "").strip() or None,
+        open_at=None,
+        deadline_at=deadline,
+        jd_text=build_jd_text(raw) or None,
+        apply_url=safe_https_url((raw.get("apply_url") or "").strip() or None),
+        status="closed" if deadline and deadline < today else "open",
+    )
+
+
 def main() -> None:
     if len(sys.argv) != 2:
         sys.exit("用法: python -m app.seed.import_jobs <jobs.json>")
@@ -84,25 +105,7 @@ def main() -> None:
     with dbmod.SessionLocal() as session:
         session.query(Job).delete()
         for raw in raws:
-            deadline_raw = (raw.get("deadline") or "").strip()
-            deadline = (
-                datetime.strptime(deadline_raw, "%Y-%m-%d").date()
-                if ISO_DATE.match(deadline_raw)
-                else None
-            )
-            session.add(
-                Job(
-                    company=raw["company"].strip(),
-                    position=raw["role"].strip(),
-                    tier=classify_tier(raw["company"].strip()),
-                    batch=(raw.get("batch") or "").strip() or None,
-                    open_at=None,
-                    deadline_at=deadline,
-                    jd_text=build_jd_text(raw) or None,
-                    apply_url=(raw.get("apply_url") or "").strip() or None,
-                    status="closed" if deadline and deadline < today else "open",
-                )
-            )
+            session.add(build_job(raw, today=today))
             inserted += 1
         session.commit()
     print(f"导入完成：{inserted} 条岗位（来源 {path.name}）")

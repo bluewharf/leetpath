@@ -12,6 +12,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_path.as_posix()}")
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-must-be-32-bytes-min")
     monkeypatch.setenv("COOKIE_SECURE", "false")
+    monkeypatch.setenv("APP_ENV", "test")
+    monkeypatch.setenv("PUBLIC_ORIGIN", "http://testserver")
 
     from app.seed import loader as seed_loader
 
@@ -42,19 +44,35 @@ def loaded_problem(client):
 
 @pytest.fixture
 def admin_client(client, loaded_problem):
-    r = client.post(
-        "/api/auth/register",
-        json={"username": "alice", "password": "password123", "email": "a@example.com"},
-    )
-    assert r.status_code == 201
+    from app import db as dbmod
+    from app.auth import hash_password
+    from app.models import User
+
+    assert dbmod.SessionLocal is not None
+    with dbmod.SessionLocal() as db:
+        db.add(
+            User(
+                username="admin",
+                email="admin@example.com",
+                password_hash=hash_password("password123"),
+                is_admin=True,
+            )
+        )
+        db.commit()
+    r = client.post("/api/auth/login", json={"username": "admin", "password": "password123"})
+    assert r.status_code == 200
     return client
 
 
 @pytest.fixture
 def user_client(admin_client):
+    invite = admin_client.post("/api/admin/invites", json={"expires_in_days": 7})
+    assert invite.status_code == 201
+    code = invite.json()["code"]
+    admin_client.post("/api/auth/logout")
     r = admin_client.post(
         "/api/auth/register",
-        json={"username": "bob", "password": "password123"},
+        json={"username": "bob", "password": "password123", "invite_code": code},
     )
     assert r.status_code == 201
     return admin_client
