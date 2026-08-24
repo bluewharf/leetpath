@@ -1,6 +1,12 @@
 # leetpath：nginx 静态 + /api 反代、FastAPI、判题 worker。
 # 判题镜像不随 up 启动，需先：docker compose build judge-python judge-cpp
 
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   backend:
     image: leetpath-backend
@@ -22,6 +28,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    logging: *default-logging
 
   judge:
     image: leetpath-backend
@@ -43,6 +50,7 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    logging: *default-logging
 
   backup:
     image: leetpath-backend
@@ -66,6 +74,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    logging: *default-logging
 
   judge-python:
     image: leetpath-judge-python
@@ -111,6 +120,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    logging: *default-logging
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -126,6 +136,7 @@ services:
     security_opt:
       - no-new-privileges:true
     restart: unless-stopped
+    logging: *default-logging
 
 volumes:
   leetpath-data:

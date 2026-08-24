@@ -95,7 +95,7 @@ frontend/dist/
 
 ### A4. Docker 日志轮转
 
-- [ ] **A4 完成**
+- [x] **A4 完成**
 
 **问题**：`docker-compose.yml` 未配置 logging，Docker 默认 json-file 驱动无大小上限，VPS 磁盘会被日志慢慢吃满。
 
@@ -117,7 +117,7 @@ x-logging: &default-logging
 
 **验收**：`docker compose --profile production config` 输出无报错且包含 `max-size`。
 
-完成备注：
+完成备注：`docker-compose.yml`
 
 ---
 
