@@ -632,6 +632,7 @@ code, pre, .mono { font-family: var(--mono); }
   z-index: 50;
   justify-content: space-around;
   align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 :root[data-theme="dark"] .bottom-tabs {
   background: rgba(23, 24, 27, 0.92);
@@ -2004,7 +2005,7 @@ code, pre, .mono { font-family: var(--mono); }
   .topbar nav { display: none; }
   .topbar .user .username { display: none; }
   .bottom-tabs { display: flex; }
-  body { padding-bottom: 62px; }
+  body { padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
 
   .container { padding: 20px 14px 54px; }
   .display { font-size: 26px; }
