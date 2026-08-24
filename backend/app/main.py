@@ -3,9 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app import db as dbmod
-from app.db import Base, configure_db
+from app.db import Base, configure_db, get_db
 from app.deps import get_current_user
 from app.config import get_settings
 from app.rate_limit import request_limiter
@@ -66,3 +68,9 @@ app.include_router(jobs.router, prefix="/api", dependencies=_protected)
 app.include_router(links.router, prefix="/api", dependencies=_protected)
 app.include_router(admin.router, prefix="/api", dependencies=_protected)
 app.include_router(invites.router, prefix="/api", dependencies=_protected)
+
+
+@app.get("/api/health")
+def health(db: Session = Depends(get_db)) -> dict[str, str]:
+    db.execute(text("SELECT 1"))
+    return {"status": "ok"}

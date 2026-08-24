@@ -29,6 +29,12 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
     logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   judge:
     image: leetpath-backend
@@ -104,7 +110,8 @@ services:
       - edge
       - app
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     read_only: true
     tmpfs:
       - /var/cache/nginx:size=16m
