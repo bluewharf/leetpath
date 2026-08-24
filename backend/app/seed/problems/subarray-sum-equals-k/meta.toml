@@ -1,4 +1,5 @@
 slug = "subarray-sum-equals-k"
+leetcode_id = 560
 title = "和为 K 的子数组"
 difficulty = "medium"
 source = "hot100"

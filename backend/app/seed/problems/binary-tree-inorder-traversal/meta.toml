@@ -1,4 +1,5 @@
 slug = "binary-tree-inorder-traversal"
+leetcode_id = 94
 title = "二叉树的中序遍历"
 difficulty = "easy"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "n-queens"
+leetcode_id = 51
 title = "N 皇后"
 difficulty = "hard"
 source = "hot100"

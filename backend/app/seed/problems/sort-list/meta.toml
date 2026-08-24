@@ -1,4 +1,5 @@
 slug = "sort-list"
+leetcode_id = 148
 title = "排序链表"
 difficulty = "medium"
 source = "hot100"

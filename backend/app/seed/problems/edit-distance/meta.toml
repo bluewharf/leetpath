@@ -1,4 +1,5 @@
 slug = "edit-distance"
+leetcode_id = 72
 title = "编辑距离"
 difficulty = "medium"
 source = "hot100"

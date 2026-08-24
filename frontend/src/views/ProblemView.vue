@@ -25,7 +25,7 @@
       <div class="workspace-bar">
         <div class="workspace-left">
           <RouterLink to="/problems" class="btn btn-sm back-link">← 返回题库</RouterLink>
-          <span class="problem-title-inline">{{ problem.title }}</span>
+          <span class="problem-title-inline">{{ problemHeading(problem) }}</span>
           <span class="badge" :class="`badge-${problem.difficulty}`">{{ difficultyText }}</span>
         </div>
 
@@ -69,7 +69,7 @@
 
           <!-- 题面内容 -->
           <div v-show="!isDesktop ? tab === 'statement' : leftPaneTab === 'statement'">
-            <h1 style="font-size:20px;margin-top:4px">{{ problem.title }}</h1>
+            <h1 style="font-size:20px;margin-top:4px">{{ problemHeading(problem) }}</h1>
             <div class="problem-meta">
               <span class="badge" :class="`badge-${problem.difficulty}`">{{ difficultyText }}</span>
               <span class="badge badge-source">{{ problem.source === 'hot100' ? '热题100' : '面经手撕' }}</span>
@@ -121,7 +121,7 @@
           <!-- 题解内容 -->
           <div v-show="!isDesktop ? tab === 'solution' : leftPaneTab === 'solution'" class="solution-pane-wrap">
             <h2 style="font-size:18px;margin-top:6px;display:flex;align-items:center;gap:8px">
-              <span>{{ problem.title }} · 官方题解</span>
+              <span>{{ problemHeading(problem) }} · 官方题解</span>
             </h2>
             <div v-if="solutionLoading" class="empty" style="padding:24px 0">题解加载中…</div>
             <div v-else-if="solutionHtml" class="markdown-body rc-solution" v-html="solutionHtml"></div>
@@ -231,6 +231,7 @@ import { useStudyPlan } from '../stores/plan'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import {
   isFinal,
+  problemHeading,
   type Draft,
   type Language,
   type ProblemDetail,

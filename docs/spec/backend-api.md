@@ -22,7 +22,7 @@
 
 - `User`: id, username(唯一索引, 3-32), email(可空), password_hash, is_admin(bool, 默认 False), created_at
 - `Invite`: id, code_hash(SHA-256, 唯一), expires_at, used_at(可空), revoked_at(可空), created_by_id, used_by_id(可空), created_at
-- `Problem`: id, slug(唯一索引), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), created_at
+- `Problem`: id, slug(唯一索引), leetcode_id(可空, 力扣原题号), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), created_at
 - `Testcase`: id, problem_id(FK, 索引), ordinal(int), input(Text), expected_output(Text), is_sample(bool)；UniqueConstraint(problem_id, ordinal)
 - `Submission`: id, user_id(FK, 索引), problem_id(FK), language(`python3|cpp`), code(Text), status(默认 `pending`, 索引), detail(JSON, 可空), compile_output(Text, 可空), runtime_ms(int, 可空), created_at(索引)
 - `Draft`: 联合主键(user_id, problem_id, language)；code(Text), updated_at
@@ -44,8 +44,8 @@
 
 ### `app/routers/problems.py`
 
-- `GET /api/problems?difficulty=&source=&tag=&q=` → `[{id, slug, title, difficulty, source, tags, my_status}]`，只含 `is_published=True`。`my_status`：`solved`（有 AC 提交）/ `attempted`（有提交无 AC）/ `null`。q 匹配 title/slug 子串（大小写不敏感）。
-- `GET /api/problems/{slug}` → 详情：`{id, slug, title, difficulty, source, tags, statement_md, time_limit_ms, memory_limit_mb, samples: [{ordinal, input, expected_output}]}`（samples 只含 is_sample=True，按 ordinal 排序）。404 不存在或未发布。
+- `GET /api/problems?difficulty=&source=&tag=&q=` → `[{id, slug, leetcode_id, title, difficulty, source, tags, my_status}]`，只含 `is_published=True`。`my_status`：`solved`（有 AC 提交）/ `attempted`（有提交无 AC）/ `null`。q 匹配 title/slug 子串（大小写不敏感）；纯数字时同时匹配 `leetcode_id`。
+- `GET /api/problems/{slug}` → 详情：`{id, slug, leetcode_id, title, difficulty, source, tags, statement_md, time_limit_ms, memory_limit_mb, samples: [{ordinal, input, expected_output}]}`（samples 只含 is_sample=True，按 ordinal 排序）。404 不存在或未发布。
 
 ### `app/routers/submissions.py`
 

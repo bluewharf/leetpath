@@ -1,4 +1,5 @@
 slug = "first-missing-positive"
+leetcode_id = 41
 title = "缺失的第一个正数"
 difficulty = "hard"
 source = "hot100"

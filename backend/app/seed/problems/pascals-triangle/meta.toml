@@ -1,4 +1,5 @@
 slug = "pascals-triangle"
+leetcode_id = 118
 title = "杨辉三角"
 difficulty = "easy"
 source = "hot100"

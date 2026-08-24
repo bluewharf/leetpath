@@ -1,7 +1,7 @@
 from collections.abc import Generator
 from pathlib import Path
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -54,6 +54,20 @@ def configure_db(database_url: str | None = None) -> Engine:
         event.listen(engine, "connect", _sqlite_connect)
     SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     return engine
+
+
+def ensure_schema(bind: Engine | None = None) -> None:
+    """为已有 SQLite 库补列。create_all 不会 ALTER 现有表。"""
+    eng = bind if bind is not None else engine
+    if eng is None:
+        return
+    with eng.begin() as conn:
+        rows = conn.execute(text("PRAGMA table_info(problems)")).fetchall()
+        if not rows:
+            return
+        cols = {row[1] for row in rows}
+        if "leetcode_id" not in cols:
+            conn.execute(text("ALTER TABLE problems ADD COLUMN leetcode_id INTEGER"))
 
 
 def get_db() -> Generator[Session, None, None]:

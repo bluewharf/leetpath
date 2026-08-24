@@ -1,4 +1,5 @@
 slug = "merge-intervals"
+leetcode_id = 56
 title = "合并区间"
 difficulty = "medium"
 source = "hot100"

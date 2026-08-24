@@ -1,4 +1,5 @@
 slug = "house-robber"
+leetcode_id = 198
 title = "打家劫舍"
 difficulty = "medium"
 source = "hot100"

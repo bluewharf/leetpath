@@ -1,4 +1,5 @@
 slug = "minimum-window-substring"
+leetcode_id = 76
 title = "最小覆盖子串"
 difficulty = "hard"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "lru-cache"
+leetcode_id = 146
 title = "LRU 缓存"
 difficulty = "medium"
 source = "hot100"

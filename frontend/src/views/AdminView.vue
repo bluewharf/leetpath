@@ -28,7 +28,7 @@
       <div v-if="problems.length === 0" class="empty">暂无题目，点上方按钮导入种子</div>
       <div v-for="p in problems" :key="p.id" class="admin-row">
         <span class="badge" :class="`badge-${p.difficulty}`" style="flex:none">{{ p.difficulty }}</span>
-        <span class="grow">{{ p.title }} <span style="color:var(--text-faint);font-size:12px">{{ p.slug }}</span></span>
+        <span class="grow">{{ problemHeading(p) }} <span style="color:var(--text-faint);font-size:12px">{{ p.slug }}</span></span>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);flex:none">
           <input type="checkbox" :checked="p.is_published" @change="togglePublish(p)" /> 上架
         </label>
@@ -133,7 +133,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
-import type { InviteCreated, InviteSummary, Job, ProblemListItem } from '../types'
+import { problemHeading, type InviteCreated, type InviteSummary, type Job, type ProblemListItem } from '../types'
 
 interface AdminProblem extends ProblemListItem {
   is_published: boolean

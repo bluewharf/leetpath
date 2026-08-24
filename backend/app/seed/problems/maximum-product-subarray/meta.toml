@@ -1,4 +1,5 @@
 slug = "maximum-product-subarray"
+leetcode_id = 152
 title = "乘积最大子数组"
 difficulty = "medium"
 source = "hot100"

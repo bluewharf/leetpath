@@ -23,6 +23,7 @@ async def lifespan(_app: FastAPI):
 
     assert dbmod.engine is not None
     Base.metadata.create_all(bind=dbmod.engine)
+    dbmod.ensure_schema(dbmod.engine)
     yield
     if dbmod.engine is not None:
         dbmod.engine.dispose()

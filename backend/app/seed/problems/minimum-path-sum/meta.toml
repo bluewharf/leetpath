@@ -1,4 +1,5 @@
 slug = "minimum-path-sum"
+leetcode_id = 64
 title = "最小路径和"
 difficulty = "medium"
 source = "hot100"

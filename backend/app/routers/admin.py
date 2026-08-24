@@ -24,6 +24,7 @@ class PublishIn(BaseModel):
 class AdminProblemOut(BaseModel):
     id: int
     slug: str
+    leetcode_id: int | None
     title: str
     difficulty: str
     source: str
@@ -54,6 +55,7 @@ def list_all_problems(
         AdminProblemOut(
             id=p.id,
             slug=p.slug,
+            leetcode_id=p.leetcode_id,
             title=p.title,
             difficulty=p.difficulty,
             source=p.source,
@@ -83,6 +85,7 @@ def set_published(
     return AdminProblemOut(
         id=problem.id,
         slug=problem.slug,
+        leetcode_id=problem.leetcode_id,
         title=problem.title,
         difficulty=problem.difficulty,
         source=problem.source,

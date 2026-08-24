@@ -1,4 +1,5 @@
 slug = "merge-two-sorted-lists"
+leetcode_id = 21
 title = "合并两个有序链表"
 difficulty = "easy"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "move-zeroes"
+leetcode_id = 283
 title = "移动零"
 difficulty = "easy"
 source = "hot100"

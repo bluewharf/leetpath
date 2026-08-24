@@ -1,4 +1,5 @@
 slug = "longest-increasing-subsequence"
+leetcode_id = 300
 title = "最长递增子序列"
 difficulty = "medium"
 source = "hot100"

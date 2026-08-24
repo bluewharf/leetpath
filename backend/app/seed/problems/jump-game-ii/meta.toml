@@ -1,4 +1,5 @@
 slug = "jump-game-ii"
+leetcode_id = 45
 title = "跳跃游戏 II"
 difficulty = "medium"
 source = "hot100"

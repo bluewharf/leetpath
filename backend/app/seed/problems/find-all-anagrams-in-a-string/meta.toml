@@ -1,4 +1,5 @@
 slug = "find-all-anagrams-in-a-string"
+leetcode_id = 438
 title = "找到字符串中所有字母异位词"
 difficulty = "medium"
 source = "hot100"

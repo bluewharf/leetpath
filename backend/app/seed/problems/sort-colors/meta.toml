@@ -1,4 +1,5 @@
 slug = "sort-colors"
+leetcode_id = 75
 title = "颜色分类"
 difficulty = "medium"
 source = "hot100"

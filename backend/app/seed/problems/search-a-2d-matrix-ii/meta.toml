@@ -1,4 +1,5 @@
 slug = "search-a-2d-matrix-ii"
+leetcode_id = 240
 title = "搜索二维矩阵 II"
 difficulty = "medium"
 source = "hot100"

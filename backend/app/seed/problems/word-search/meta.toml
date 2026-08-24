@@ -1,4 +1,5 @@
 slug = "word-search"
+leetcode_id = 79
 title = "单词搜索"
 difficulty = "medium"
 source = "hot100"

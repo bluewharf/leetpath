@@ -1,4 +1,5 @@
 slug = "rotate-array"
+leetcode_id = 189
 title = "轮转数组"
 difficulty = "medium"
 source = "hot100"

@@ -1,4 +1,5 @@
 slug = "reverse-linked-list"
+leetcode_id = 206
 title = "反转链表"
 difficulty = "easy"
 source = "hot100"

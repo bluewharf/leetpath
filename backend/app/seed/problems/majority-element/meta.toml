@@ -1,4 +1,5 @@
 slug = "majority-element"
+leetcode_id = 169
 title = "多数元素"
 difficulty = "easy"
 source = "hot100"

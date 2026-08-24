@@ -1,4 +1,5 @@
 slug = "construct-binary-tree-from-preorder-and-inorder-traversal"
+leetcode_id = 105
 title = "从前序与中序遍历序列构造二叉树"
 difficulty = "medium"
 source = "hot100"

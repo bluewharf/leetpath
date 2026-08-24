@@ -1,4 +1,5 @@
 slug = "invert-binary-tree"
+leetcode_id = 226
 title = "翻转二叉树"
 difficulty = "easy"
 source = "hot100"

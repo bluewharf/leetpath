@@ -1,4 +1,5 @@
 slug = "validate-binary-search-tree"
+leetcode_id = 98
 title = "验证二叉搜索树"
 difficulty = "medium"
 source = "hot100"

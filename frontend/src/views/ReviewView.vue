@@ -63,7 +63,7 @@
                 <span class="badge badge-source">{{ current.source === 'hot100' ? '热题100' : '面经手撕' }}</span>
                 <span v-if="current.memory === 'remembered'" class="badge" style="color:var(--green)">✓ 已记住</span>
               </div>
-              <div class="rc-title">{{ current.title }}</div>
+              <div class="rc-title">{{ problemHeading(current) }}</div>
               <div class="rc-slug mono">{{ current.slug }}</div>
               <div class="rc-tags">{{ current.tags.join(' · ') }}</div>
               <div class="rc-hint">点击卡片翻看【{{ langPref === 'cpp' ? 'C++' : 'Python3' }}】题解（按 Space / Enter）</div>
@@ -97,7 +97,7 @@ import { api } from '../api'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import Skeleton from '../components/Skeleton.vue'
 import { useLangPref } from '../stores/pref'
-import type { Difficulty, ProblemListItem } from '../types'
+import { problemHeading, type Difficulty, type ProblemListItem } from '../types'
 
 const { langPref, setLang } = useLangPref()
 

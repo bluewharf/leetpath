@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from sqlalchemy import create_engine, text
+
+from app.db import ensure_schema
 from app.seed.loader import load_problems
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -12,6 +15,7 @@ def test_problem_list_and_detail(admin_client):
     assert len(items) == 1
     item = items[0]
     assert item["slug"] == "two-sum"
+    assert item["leetcode_id"] == 1
     assert item["title"] == "两数之和"
     assert item["difficulty"] == "easy"
     assert item["source"] == "hot100"
@@ -25,6 +29,7 @@ def test_problem_list_and_detail(admin_client):
     assert detail.status_code == 200
     body = detail.json()
     assert body["slug"] == "two-sum"
+    assert body["leetcode_id"] == 1
     assert "题目描述" in body["statement_md"]
     assert body["time_limit_ms"] == 5000
     assert body["memory_limit_mb"] == 256
@@ -42,6 +47,7 @@ def test_problem_filters(admin_client):
     assert admin_client.get("/api/problems?tag=图论").json() == []
     assert admin_client.get("/api/problems?q=TWO").json()[0]["slug"] == "two-sum"
     assert admin_client.get("/api/problems?q=两数").json()[0]["slug"] == "two-sum"
+    assert admin_client.get("/api/problems?q=1").json()[0]["slug"] == "two-sum"
     assert admin_client.get("/api/problems?q=zzzz").json() == []
 
 
@@ -133,3 +139,19 @@ def test_memory_mark_and_list(admin_client):
     assert admin_client.get("/api/problems").json()[0]["memory"] == "unremembered"
 
     assert admin_client.post("/api/problems/no-such/memory", json={"remembered": True}).status_code == 404
+
+
+def test_ensure_schema_adds_leetcode_id_column(tmp_path):
+    db_path = tmp_path / "legacy.db"
+    engine = create_engine(f"sqlite:///{db_path.as_posix()}", future=True)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE TABLE problems (id INTEGER PRIMARY KEY, slug VARCHAR(128), title VARCHAR(255))"
+            )
+        )
+    ensure_schema(engine)
+    with engine.connect() as conn:
+        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(problems)"))}
+    assert "leetcode_id" in cols
+    ensure_schema(engine)  # 幂等

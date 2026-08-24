@@ -1,4 +1,5 @@
 slug = "top-k-frequent-elements"
+leetcode_id = 347
 title = "前 K 个高频元素"
 difficulty = "medium"
 source = "hot100"

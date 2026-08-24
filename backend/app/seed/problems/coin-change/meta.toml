@@ -1,4 +1,5 @@
 slug = "coin-change"
+leetcode_id = 322
 title = "零钱兑换"
 difficulty = "medium"
 source = "hot100"

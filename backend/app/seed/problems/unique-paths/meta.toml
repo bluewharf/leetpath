@@ -1,4 +1,5 @@
 slug = "unique-paths"
+leetcode_id = 62
 title = "不同路径"
 difficulty = "medium"
 source = "hot100"

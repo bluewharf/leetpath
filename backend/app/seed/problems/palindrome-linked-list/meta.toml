@@ -1,4 +1,5 @@
 slug = "palindrome-linked-list"
+leetcode_id = 234
 title = "回文链表"
 difficulty = "easy"
 source = "hot100"

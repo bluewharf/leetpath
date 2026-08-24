@@ -1,4 +1,5 @@
 slug = "course-schedule"
+leetcode_id = 207
 title = "课程表"
 difficulty = "medium"
 source = "hot100"
