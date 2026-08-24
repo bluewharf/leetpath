@@ -383,4 +383,10 @@ git status                                 # 无 .env / data / 构建产物待�
 
 ## 执行中发现的问题
 
-（执行 AI 在此记录清单之外发现的问题，只记录、不修改）
+（只记录、不修改）
+
+- `docker-compose.yml` 使用 `env_file: ${LEETPATH_ENV_FILE:-.env}`，本机无 `.env` 时 `docker compose --profile production config` 直接失败。验收时用 `LEETPATH_ENV_FILE=.env.example` 绕过。
+- 登录/注册页用 class `form-error`，`styles.css` 里只有 `.form-err`，错误文案实际没有对应样式。B4 新增了 `.error-banner`，未改登录页。
+- 全局 `* { box-sizing: border-box }` 且 `.bottom-tabs { height: 56px }`，B5 按清单只加了 `padding-bottom: env(safe-area-inset-bottom)`，在 border-box 下会压缩底栏内部高度，而不是把栏整体抬离 Home Indicator。
+- pytest 有 2 条 Starlette 弃用警告：`httpx`+`starlette.testclient` 建议改 `httpx2`；`HTTP_422_UNPROCESSABLE_ENTITY` 建议改 `HTTP_422_UNPROCESSABLE_CONTENT`（`tests/test_jobs.py::test_job_track_sync`）。
+- A6 的官方验收是 push 后 `gh run list`；本轮按用户要求在全部项完成后再 push，因此 CI 是否全绿需在 push 后确认。
