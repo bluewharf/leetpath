@@ -36,17 +36,18 @@ import sys
 
 
 def main() -> None:
+    # 读入：n、数组、target；保证恰好一对答案
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : n + 1]))
     target = int(data[n + 1])
-    seen = {}
+    seen = {}  # 值 → 下标；只记已经扫过的
     for i, x in enumerate(nums):
         y = target - x
         if y in seen:
-            print(seen[y], i)
+            print(seen[y], i)  # 补数在左侧，下标自然升序
             return
-        seen[x] = i
+        seen[x] = i  # 先查再写，避免同一下标用两次
 
 
 if __name__ == "__main__":
@@ -62,21 +63,22 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、数组、target
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int target;
     cin >> target;
-    unordered_map<int, int> seen;
+    unordered_map<int, int> seen;  // 值 → 已扫过的下标
     seen.reserve(n * 2);
     for (int i = 0; i < n; i++) {
         auto it = seen.find(target - nums[i]);
         if (it != seen.end()) {
-            cout << it->second << " " << i << "\n";
+            cout << it->second << " " << i << "\n";  // 补数在左，下标升序
             return 0;
         }
-        seen[nums[i]] = i;
+        seen[nums[i]] = i;  // 先查再写，避免同一下标
     }
     return 0;
 }

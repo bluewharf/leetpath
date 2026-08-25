@@ -42,6 +42,7 @@ class ListNode:
 
 
 def read_list():
+    # 建链：n=0 为空；与「改指针」算法分开
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -65,15 +66,17 @@ def write_list(head):
 
 
 def swap_pairs(head):
+    # 虚头：头结点交换与中间交换同一套重接，不必特判新头
     dummy = ListNode(0, head)
     prev = dummy
     while prev.next and prev.next.next:
+        # 本轮把 prev → a → b → 后续 改成 prev → b → a → 后续
         a = prev.next
         b = a.next
         prev.next = b
         a.next = b.next
         b.next = a
-        prev = a
+        prev = a  # a 现在是这对的尾，下一对从这里开始；奇数长度末结点自然留下
     return dummy.next
 
 
@@ -98,6 +101,7 @@ struct ListNode {
 };
 
 ListNode* readList() {
+    // 建链，与算法分开
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     ListNode dummy;
@@ -128,6 +132,7 @@ void writeList(ListNode* head) {
 }
 
 ListNode* swapPairs(ListNode* head) {
+    // 虚头统一头结点交换；循环条件保证不足一对时停下
     ListNode dummy(0, head);
     ListNode* prev = &dummy;
     while (prev->next && prev->next->next) {
@@ -136,7 +141,7 @@ ListNode* swapPairs(ListNode* head) {
         prev->next = b;
         a->next = b->next;
         b->next = a;
-        prev = a;
+        prev = a;  // 这对的新尾，下一轮从这里接
     }
     return dummy.next;
 }

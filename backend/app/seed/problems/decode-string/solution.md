@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：数字栈 + 字符串栈。遇 [ 压当前倍数和前缀，遇 ] 弹出拼接。
 import sys
 
 
@@ -36,16 +37,16 @@ def decode_string(s: str) -> str:
     k = 0
     for ch in s:
         if ch.isdigit():
-            k = k * 10 + ord(ch) - 48
+            k = k * 10 + ord(ch) - 48  # 倍数可能有多位
         elif ch == "[":
             num_stack.append(k)
             str_stack.append(cur)
-            cur = []
+            cur = []  # 括号内从空白重新拼
             k = 0
         elif ch == "]":
             prev = str_stack.pop()
             n = num_stack.pop()
-            cur = prev + cur * n
+            cur = prev + cur * n  # 前缀 + 括号内串重复 k 次
         else:
             cur.append(ch)
     return "".join(cur)
@@ -60,9 +61,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：数字栈 + 字符串栈。遇 [ 压当前倍数和前缀，遇 ] 弹出拼接。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -73,11 +76,11 @@ string decode_string(const string& s) {
     int k = 0;
     for (char ch : s) {
         if (ch >= '0' && ch <= '9') {
-            k = k * 10 + (ch - '0');
+            k = k * 10 + (ch - '0');  // 倍数可能有多位
         } else if (ch == '[') {
             num_stack.push_back(k);
             str_stack.push_back(cur);
-            cur.clear();
+            cur.clear();  // 括号内从空白重新拼
             k = 0;
         } else if (ch == ']') {
             string prev = str_stack.back();
@@ -86,7 +89,7 @@ string decode_string(const string& s) {
             num_stack.pop_back();
             string inner = cur;
             cur = prev;
-            for (int i = 0; i < n; i++) cur += inner;
+            for (int i = 0; i < n; i++) cur += inner;  // 前缀 + 括号内串重复 k 次
         } else {
             cur.push_back(ch);
         }

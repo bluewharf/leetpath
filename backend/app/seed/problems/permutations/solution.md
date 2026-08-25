@@ -39,12 +39,12 @@ def main() -> None:
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
-    nums.sort()
+    nums.sort()  # 先排序，按值从左到右选，生成顺序即字典序
     used = [False] * n
     path: list[int] = []
 
     def dfs() -> None:
-        if len(path) == n:
+        if len(path) == n:  # 排满 n 个，输出一行
             print(*path)
             return
         for i in range(n):
@@ -54,7 +54,8 @@ def main() -> None:
             path.append(nums[i])
             dfs()
             path.pop()
-            used[i] = False
+            used[i] = False  # 回溯：下标 i 腾出来给同层后续选择
+            # 题目保证元素互异，无需「相同值跳过」的去重剪枝
 
     dfs()
 
@@ -74,7 +75,7 @@ vector<int> nums, path;
 vector<char> used;
 
 void dfs() {
-    if ((int)path.size() == n) {
+    if ((int)path.size() == n) {  // 排满 n 个，输出一行
         for (int i = 0; i < n; i++) {
             if (i) cout << ' ';
             cout << path[i];
@@ -88,7 +89,7 @@ void dfs() {
         path.push_back(nums[i]);
         dfs();
         path.pop_back();
-        used[i] = 0;
+        used[i] = 0;  // 回溯腾出下标；元素互异，无需相同值剪枝
     }
 }
 
@@ -98,7 +99,7 @@ int main() {
     cin >> n;
     nums.resize(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
-    sort(nums.begin(), nums.end());
+    sort(nums.begin(), nums.end());  // 先排序，生成顺序即字典序
     used.assign(n, 0);
     dfs();
     return 0;

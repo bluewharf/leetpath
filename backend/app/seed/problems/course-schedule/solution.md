@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：Kahn 拓扑。能修完全部课 ⟺ 有向图无环 ⟺ 出队数等于 n。
 import sys
 from collections import deque
 
@@ -35,7 +36,7 @@ def can_finish(n, prerequisites):
     graph = [[] for _ in range(n)]
     indeg = [0] * n
     for a, b in prerequisites:
-        graph[b].append(a)
+        graph[b].append(a)  # 边 b→a：修完 b 才能修 a
         indeg[a] += 1
     q = deque(i for i in range(n) if indeg[i] == 0)
     taken = 0
@@ -46,14 +47,14 @@ def can_finish(n, prerequisites):
             indeg[v] -= 1
             if indeg[v] == 0:
                 q.append(v)
-    return taken == n
+    return taken == n  # 出队不足 n 说明有环
 
 
 def main() -> None:
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     m = data[1]
-    idx = 3
+    idx = 3  # 跳过列数 cols（本题固定 2）
     prereq = []
     for _ in range(m):
         prereq.append((data[idx], data[idx + 1]))
@@ -65,9 +66,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：Kahn 拓扑。能修完全部课 ⟺ 有向图无环 ⟺ 出队数等于 n。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -75,7 +78,7 @@ bool can_finish(int n, const vector<pair<int, int>>& prerequisites) {
     vector<vector<int>> graph(n);
     vector<int> indeg(n);
     for (auto [a, b] : prerequisites) {
-        graph[b].push_back(a);
+        graph[b].push_back(a);  // 边 b→a：修完 b 才能修 a
         indeg[a]++;
     }
     queue<int> q;
@@ -89,14 +92,14 @@ bool can_finish(int n, const vector<pair<int, int>>& prerequisites) {
             if (--indeg[v] == 0) q.push(v);
         }
     }
-    return taken == n;
+    return taken == n;  // 出队不足 n 说明有环
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n, m, cols;
-    cin >> n >> m >> cols;
+    cin >> n >> m >> cols;  // cols 是 ACM 矩阵列数（本题固定 2）
     vector<pair<int, int>> prereq;
     prereq.reserve(m);
     for (int i = 0; i < m; i++) {

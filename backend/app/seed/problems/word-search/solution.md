@@ -40,7 +40,7 @@ def exist(board, word):
     m, n = len(board), len(board[0])
     wlen = len(word)
     if wlen > m * n:
-        return False
+        return False  # 词比格子还多，不可能不重复走完
 
     def dfs(i, j, k):
         if k == wlen:
@@ -48,24 +48,25 @@ def exist(board, word):
         if i < 0 or i >= m or j < 0 or j >= n or board[i][j] != word[k]:
             return False
         tmp = board[i][j]
-        board[i][j] = "#"
+        board[i][j] = "#"  # 原地哨兵：路径上不可复用
         found = (
             dfs(i + 1, j, k + 1)
             or dfs(i - 1, j, k + 1)
             or dfs(i, j + 1, k + 1)
             or dfs(i, j - 1, k + 1)
         )
-        board[i][j] = tmp
+        board[i][j] = tmp  # 回溯还原，别的起点还能用这格
         return found
 
     for i in range(m):
         for j in range(n):
             if board[i][j] == word[0] and dfs(i, j, 0):
-                return True
+                return True  # 找到一条即可
     return False
 
 
 def main() -> None:
+    # 读入：m n、字符矩阵、单词
     data = sys.stdin.read().split()
     m, n = int(data[0]), int(data[1])
     idx = 2
@@ -90,6 +91,7 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：m n、字符矩阵、单词
     int m, n;
     cin >> m >> n;
     vector<vector<char>> board(m, vector<char>(n));
@@ -106,10 +108,10 @@ int main() {
         if (k == wlen) return true;
         if (i < 0 || i >= m || j < 0 || j >= n || board[i][j] != word[k]) return false;
         char tmp = board[i][j];
-        board[i][j] = '#';
+        board[i][j] = '#';  // 路径占用
         bool found = dfs(i + 1, j, k + 1) || dfs(i - 1, j, k + 1) ||
                      dfs(i, j + 1, k + 1) || dfs(i, j - 1, k + 1);
-        board[i][j] = tmp;
+        board[i][j] = tmp;  // 回溯还原
         return found;
     };
     bool ok = false;

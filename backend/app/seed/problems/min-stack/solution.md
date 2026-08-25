@@ -33,13 +33,14 @@
 ### Python3
 
 ```python
+# 解法一：辅助栈同步当前最小值；等于也压，才能正确 pop 重复最小值。
 import sys
 
 
 class MinStack:
     def __init__(self):
         self.st = []
-        self.mins = []
+        self.mins = []  # 同步「当前栈内最小值」；等于也压，才能正确 pop 重复最小值
 
     def push(self, val):
         self.st.append(val)
@@ -49,7 +50,7 @@ class MinStack:
     def pop(self):
         val = self.st.pop()
         if val == self.mins[-1]:
-            self.mins.pop()
+            self.mins.pop()  # 弹出的恰是当前最小值，min 回退到上一层
 
     def top(self):
         return self.st[-1]
@@ -59,6 +60,7 @@ class MinStack:
 
 
 def main():
+    # 操作序列：构造/push/pop 输出 null，top/getMin 输出值。
     q = int(sys.stdin.readline())
     stk = None
     for _ in range(q):
@@ -86,6 +88,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：辅助栈同步当前最小值；等于也压，才能正确 pop 重复最小值。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -94,12 +97,12 @@ class MinStack {
 public:
     void push(int val) {
         st.push_back(val);
-        if (mins.empty() || val <= mins.back()) mins.push_back(val);
+        if (mins.empty() || val <= mins.back()) mins.push_back(val);  // 等于也压
     }
     void pop() {
         int val = st.back();
         st.pop_back();
-        if (val == mins.back()) mins.pop_back();
+        if (val == mins.back()) mins.pop_back();  // 同步回退当前最小值
     }
     int top() { return st.back(); }
     int getMin() { return mins.back(); }
@@ -109,7 +112,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int q;
-    cin >> q;
+    cin >> q;  // 操作序列：无返回输出 null
     MinStack* stk = nullptr;
     for (int i = 0; i < q; i++) {
         string op;

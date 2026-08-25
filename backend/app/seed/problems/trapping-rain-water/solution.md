@@ -37,6 +37,7 @@ import sys
 
 
 def main() -> None:
+    # 读入：n 与柱高；空数组积水为 0
     data = sys.stdin.read().split()
     n = int(data[0])
     h = list(map(int, data[1 : 1 + n]))
@@ -46,10 +47,11 @@ def main() -> None:
     l, r = 0, n - 1
     left_max, right_max = 0, 0
     ans = 0
+    # 每次只结算更矮的一端：对侧至少有一根不低于它，水位已被保证
     while l <= r:
         if h[l] <= h[r]:
             if h[l] >= left_max:
-                left_max = h[l]
+                left_max = h[l]  # 刷新左墙，自己接不了水
             else:
                 ans += left_max - h[l]
             l += 1
@@ -75,6 +77,7 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n 与柱高
     int n;
     cin >> n;
     vector<int> h(n);
@@ -86,6 +89,7 @@ int main() {
     int l = 0, r = n - 1;
     int left_max = 0, right_max = 0;
     long long ans = 0;
+    // 结算更矮一端：对侧更高，该侧水位 = 本侧 max
     while (l <= r) {
         if (h[l] <= h[r]) {
             if (h[l] >= left_max) left_max = h[l];

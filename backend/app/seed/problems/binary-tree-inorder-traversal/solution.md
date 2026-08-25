@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：递归中序，按「左 → 根 → 右」收集。
 import sys
 from collections import deque
 
@@ -45,6 +46,7 @@ class TreeNode:
 
 
 def read_tree():
+    # ACM 读入建树：层序 tokens，null 表示空孩子。下面 inorder 才是算法。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -77,7 +79,7 @@ def inorder(root):
 
     def dfs(node):
         if node is None:
-            return
+            return  # 空节点是递归终点
         dfs(node.left)
         ans.append(node.val)
         dfs(node.right)
@@ -96,9 +98,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：递归中序，按「左 → 根 → 右」收集。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -109,6 +113,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // ACM 读入建树：层序 tokens，null 表示空孩子。下面 inorder 才是算法。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -139,7 +144,7 @@ TreeNode* read_tree() {
 }
 
 void inorder(TreeNode* node, vector<int>& ans) {
-    if (!node) return;
+    if (!node) return;  // 空节点是递归终点
     inorder(node->left, ans);
     ans.push_back(node->val);
     inorder(node->right, ans);

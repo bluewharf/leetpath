@@ -38,6 +38,7 @@ import sys
 
 
 def main() -> None:
+    # 读入：m n，随后 m 行各 n 个整数
     data = list(map(int, sys.stdin.read().split()))
     m, n = data[0], data[1]
     mat = []
@@ -45,8 +46,10 @@ def main() -> None:
     for _ in range(m):
         mat.append(data[idx : idx + n])
         idx += n
+    # 第 0 行/列既是数据又当标记，必须先记下它们本身有没有 0
     first_row = any(mat[0][j] == 0 for j in range(n))
     first_col = any(mat[i][0] == 0 for i in range(m))
+    # 子矩阵遇 0：用行头、列头打标，不立刻整行整列清，避免把标记冲掉
     for i in range(1, m):
         for j in range(1, n):
             if mat[i][j] == 0:
@@ -56,6 +59,7 @@ def main() -> None:
         for j in range(1, n):
             if mat[i][0] == 0 or mat[0][j] == 0:
                 mat[i][j] = 0
+    # 边界最后清：否则内部还没根据标记置零，标记就被抹掉
     if first_row:
         for j in range(n):
             mat[0][j] = 0
@@ -80,11 +84,13 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：m n，随后 m×n 矩阵
     int m, n;
     cin >> m >> n;
     vector<vector<int>> mat(m, vector<int>(n));
     for (int i = 0; i < m; i++)
         for (int j = 0; j < n; j++) cin >> mat[i][j];
+    // 第 0 行/列复用为标记前，先记下它们自己是否本来就有 0
     bool first_row = false, first_col = false;
     for (int j = 0; j < n; j++)
         if (mat[0][j] == 0) first_row = true;
@@ -103,6 +109,7 @@ int main() {
             if (mat[i][0] == 0 || mat[0][j] == 0) mat[i][j] = 0;
         }
     }
+    // 边界最后清，避免标记被提前抹掉
     if (first_row)
         for (int j = 0; j < n; j++) mat[0][j] = 0;
     if (first_col)

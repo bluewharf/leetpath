@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：后序 DFS。经过本节点的路径可左右都用；交给父节点只能续一侧。
 import sys
 from collections import deque
 
@@ -39,6 +40,7 @@ class TreeNode:
 
 
 def read_tree():
+    # ACM 读入建树：层序 tokens，null 表示空孩子。下面 dfs 才是算法。
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -68,16 +70,16 @@ def read_tree():
 
 
 def max_path_sum(root):
-    ans = -10**18
+    ans = -10**18  # 全是负数时落到「只选一个最大节点」
 
     def dfs(node):
         nonlocal ans
         if not node:
             return 0
-        left = max(dfs(node.left), 0)
+        left = max(dfs(node.left), 0)  # 负贡献丢掉：走那条边只会更差
         right = max(dfs(node.right), 0)
-        ans = max(ans, node.val + left + right)
-        return node.val + max(left, right)
+        ans = max(ans, node.val + left + right)  # 本节点当拐点，左右都能用
+        return node.val + max(left, right)  # 交给父节点只能续一条链
 
     dfs(root)
     return ans
@@ -91,9 +93,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：后序 DFS。经过本节点的路径可左右都用；交给父节点只能续一侧。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -104,6 +108,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // ACM 读入建树：层序 tokens，null 表示空孩子。下面 dfs 才是算法。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -133,14 +138,14 @@ TreeNode* read_tree() {
     return root;
 }
 
-long long best_path = -(1LL << 60);
+long long best_path = -(1LL << 60);  // 全是负数时落到「只选一个最大节点」
 
 int dfs(TreeNode* node) {
     if (!node) return 0;
-    int left = max(dfs(node->left), 0);
+    int left = max(dfs(node->left), 0);  // 负贡献丢掉：走那条边只会更差
     int right = max(dfs(node->right), 0);
-    best_path = max(best_path, (long long)node->val + left + right);
-    return node->val + max(left, right);
+    best_path = max(best_path, (long long)node->val + left + right);  // 本节点当拐点
+    return node->val + max(left, right);  // 交给父节点只能续一条链
 }
 
 int main() {

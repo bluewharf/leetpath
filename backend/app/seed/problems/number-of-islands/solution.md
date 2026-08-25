@@ -37,21 +37,21 @@ import sys
 
 def main() -> None:
     data = list(map(int, sys.stdin.read().split()))
-    m, n = data[0], data[1]
+    m, n = data[0], data[1]  # 读入 m 行 n 列网格
     grid = []
     idx = 2
     for _ in range(m):
         grid.append(data[idx : idx + n])
         idx += n
-    dirs = ((1, 0), (-1, 0), (0, 1), (0, -1))
+    dirs = ((1, 0), (-1, 0), (0, 1), (0, -1))  # 只走四连通，斜对角不算同一座岛
     ans = 0
     for i in range(m):
         for j in range(n):
             if grid[i][j] != 1:
                 continue
-            ans += 1
+            ans += 1  # 碰到尚未淹没的陆地，新开一座岛
             stack = [(i, j)]
-            grid[i][j] = 0
+            grid[i][j] = 0  # 原地改 0 兼 vis，入栈前标记避免重复入栈
             while stack:
                 x, y = stack.pop()
                 for dx, dy in dirs:
@@ -76,20 +76,20 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int m, n;
-    cin >> m >> n;
+    cin >> m >> n;  // 读入 m 行 n 列网格
     vector<vector<int>> grid(m, vector<int>(n));
     for (int i = 0; i < m; ++i)
         for (int j = 0; j < n; ++j) cin >> grid[i][j];
-    const int dx[4] = {1, -1, 0, 0};
+    const int dx[4] = {1, -1, 0, 0};  // 只走四连通，斜对角不算同一座岛
     const int dy[4] = {0, 0, 1, -1};
     int ans = 0;
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
             if (grid[i][j] != 1) continue;
-            ++ans;
+            ++ans;  // 尚未淹没的陆地 → 新开一座岛
             stack<pair<int, int>> st;
             st.push({i, j});
-            grid[i][j] = 0;
+            grid[i][j] = 0;  // 原地改 0 兼 vis，入栈前标记避免重复入栈
             while (!st.empty()) {
                 auto [x, y] = st.top();
                 st.pop();

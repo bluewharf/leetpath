@@ -40,13 +40,15 @@ def main() -> None:
     n = data[0]
     nums = data[1 : n + 1]
     total = sum(nums)
-    if total % 2 != 0:
+    if total % 2 != 0:  # 总和为奇，不可能均分
         print("false")
         return
     target = total // 2
+    # 不变量：dp[s] 表示能否凑出和 s；空集凑 0
     dp = [False] * (target + 1)
     dp[0] = True
     for x in nums:
+        # 倒序更新：每个 x 只用一次（0-1 背包）；正序会把同一 x 重复加
         for s in range(target, x - 1, -1):
             if dp[s - x]:
                 dp[s] = True
@@ -70,21 +72,23 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n;
-    cin >> n;
+    cin >> n;  // 读入 n 与数组
     vector<int> nums(n);
     int total = 0;
     for (int i = 0; i < n; ++i) {
         cin >> nums[i];
         total += nums[i];
     }
-    if (total % 2 != 0) {
+    if (total % 2 != 0) {  // 总和为奇，不可能均分
         cout << "false\n";
         return 0;
     }
     int target = total / 2;
+    // 不变量：dp[s] 表示能否凑出和 s；空集凑 0
     vector<char> dp(target + 1, 0);
     dp[0] = 1;
     for (int x : nums) {
+        // 倒序更新：每个 x 只用一次（0-1 背包）
         for (int s = target; s >= x; --s) {
             if (dp[s - x]) dp[s] = 1;
         }

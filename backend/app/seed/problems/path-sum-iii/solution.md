@@ -44,6 +44,7 @@ class TreeNode:
         self.right = right
 
 
+# —— 建树（I/O）：层序 tokens，null 为空，末尾连续 null 已省略 ——
 def build_tree(tokens):
     if not tokens:
         return None
@@ -68,21 +69,22 @@ def build_tree(tokens):
     return root
 
 
+# —— 算法：根到当前的前缀和；答案 = 祖先链上 curr-target 出现次数 ——
 def path_sum(root, target):
     def dfs(node, curr, prefix):
         if not node:
             return 0
         curr += node.val
-        ans = prefix.get(curr - target, 0)
+        ans = prefix.get(curr - target, 0)  # 节点值可负，必须计数而非集合
         prefix[curr] = prefix.get(curr, 0) + 1
         ans += dfs(node.left, curr, prefix)
         ans += dfs(node.right, curr, prefix)
-        prefix[curr] -= 1
+        prefix[curr] -= 1  # 回溯：只统计当前这条祖先链
         if prefix[curr] == 0:
             del prefix[curr]
         return ans
 
-    return dfs(root, 0, {0: 1})
+    return dfs(root, 0, {0: 1})  # 前缀 0 出现一次，覆盖从根出发的路径
 
 
 def main():
@@ -104,11 +106,12 @@ if __name__ == "__main__":
 using namespace std;
 
 struct TreeNode {
-    long long val;
+    long long val;  // 前缀和最大约 1000×10^9，用 64 位
     TreeNode *left, *right;
     TreeNode(long long v) : val(v), left(nullptr), right(nullptr) {}
 };
 
+// —— 建树（I/O）：层序 tokens，null 为空 ——
 TreeNode* buildTree(const vector<string>& tokens) {
     if (tokens.empty()) return nullptr;
     TreeNode* root = new TreeNode(stoll(tokens[0]));
@@ -136,16 +139,17 @@ TreeNode* buildTree(const vector<string>& tokens) {
     return root;
 }
 
+// —— 算法：根到当前的前缀和；答案 = 祖先链上 curr-target 出现次数 ——
 long long dfs(TreeNode* node, long long curr, long long target, unordered_map<long long, int>& prefix) {
     if (!node) return 0;
     curr += node->val;
     long long ans = 0;
-    auto it = prefix.find(curr - target);
+    auto it = prefix.find(curr - target);  // 节点值可负，必须计数
     if (it != prefix.end()) ans = it->second;
     ++prefix[curr];
     ans += dfs(node->left, curr, target, prefix);
     ans += dfs(node->right, curr, target, prefix);
-    if (--prefix[curr] == 0) prefix.erase(curr);
+    if (--prefix[curr] == 0) prefix.erase(curr);  // 回溯：只统计当前祖先链
     return ans;
 }
 
@@ -164,7 +168,7 @@ int main() {
     long long target;
     cin >> target;
     unordered_map<long long, int> prefix;
-    prefix[0] = 1;
+    prefix[0] = 1;  // 前缀 0 出现一次，覆盖从根出发的路径
     cout << dfs(buildTree(tokens), 0, target, prefix) << '\n';
     return 0;
 }

@@ -31,17 +31,18 @@
 ### Python3
 
 ```python
+# 解法一：滚动斐波那契。到第 n 阶只能从 n-1 跨 1 或从 n-2 跨 2。
 import sys
 
 
 def main() -> None:
     n = int(sys.stdin.read().strip())
     if n <= 2:
-        print(n)
+        print(n)  # f(1)=1，f(2)=2
         return
     a, b = 1, 2
     for _ in range(3, n + 1):
-        a, b = b, a + b
+        a, b = b, a + b  # 只留前两项，最后一步不同故不重复计数
     print(b)
 
 
@@ -49,9 +50,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：滚动斐波那契。到第 n 阶只能从 n-1 跨 1 或从 n-2 跨 2。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -61,12 +64,12 @@ int main() {
     int n;
     cin >> n;
     if (n <= 2) {
-        cout << n << '\n';
+        cout << n << '\n';  // f(1)=1，f(2)=2
         return 0;
     }
     int a = 1, b = 2;
     for (int i = 3; i <= n; ++i) {
-        int c = a + b;
+        int c = a + b;  // 只留前两项，最后一步不同故不重复计数
         a = b;
         b = c;
     }
@@ -74,3 +77,4 @@ int main() {
     return 0;
 }
 ```
+

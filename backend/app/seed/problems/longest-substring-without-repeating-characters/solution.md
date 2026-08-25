@@ -34,20 +34,23 @@
 ### Python3
 
 ```python
+# 解法一：窗口 [start,i] 无重复；重复落在窗内则左端一次跳到 last[ch]+1。
 import sys
 
 
 def main() -> None:
+    # 读入整行，只剥换行；空格/符号都是合法字符，不能 strip。
     s = sys.stdin.readline()
     if s.endswith("\n"):
         s = s[:-1]
     if s.endswith("\r"):
         s = s[:-1]
-    last: dict[str, int] = {}
-    start = 0
+    last: dict[str, int] = {}  # 每个字符最近一次出现的下标
+    start = 0  # 窗口 [start, i] 内无重复
     best = 0
     for i, ch in enumerate(s):
         if ch in last and last[ch] >= start:
+            # 重复落在窗口内：左端一次跳到该下标之后，左端只右移不回退。
             start = last[ch] + 1
         last[ch] = i
         best = max(best, i - start + 1)
@@ -61,6 +64,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：窗口 [start,i] 无重复；重复落在窗内则左端一次跳到 last[ch]+1。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -71,11 +75,11 @@ int main() {
     getline(cin, s);
     if (!s.empty() && s.back() == '\r') s.pop_back();
     int last[256];
-    memset(last, -1, sizeof(last));
-    int start = 0, best = 0;
+    memset(last, -1, sizeof(last));  // -1 表示从未出现，不会误判在窗口内
+    int start = 0, best = 0;  // 窗口 [start, i] 无重复
     for (int i = 0; i < (int)s.size(); i++) {
         unsigned char ch = (unsigned char)s[i];
-        if (last[ch] >= start) start = last[ch] + 1;
+        if (last[ch] >= start) start = last[ch] + 1;  // 重复在窗内才跳左端
         last[ch] = i;
         best = max(best, i - start + 1);
     }

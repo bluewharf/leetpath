@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：一遍扫描。卖出日最优买入就是此前历史最低价。
 import sys
 
 
@@ -40,12 +41,12 @@ def main() -> None:
     n = data[0]
     prices = data[1 : 1 + n]
     min_price = prices[0]
-    best = 0
+    best = 0  # 全程无正利润则保持 0
     for p in prices[1:]:
         if p - min_price > best:
-            best = p - min_price
+            best = p - min_price  # 今天当卖出日，相对历史最低的利润
         if p < min_price:
-            min_price = p
+            min_price = p  # 更低买入价留给后面的卖出日
     print(best)
 
 
@@ -53,9 +54,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：一遍扫描。卖出日最优买入就是此前历史最低价。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -67,12 +70,13 @@ int main() {
     vector<int> prices(n);
     for (int i = 0; i < n; ++i) cin >> prices[i];
     int min_price = prices[0];
-    int best = 0;
+    int best = 0;  // 全程无正利润则保持 0
     for (int i = 1; i < n; ++i) {
-        best = max(best, prices[i] - min_price);
-        min_price = min(min_price, prices[i]);
+        best = max(best, prices[i] - min_price);  // 今天当卖出日
+        min_price = min(min_price, prices[i]);    // 更低买入价留给后面
     }
     cout << best << '\n';
     return 0;
 }
 ```
+

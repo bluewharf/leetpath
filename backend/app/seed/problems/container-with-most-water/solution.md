@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：对撞双指针。宽只会变小，每次内移更矮的一侧指望短板升高。
 import sys
 
 
@@ -39,10 +40,10 @@ def main() -> None:
         hl, hr = h[l], h[r]
         if hl < hr:
             best = max(best, hl * (r - l))
-            l += 1
+            l += 1  # 短板在左，内移左指针才可能升高
         else:
             best = max(best, hr * (r - l))
-            r -= 1
+            r -= 1  # 等高时任意内移一侧；与参考解一致：内移右指针
     print(best)
 
 
@@ -50,9 +51,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：对撞双指针。宽只会变小，每次内移更矮的一侧指望短板升高。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -68,13 +71,14 @@ int main() {
         int hl = h[l], hr = h[r];
         if (hl < hr) {
             best = max(best, hl * (r - l));
-            l++;
+            l++;  // 短板在左，内移左指针才可能升高
         } else {
             best = max(best, hr * (r - l));
-            r--;
+            r--;  // 等高时任意内移一侧；与参考解一致：内移右指针
         }
     }
     cout << best << "\n";
     return 0;
 }
 ```
+

@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：单调递减栈存下标，等下一个更高温度。
 import sys
 
 
@@ -34,12 +35,13 @@ def main() -> None:
     n = data[0]
     temps = data[1 : 1 + n]
     ans = [0] * n
-    stack = []
+    stack = []  # 栈内下标对应温度严格递减
     for i, t in enumerate(temps):
         while stack and temps[stack[-1]] < t:
             j = stack.pop()
-            ans[j] = i - j
+            ans[j] = i - j  # 今天就是栈顶那天的下一个更高
         stack.append(i)
+    # 扫完仍留在栈里的天后面再也没有更高，答案保持 0
     print(" ".join(map(str, ans)))
 
 
@@ -47,9 +49,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：单调递减栈存下标，等下一个更高温度。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -61,15 +65,16 @@ int main() {
     vector<int> temps(n);
     for (int i = 0; i < n; i++) cin >> temps[i];
     vector<int> ans(n, 0);
-    vector<int> stack;
+    vector<int> stack;  // 栈内下标对应温度严格递减
     for (int i = 0; i < n; i++) {
         while (!stack.empty() && temps[stack.back()] < temps[i]) {
             int j = stack.back();
             stack.pop_back();
-            ans[j] = i - j;
+            ans[j] = i - j;  // 今天就是栈顶那天的下一个更高
         }
         stack.push_back(i);
     }
+    // 扫完仍留在栈里的天后面再也没有更高，答案保持 0
     for (int i = 0; i < n; i++) {
         if (i) cout << " ";
         cout << ans[i];
@@ -78,3 +83,4 @@ int main() {
     return 0;
 }
 ```
+

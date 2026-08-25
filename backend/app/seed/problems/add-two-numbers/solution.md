@@ -28,6 +28,7 @@
 ### Python3
 
 ```python
+# 解法一：按竖式从低位加到高位，虚头省掉首节点特判。
 import sys
 
 
@@ -38,6 +39,7 @@ class ListNode:
 
 
 def read_list():
+    # ACM 读入建链表：先长度后节点值；空链当 0。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -70,7 +72,7 @@ def add_two(l1, l2):
     dummy = ListNode()
     cur = dummy
     carry = 0
-    while l1 or l2 or carry:
+    while l1 or l2 or carry:  # 任一链未完或进位未消化都要继续（覆盖 5+5=10）
         s = carry
         if l1:
             s += l1.val
@@ -78,7 +80,7 @@ def add_two(l1, l2):
         if l2:
             s += l2.val
             l2 = l2.next
-        carry, digit = divmod(s, 10)
+        carry, digit = divmod(s, 10)  # 个位落新节点，十位当下一轮进位
         cur.next = ListNode(digit)
         cur = cur.next
     return dummy.next
@@ -92,9 +94,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：按竖式从低位加到高位，虚头省掉首节点特判。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -105,6 +109,7 @@ struct ListNode {
 };
 
 ListNode* read_list() {
+    // ACM 读入建链表：先长度后节点值；空链当 0。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     ListNode dummy;
@@ -137,7 +142,7 @@ ListNode* add_two(ListNode* l1, ListNode* l2) {
     ListNode dummy;
     ListNode* cur = &dummy;
     int carry = 0;
-    while (l1 || l2 || carry) {
+    while (l1 || l2 || carry) {  // 任一链未完或进位未消化都要继续（覆盖 5+5=10）
         int s = carry;
         if (l1) {
             s += l1->val;
@@ -147,7 +152,7 @@ ListNode* add_two(ListNode* l1, ListNode* l2) {
             s += l2->val;
             l2 = l2->next;
         }
-        carry = s / 10;
+        carry = s / 10;  // 个位落新节点，十位当下一轮进位
         cur->next = new ListNode(s % 10);
         cur = cur->next;
     }
@@ -161,3 +166,4 @@ int main() {
     return 0;
 }
 ```
+

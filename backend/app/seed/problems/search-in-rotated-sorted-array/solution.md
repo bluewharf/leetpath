@@ -38,22 +38,27 @@ import sys
 
 
 def main() -> None:
+    # 读入：n、旋转过的升序数组、target
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
     target = data[n + 1]
+    # 不变量：若 target 存在，必在闭区间 [lo, hi]
     lo, hi = 0, n - 1
     while lo <= hi:
         mid = (lo + hi) // 2
         if nums[mid] == target:
             print(mid)
             return
+        # 旋转后 mid 两侧必有一侧整体有序；先认准有序半边再决定丢哪边
         if nums[lo] <= nums[mid]:
+            # 左半 [lo, mid] 有序：target 落在左闭右开才缩到左边
             if nums[lo] <= target < nums[mid]:
                 hi = mid - 1
             else:
                 lo = mid + 1
         else:
+            # 右半 [mid, hi] 有序：注意左开右闭，避免 mid 已排除后仍把 mid 算进去
             if nums[mid] < target <= nums[hi]:
                 lo = mid + 1
             else:
@@ -74,23 +79,28 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、旋转过的升序数组、target
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int target;
     cin >> target;
+    // 不变量：若 target 存在，必在闭区间 [lo, hi]
     int lo = 0, hi = n - 1;
     while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
+        int mid = lo + (hi - lo) / 2;  // 防 lo+hi 溢出
         if (nums[mid] == target) {
             cout << mid << '\n';
             return 0;
         }
+        // 旋转后 mid 两侧必有一侧整体有序
         if (nums[lo] <= nums[mid]) {
+            // 左半有序：target 在 [lo, mid) 才丢右边
             if (nums[lo] <= target && target < nums[mid]) hi = mid - 1;
             else lo = mid + 1;
         } else {
+            // 右半有序：target 在 (mid, hi] 才丢左边
             if (nums[mid] < target && target <= nums[hi]) lo = mid + 1;
             else hi = mid - 1;
         }

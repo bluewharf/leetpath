@@ -35,16 +35,19 @@ import sys
 
 class MedianFinder:
     def __init__(self):
-        self.lo = []  # max-heap of smaller half (store negated values)
-        self.hi = []  # min-heap of larger half
+        # 对顶堆：lo 较小半（大顶，存相反数），hi 较大半（小顶）
+        self.lo = []
+        self.hi = []
 
     def addNum(self, num):
+        # 先入 lo 再把最大值挪到 hi；hi 更长则挪回，保证 lo 比 hi 多 0 或 1
         heapq.heappush(self.lo, -num)
         heapq.heappush(self.hi, -heapq.heappop(self.lo))
         if len(self.hi) > len(self.lo):
             heapq.heappush(self.lo, -heapq.heappop(self.hi))
 
     def findMedian(self):
+        # 奇数个取 lo 顶；偶数个取两堆顶平均
         if len(self.lo) > len(self.hi):
             return float(-self.lo[0])
         return (-self.lo[0] + self.hi[0]) / 2.0
@@ -77,11 +80,13 @@ if __name__ == "__main__":
 using namespace std;
 
 class MedianFinder {
+    // 对顶堆：lo 较小半（大顶），hi 较大半（小顶）；lo 比 hi 多 0 或 1
     priority_queue<int> lo;
     priority_queue<int, vector<int>, greater<int>> hi;
 
 public:
     void addNum(int num) {
+        // 先入 lo 再把最大值挪到 hi；hi 更长则挪回，维持对半分
         lo.push(num);
         hi.push(lo.top());
         lo.pop();
@@ -92,6 +97,7 @@ public:
     }
 
     double findMedian() {
+        // 奇数个取 lo 顶；偶数个取两堆顶平均
         if (lo.size() > hi.size()) return (double)lo.top();
         return (lo.top() + hi.top()) / 2.0;
     }

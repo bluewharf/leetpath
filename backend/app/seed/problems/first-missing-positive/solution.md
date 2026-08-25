@@ -42,10 +42,12 @@ def main():
     data = sys.stdin.read().split()
     n = int(data[0]) if data else 0
     nums = list(map(int, data[1 : 1 + n]))
+    # 把 x∈[1,n] 交换到下标 x-1；目标槽已是 x 则停，避免重复值死循环
     for i in range(n):
         while 1 <= nums[i] <= n and nums[nums[i] - 1] != nums[i]:
             j = nums[i] - 1
             nums[i], nums[j] = nums[j], nums[i]
+    # 第一个没归位的下标 i 对应缺失 i+1；全对则缺 n+1
     for i in range(n):
         if nums[i] != i + 1:
             print(i + 1)
@@ -70,12 +72,14 @@ int main() {
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // 把 x∈[1,n] 交换到下标 x-1；目标槽已是 x 则停，避免重复值死循环
     for (int i = 0; i < n; i++) {
         while (nums[i] >= 1 && nums[i] <= n && nums[nums[i] - 1] != nums[i]) {
             int j = nums[i] - 1;
             swap(nums[i], nums[j]);
         }
     }
+    // 第一个没归位的下标 i 对应缺失 i+1；全对则缺 n+1
     for (int i = 0; i < n; i++) {
         if (nums[i] != i + 1) {
             cout << i + 1 << "\n";

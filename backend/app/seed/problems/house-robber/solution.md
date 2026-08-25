@@ -36,6 +36,7 @@ def main():
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
+    # prev1 / prev2：考虑到前一间 / 前前间的最优；偷当前只能接 prev2
     prev2, prev1 = 0, 0
     for x in nums:
         prev2, prev1 = prev1, max(prev1, prev2 + x)
@@ -57,6 +58,7 @@ int main() {
     cin.tie(nullptr);
     int n;
     cin >> n;
+    // prev1 / prev2：考虑到前一间 / 前前间的最优；偷当前只能接 prev2
     int prev2 = 0, prev1 = 0;
     for (int i = 0; i < n; i++) {
         int x;

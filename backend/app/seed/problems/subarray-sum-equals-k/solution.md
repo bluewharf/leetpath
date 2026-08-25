@@ -37,17 +37,19 @@ from collections import defaultdict
 
 
 def main() -> None:
+    # 读入：n、数组、目标和 k（数组可含负数，不能滑窗）
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
     k = int(data[n + 1])
+    # cnt[pre] = 该前缀和出现次数；sum(l..r)=k ⇔ 存在 j<i 使 pre[j]=pre[i]-k
     cnt = defaultdict(int)
-    cnt[0] = 1
+    cnt[0] = 1  # 空前缀：从下标 0 起和恰好为 k 的那段也要算
     s = 0
     ans = 0
     for x in nums:
         s += x
-        ans += cnt[s - k]
+        ans += cnt[s - k]  # 先查再写入，避免空区间「自己减自己」
         cnt[s] += 1
     print(ans)
 
@@ -65,14 +67,16 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、数组、k（含负数，不能靠滑窗单调性）
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int k;
     cin >> k;
+    // cnt[pre]：该前缀和出现次数；先查 s-k 再写入当前 s
     unordered_map<int, int> cnt;
-    cnt[0] = 1;
+    cnt[0] = 1;  // 空前缀，覆盖从下标 0 开始的子数组
     int s = 0;
     long long ans = 0;
     for (int x : nums) {

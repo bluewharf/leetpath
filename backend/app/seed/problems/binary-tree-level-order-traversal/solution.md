@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：BFS 按层出队。进入一层前记下队列长度，这一批就是同一层。
 import sys
 from collections import deque
 
@@ -38,6 +39,7 @@ class TreeNode:
 
 
 def read_tree():
+    # ACM 读入建树：层序 tokens，null 表示空孩子。下面 while q 才是层序遍历。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -68,15 +70,15 @@ def read_tree():
 def main():
     root = read_tree()
     if root is None:
-        return
+        return  # 空树不输出任何层
     q = deque([root])
     while q:
         level = []
-        for _ in range(len(q)):
+        for _ in range(len(q)):  # 进入本层前的队列长度 = 本层节点数
             node = q.popleft()
             level.append(str(node.val))
             if node.left:
-                q.append(node.left)
+                q.append(node.left)  # 先左后右，同层从左到右
             if node.right:
                 q.append(node.right)
         print(" ".join(level))
@@ -86,9 +88,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：BFS 按层出队。进入一层前记下队列长度，这一批就是同一层。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -99,6 +103,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // ACM 读入建树：层序 tokens，null 表示空孩子。下面 while 才是层序遍历。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -132,17 +137,17 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     TreeNode* root = read_tree();
-    if (!root) return 0;
+    if (!root) return 0;  // 空树不输出任何层
     queue<TreeNode*> q;
     q.push(root);
     while (!q.empty()) {
-        int sz = (int)q.size();
+        int sz = (int)q.size();  // 进入本层前的队列长度 = 本层节点数
         for (int k = 0; k < sz; ++k) {
             TreeNode* node = q.front();
             q.pop();
             if (k) cout << ' ';
             cout << node->val;
-            if (node->left) q.push(node->left);
+            if (node->left) q.push(node->left);  // 先左后右，同层从左到右
             if (node->right) q.push(node->right);
         }
         cout << '\n';
@@ -150,3 +155,4 @@ int main() {
     return 0;
 }
 ```
+

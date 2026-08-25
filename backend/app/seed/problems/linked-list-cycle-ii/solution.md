@@ -45,6 +45,7 @@ def main():
         return
     vals = list(map(int, data[1 : 1 + n]))
     pos = int(data[1 + n])
+    # 建链：pos>=0 时尾接到 nodes[pos] 成环；无环（含空）输出 -1
     nodes = [ListNode(v) for v in vals]
     for i in range(n - 1):
         nodes[i].next = nodes[i + 1]
@@ -55,6 +56,7 @@ def main():
         slow = slow.next
         fast = fast.next.next
         if slow is fast:
+            # 相遇后再让一个从头同步走，碰上即入口；输出节点值不是下标
             p = nodes[0]
             while p is not slow:
                 p = p.next
@@ -98,6 +100,7 @@ int main() {
     for (int i = 0; i < n - 1; i++) nodes[i]->next = nodes[i + 1];
     int pos;
     cin >> pos;
+    // 建链：pos>=0 时尾接到 nodes[pos] 成环；无环（含空）输出 -1
     if (pos >= 0 && pos < n) nodes[n - 1]->next = nodes[pos];
     ListNode* slow = nodes[0];
     ListNode* fast = nodes[0];
@@ -105,6 +108,7 @@ int main() {
         slow = slow->next;
         fast = fast->next->next;
         if (slow == fast) {
+            // 相遇后再让一个从头同步走，碰上即入口；输出节点值不是下标
             ListNode* p = nodes[0];
             while (p != slow) {
                 p = p->next;

@@ -47,6 +47,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 层序建树：n=0 为空；只把非 null 节点入队
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -76,6 +77,7 @@ def read_tree():
 
 
 def write_tree(root):
+    # 层序序列化，丢掉末尾连续 null 以符合题面约定
     if root is None:
         print(0)
         return
@@ -99,6 +101,7 @@ def flatten(root):
     prev = None
 
     def dfs(node):
+        # 倒序先序：先右后左，prev 是已串好的后继；回溯时右接 prev、左置空
         nonlocal prev
         if not node:
             return
@@ -135,6 +138,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // 层序建树：n=0 为空；只把非 null 节点入队
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -165,6 +169,7 @@ TreeNode* read_tree() {
 }
 
 void write_tree(TreeNode* root) {
+    // 层序序列化，丢掉末尾连续 null 以符合题面约定
     if (!root) {
         cout << 0 << "\n";
         return;
@@ -195,6 +200,7 @@ void write_tree(TreeNode* root) {
 void flatten(TreeNode* root) {
     TreeNode* prev = nullptr;
     function<void(TreeNode*)> dfs = [&](TreeNode* node) {
+        // 倒序先序：先右后左，prev 是已串好的后继；回溯时右接 prev、左置空
         if (!node) return;
         dfs(node->right);
         dfs(node->left);

@@ -34,6 +34,7 @@
 ### Python3
 
 ```python
+# 解法一：两路归并后取中位；奇数取正中间，偶数取中间两个平均。
 import sys
 
 
@@ -43,6 +44,7 @@ def main():
     a = data[1 : 1 + n]
     m = data[1 + n]
     b = data[2 + n : 2 + n + m]
+    # 两路归并：某一侧空时对应指针一开始就越界，自然退化成拷贝另一侧。
     i = j = 0
     merged = []
     while i < n and j < m:
@@ -57,10 +59,10 @@ def main():
     tot = n + m
     mid = tot // 2
     if tot % 2:
-        med = float(merged[mid])
+        med = float(merged[mid])  # 奇数：正中间
     else:
-        med = (merged[mid - 1] + merged[mid]) / 2.0
-    print(f"{med:.1f}")
+        med = (merged[mid - 1] + merged[mid]) / 2.0  # 偶数：中间两个平均
+    print(f"{med:.1f}")  # 约定保留 1 位小数
 
 
 if __name__ == "__main__":
@@ -70,6 +72,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：两路归并后取中位；奇数取正中间，偶数取中间两个平均。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -91,14 +94,14 @@ int main() {
         if (a[i] <= b[j]) merged.push_back(a[i++]);
         else merged.push_back(b[j++]);
     }
-    while (i < n) merged.push_back(a[i++]);
+    while (i < n) merged.push_back(a[i++]);  // 一侧耗尽，拷贝剩余
     while (j < m) merged.push_back(b[j++]);
     int tot = n + m;
     int mid = tot / 2;
     double med;
     if (tot % 2) med = merged[mid];
     else med = (merged[mid - 1] + merged[mid]) / 2.0;
-    cout << fixed << setprecision(1) << med << '\n';
+    cout << fixed << setprecision(1) << med << '\n';  // 保留 1 位小数
     return 0;
 }
 ```

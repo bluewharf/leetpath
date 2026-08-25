@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：有序数组取偏右中点当根，递归建平衡 BST。
 import sys
 from collections import deque
 
@@ -40,8 +41,8 @@ class TreeNode:
 
 def build(nums, left, right):
     if left > right:
-        return None
-    mid = (left + right + 1) // 2
+        return None  # 空区间
+    mid = (left + right + 1) // 2  # 偶数个元素偏右，保证答案唯一
     node = TreeNode(nums[mid])
     node.left = build(nums, left, mid - 1)
     node.right = build(nums, mid + 1, right)
@@ -49,9 +50,11 @@ def build(nums, left, right):
 
 
 def write_tree(root):
+    # ACM 输出：层序序列化，丢掉末尾连续 null；空树输出 0。
     if root is None:
         print(0)
         return
+
     tokens = []
     q = deque([root])
     while q:
@@ -85,6 +88,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：有序数组取偏右中点当根，递归建平衡 BST。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -95,8 +99,8 @@ struct TreeNode {
 };
 
 TreeNode* build(const vector<int>& nums, int left, int right) {
-    if (left > right) return nullptr;
-    int mid = (left + right + 1) / 2;
+    if (left > right) return nullptr;  // 空区间
+    int mid = (left + right + 1) / 2;  // 偶数个元素偏右，保证答案唯一
     TreeNode* node = new TreeNode(nums[mid]);
     node->left = build(nums, left, mid - 1);
     node->right = build(nums, mid + 1, right);
@@ -104,6 +108,7 @@ TreeNode* build(const vector<int>& nums, int left, int right) {
 }
 
 void write_tree(TreeNode* root) {
+    // ACM 输出：层序序列化，丢掉末尾连续 null；空树输出 0。
     if (!root) {
         cout << 0 << "\n";
         return;

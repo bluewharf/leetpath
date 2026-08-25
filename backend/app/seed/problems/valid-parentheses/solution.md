@@ -36,19 +36,20 @@ import sys
 
 
 def is_valid(s: str) -> bool:
-    pairs = {")": "(", "]": "[", "}": "{"}
-    st = []
+    pairs = {")": "(", "]": "[", "}": "{"}  # 右 → 左，三种括号共用一套逻辑
+    st = []  # 尚未匹配的左括号，栈顶是最近一个
     for c in s:
         if c in pairs:
             if not st or st[-1] != pairs[c]:
-                return False
+                return False  # 栈空或类型对不上
             st.pop()
         else:
             st.append(c)
-    return not st
+    return not st  # 扫完必须空，否则有未闭合的左括号
 
 
 def main() -> None:
+    # 读入：一行括号串，可能为空（空串合法）
     s = sys.stdin.readline().rstrip("\r\n")
     print("true" if is_valid(s) else "false")
 
@@ -68,11 +69,11 @@ int main() {
     cin.tie(nullptr);
     string s;
     if (!(cin >> s)) {
-        cout << "true\n";
+        cout << "true\n";  // 空串合法
         return 0;
     }
     unordered_map<char, char> pairs{{')', '('}, {']', '['}, {'}', '{'}};
-    string st;
+    string st;  // 未匹配的左括号
     for (char c : s) {
         auto it = pairs.find(c);
         if (it != pairs.end()) {

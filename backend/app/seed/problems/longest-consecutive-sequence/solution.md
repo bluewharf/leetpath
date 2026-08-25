@@ -34,6 +34,7 @@
 ### Python3
 
 ```python
+# 解法一：哈希集合只从段首扩展。x-1 不在集合里才向右数，避免平方扫描。
 import sys
 
 
@@ -41,15 +42,16 @@ def main() -> None:
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
-    s = set(nums)
+    s = set(nums)  # 只关心数值是否存在，下标无关；顺手去重
     best = 0
     for x in s:
+        # 只从段首起步：x-1 已在集合里说明 x 不是左端点，否则会平方扫描。
         if x - 1 not in s:
             y = x
             while y in s:
                 y += 1
-            best = max(best, y - x)
-    print(best)
+            best = max(best, y - x)  # 半开区间 [x, y) 的长度
+    print(best)  # 空数组时集合为空，best 保持 0
 
 
 if __name__ == "__main__":
@@ -59,6 +61,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：哈希集合只从段首扩展。x-1 不在集合里才向右数，避免平方扫描。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -76,6 +79,7 @@ int main() {
     }
     int best = 0;
     for (int x : s) {
+        // 只从段首扩展：每个数作为段内元素至多被扫一次。
         if (!s.count(x - 1)) {
             int y = x;
             while (s.count(y)) y++;

@@ -38,16 +38,20 @@ from collections import deque
 
 
 def main() -> None:
+    # 读入：n、数组、窗口长度 k
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
     k = data[n + 1]
+    # 存下标的单调递减队列：队头永远是当前窗口最大值下标
     dq = deque()
     ans = []
     for i, x in enumerate(nums):
+        # 新值不更小，旧尾不可能再当窗口最大，从尾弹掉
         while dq and nums[dq[-1]] <= x:
             dq.pop()
         dq.append(i)
+        # 队头滑出左边界 i-k 则过期
         if dq[0] <= i - k:
             dq.popleft()
         if i >= k - 1:
@@ -68,18 +72,20 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、数组、窗口长度 k
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int k;
     cin >> k;
+    // 存下标的单调递减队列：队头是当前窗口最大值下标
     deque<int> dq;
     vector<int> ans;
     for (int i = 0; i < n; i++) {
         while (!dq.empty() && nums[dq.back()] <= nums[i]) dq.pop_back();
         dq.push_back(i);
-        if (dq.front() <= i - k) dq.pop_front();
+        if (dq.front() <= i - k) dq.pop_front();  // 滑出窗口则过期
         if (i >= k - 1) ans.push_back(nums[dq.front()]);
     }
     for (size_t i = 0; i < ans.size(); i++) {

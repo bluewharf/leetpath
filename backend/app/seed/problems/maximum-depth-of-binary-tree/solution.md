@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：空树深度 0，否则 1 + max(左深度, 右深度)。
 import sys
 from collections import deque
 
@@ -44,6 +45,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 层序建树：n=0 为空；只把非 null 节点入队。与求深度算法无关。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -72,6 +74,7 @@ def read_tree():
 
 
 def max_depth(root):
+    # 算法：空树 0；否则 1 + 左右子树深度的较大者（根到最远叶的节点数）。
     if root is None:
         return 0
     return 1 + max(max_depth(root.left), max_depth(root.right))
@@ -88,6 +91,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：空树深度 0，否则 1 + max(左深度, 右深度)。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -98,6 +102,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // 层序建树：n=0 为空；只把非 null 节点入队。与求深度算法无关。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -128,6 +133,7 @@ TreeNode* read_tree() {
 }
 
 int max_depth(TreeNode* root) {
+    // 空树 0，否则 1 + max(左, 右)。
     if (!root) return 0;
     return 1 + max(max_depth(root->left), max_depth(root->right));
 }

@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：先扩张到覆盖 t 的配额，再收缩左端记最短窗口；formed 计已凑齐的种类。
 import sys
 from collections import Counter
 
@@ -41,7 +42,7 @@ def main():
     s = sys.stdin.readline().rstrip("\n")
     t = sys.stdin.readline().rstrip("\n")
     need = Counter(t)
-    required = len(need)
+    required = len(need)  # 需要凑齐的「字符种类」数（含各自配额）
     formed = 0
     window = {}
     left = 0
@@ -50,7 +51,7 @@ def main():
     for right, ch in enumerate(s):
         window[ch] = window.get(ch, 0) + 1
         if ch in need and window[ch] == need[ch]:
-            formed += 1
+            formed += 1  # 该字符刚好凑满配额，种类 +1
         while left <= right and formed == required:
             cur = right - left + 1
             if cur < best_len:
@@ -59,10 +60,10 @@ def main():
             cl = s[left]
             window[cl] -= 1
             if cl in need and window[cl] < need[cl]:
-                formed -= 1
+                formed -= 1  # 丢掉后配额不足，窗口立刻非法
             left += 1
     if best_len == 10**18:
-        print()
+        print()  # 无覆盖窗口
     else:
         print(s[best_l : best_l + best_len])
 
@@ -74,6 +75,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：先扩张到覆盖 t 的配额，再收缩左端记最短窗口；formed 计已凑齐的种类。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -90,7 +92,7 @@ int main() {
         if (need[c] == 0) required++;
         need[c]++;
     }
-    int formed = 0;
+    int formed = 0;  // 已满足配额的字符种类数；== required 时窗口合法
     int best_len = INT_MAX, best_l = 0;
     int left = 0;
     for (int right = 0; right < (int)s.size(); right++) {
@@ -104,11 +106,11 @@ int main() {
             }
             unsigned char cl = s[left];
             window[cl]--;
-            if (need[cl] && window[cl] < need[cl]) formed--;
+            if (need[cl] && window[cl] < need[cl]) formed--;  // 收缩到非法即停
             left++;
         }
     }
-    if (best_len == INT_MAX) cout << '\n';
+    if (best_len == INT_MAX) cout << '\n';  // 无合法窗口
     else cout << s.substr(best_l, best_len) << '\n';
     return 0;
 }

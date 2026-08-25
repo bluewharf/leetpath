@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：Boyer-Moore 投票。多数 +1 其余 -1，cnt 归零换候选人。
 import sys
 
 
@@ -39,13 +40,14 @@ def main() -> None:
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
+    # Boyer-Moore：多数记 +1、其余 -1，全程净和为正；cnt 归零则换候选人。
     cand = 0
     cnt = 0
     for v in nums:
         if cnt == 0:
             cand = v
         cnt += 1 if v == cand else -1
-    print(cand)
+    print(cand)  # 题目保证多数存在，最后留下的就是它，无需第二轮验证
 
 
 if __name__ == "__main__":
@@ -55,6 +57,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：Boyer-Moore 投票。多数 +1 其余 -1，cnt 归零换候选人。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -63,7 +66,7 @@ int main() {
     cin.tie(nullptr);
     int n;
     cin >> n;
-    int cand = 0, cnt = 0;
+    int cand = 0, cnt = 0;  // 投票抵消：cnt==0 时换候选人
     for (int i = 0; i < n; i++) {
         int v;
         cin >> v;

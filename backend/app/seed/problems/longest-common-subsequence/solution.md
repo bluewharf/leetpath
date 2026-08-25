@@ -33,10 +33,12 @@
 ### Python3
 
 ```python
+# 解法一：滚动 DP。prev[j] 是 s1 前 i-1 与 s2 前 j 的 LCS；相等必须用左上。
 import sys
 
 
 def main() -> None:
+    # 读入：两行字符串，均可为空；只剥末尾换行，不能 split() 把空行吃掉。
     data = sys.stdin.read()
     if data.endswith("\n"):
         data = data[:-1]
@@ -44,14 +46,17 @@ def main() -> None:
     s1 = lines[0] if lines else ""
     s2 = lines[1] if len(lines) > 1 else ""
     n, m = len(s1), len(s2)
+    # 不变量：prev[j] = s1 前 i-1 个与 s2 前 j 个的 LCS 长度；空前缀全 0。
     prev = [0] * (m + 1)
     for i in range(1, n + 1):
         cur = [0] * (m + 1)
         a = s1[i - 1]
         for j in range(1, m + 1):
             if a == s2[j - 1]:
+                # 配对必须接「两边都缩短 1」，只能读上一行左邻 prev[j-1]。
                 cur[j] = prev[j - 1] + 1
             else:
+                # 丢掉 s1 当前字符或丢掉 s2 当前字符，取较长者。
                 cur[j] = prev[j] if prev[j] >= cur[j - 1] else cur[j - 1]
         prev = cur
     print(prev[m])
@@ -64,6 +69,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：滚动 DP。prev[j] 是 s1 前 i-1 与 s2 前 j 的 LCS；相等必须用左上。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -71,15 +77,16 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     string s1, s2;
-    getline(cin, s1);
+    getline(cin, s1);  // 两行均可为空串
     getline(cin, s2);
     int n = (int)s1.size(), m = (int)s2.size();
+    // 不变量：prev[j] = s1 前 i-1 个与 s2 前 j 个的 LCS；空前缀为 0。
     vector<int> prev(m + 1, 0);
     for (int i = 1; i <= n; i++) {
         vector<int> cur(m + 1, 0);
         char a = s1[i - 1];
         for (int j = 1; j <= m; j++) {
-            if (a == s2[j - 1]) cur[j] = prev[j - 1] + 1;
+            if (a == s2[j - 1]) cur[j] = prev[j - 1] + 1;  // 必须用左上，不能原地覆盖
             else cur[j] = prev[j] >= cur[j - 1] ? prev[j] : cur[j - 1];
         }
         prev.swap(cur);

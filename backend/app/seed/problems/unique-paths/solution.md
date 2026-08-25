@@ -37,8 +37,10 @@ import sys
 
 
 def main() -> None:
+    # 读入：网格行数 m、列数 n
     m, n = map(int, sys.stdin.read().split())
-    dp = [1] * n
+    # 滚动成一行：dp[j] 旧值 = 上一行同一列（从上走来），dp[j-1] = 本行左边
+    dp = [1] * n  # 第一行全 1；m=1 或 n=1 时内层不跑，答案保持 1
     for _ in range(1, m):
         for j in range(1, n):
             dp[j] += dp[j - 1]
@@ -58,8 +60,10 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：m、n
     int m, n;
     cin >> m >> n;
+    // dp[j] += dp[j-1]：旧值来自上方，j-1 来自左方；long long 防组合数溢出
     vector<long long> dp(n, 1);
     for (int i = 1; i < m; i++) {
         for (int j = 1; j < n; j++) {

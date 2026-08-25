@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：层序 BFS，每层最后一个就是右侧能看到的节点。
 import sys
 from collections import deque
 
@@ -38,6 +39,7 @@ class TreeNode:
 
 
 def read_tree():
+    # ACM 读入建树：层序 tokens，null 表示空孩子。下面 while q 才是右视图。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -76,7 +78,7 @@ def main():
         for i in range(size):
             node = q.popleft()
             if i == size - 1:
-                ans.append(str(node.val))
+                ans.append(str(node.val))  # 先左后右入队，本层最后弹出的就是最右
             if node.left:
                 q.append(node.left)
             if node.right:
@@ -88,9 +90,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：层序 BFS，每层最后一个就是右侧能看到的节点。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -101,6 +105,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // ACM 读入建树：层序 tokens，null 表示空孩子。下面 while 才是右视图。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -143,7 +148,7 @@ int main() {
         for (int i = 0; i < sz; ++i) {
             TreeNode* node = q.front();
             q.pop();
-            if (i == sz - 1) ans.push_back(node->val);
+            if (i == sz - 1) ans.push_back(node->val);  // 先左后右入队，本层最后弹出的就是最右
             if (node->left) q.push(node->left);
             if (node->right) q.push(node->right);
         }

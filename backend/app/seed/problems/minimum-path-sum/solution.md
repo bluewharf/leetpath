@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：二维 DP。第一行/列只能沿边界累加，其余取上/左较小者再加格子。
 import sys
 
 
@@ -44,12 +45,13 @@ def main():
     for _ in range(m):
         grid.append(data[idx : idx + n])
         idx += n
+    # dp[i][j]：走到 (i,j) 的最小路径和。只能向右/向下，无后效。
     dp = [[0] * n for _ in range(m)]
     dp[0][0] = grid[0][0]
     for j in range(1, n):
-        dp[0][j] = dp[0][j - 1] + grid[0][j]
+        dp[0][j] = dp[0][j - 1] + grid[0][j]  # 第一行只能从左来
     for i in range(1, m):
-        dp[i][0] = dp[i - 1][0] + grid[i][0]
+        dp[i][0] = dp[i - 1][0] + grid[i][0]  # 第一列只能从上来
     for i in range(1, m):
         for j in range(1, n):
             dp[i][j] = grid[i][j] + min(dp[i - 1][j], dp[i][j - 1])
@@ -63,6 +65,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：二维 DP。第一行/列只能沿边界累加，其余取上/左较小者再加格子。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -76,8 +79,8 @@ int main() {
         for (int j = 0; j < n; j++) cin >> grid[i][j];
     vector<vector<int>> dp(m, vector<int>(n));
     dp[0][0] = grid[0][0];
-    for (int j = 1; j < n; j++) dp[0][j] = dp[0][j - 1] + grid[0][j];
-    for (int i = 1; i < m; i++) dp[i][0] = dp[i - 1][0] + grid[i][0];
+    for (int j = 1; j < n; j++) dp[0][j] = dp[0][j - 1] + grid[0][j];  // 第一行只能从左
+    for (int i = 1; i < m; i++) dp[i][0] = dp[i - 1][0] + grid[i][0];  // 第一列只能从上
     for (int i = 1; i < m; i++) {
         for (int j = 1; j < n; j++) {
             dp[i][j] = grid[i][j] + min(dp[i - 1][j], dp[i][j - 1]);

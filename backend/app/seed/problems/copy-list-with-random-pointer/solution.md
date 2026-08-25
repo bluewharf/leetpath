@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：哈希两遍。先造新节点再接线，避免 random 指向尚未创建的拷贝。
 import sys
 
 
@@ -40,20 +41,21 @@ class Node:
 def copy_random_list(head):
     if head is None:
         return None
-    mapping = {None: None}
+    mapping = {None: None}  # 空指针也要有映射，接线时不用特判
     cur = head
     while cur:
-        mapping[cur] = Node(cur.val)
+        mapping[cur] = Node(cur.val)  # 第一遍只复制 val
         cur = cur.next
     cur = head
     while cur:
-        mapping[cur].next = mapping[cur.next]
+        mapping[cur].next = mapping[cur.next]  # 第二遍把 next / random 接到新节点
         mapping[cur].random = mapping[cur.random]
         cur = cur.next
     return mapping[head]
 
 
 def main():
+    # ACM：按下标读 random；拷贝后再把新链表的 random 还原成下标输出。
     n = int(sys.stdin.readline())
     if n == 0:
         print(0)
@@ -83,6 +85,7 @@ def main():
         print(node.val, ri)
 
 
+
 if __name__ == "__main__":
     main()
 ```
@@ -90,6 +93,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：哈希两遍。先造新节点再接线，避免 random 指向尚未创建的拷贝。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -102,15 +106,15 @@ struct Node {
 Node* copy_random_list(Node* head) {
     if (!head) return nullptr;
     unordered_map<Node*, Node*> mapping;
-    mapping[nullptr] = nullptr;
+    mapping[nullptr] = nullptr;  // 空指针也要有映射，接线时不用特判
     Node* cur = head;
     while (cur) {
-        mapping[cur] = new Node(cur->val);
+        mapping[cur] = new Node(cur->val);  // 第一遍只复制 val
         cur = cur->next;
     }
     cur = head;
     while (cur) {
-        mapping[cur]->next = mapping[cur->next];
+        mapping[cur]->next = mapping[cur->next];  // 第二遍把 next / random 接到新节点
         mapping[cur]->random = mapping[cur->random];
         cur = cur->next;
     }
@@ -118,6 +122,7 @@ Node* copy_random_list(Node* head) {
 }
 
 int main() {
+    // ACM：按下标读 random；拷贝后再把新链表的 random 还原成下标输出。
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n;

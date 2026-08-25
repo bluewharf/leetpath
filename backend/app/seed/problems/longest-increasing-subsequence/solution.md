@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：tails[k] 是长度 k+1 的 LIS 的最小结尾；严格递增用 bisect_left。
 import bisect
 import sys
 
@@ -41,13 +42,15 @@ def main() -> None:
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
+    # tails[k] = 所有长度为 k+1 的严格递增子序列里，最小的可能结尾。
+    # tails 本身严格递增，但其内容不一定是某条真实 LIS。
     tails: list[int] = []
     for x in nums:
-        i = bisect.bisect_left(tails, x)
+        i = bisect.bisect_left(tails, x)  # 严格递增：找第一个 >= x，不能用 right
         if i == len(tails):
-            tails.append(x)
+            tails.append(x)  # 比所有结尾都大，LIS 长度 +1
         else:
-            tails[i] = x
+            tails[i] = x  # 同样长的结尾改小，给后面更大的数留空间
     print(len(tails))
 
 
@@ -58,6 +61,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：tails[k] 是长度 k+1 的 LIS 的最小结尾；严格递增用 lower_bound。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -66,11 +70,12 @@ int main() {
     cin.tie(nullptr);
     int n;
     cin >> n;
+    // tails[k]：长度为 k+1 的严格递增子序列的最小结尾；长度即 LIS。
     vector<int> tails;
     for (int i = 0; i < n; i++) {
         int x;
         cin >> x;
-        auto it = lower_bound(tails.begin(), tails.end(), x);
+        auto it = lower_bound(tails.begin(), tails.end(), x);  // 严格递增用 lower_bound
         if (it == tails.end()) tails.push_back(x);
         else *it = x;
     }

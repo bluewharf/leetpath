@@ -33,21 +33,23 @@
 ### Python3
 
 ```python
+# 解法一：栈存下标，哨兵 -1 钉住无效段左边界；弹出后用 i-栈顶更新长度。
 import sys
 
 
 def main() -> None:
     s = sys.stdin.readline().rstrip("\n")
     best = 0
-    st = [-1]
+    st = [-1]  # 哨兵：当前无效段的左边界，长度用 i - 栈顶
     for i, c in enumerate(s):
         if c == "(":
             st.append(i)
         else:
             st.pop()
             if not st:
-                st.append(i)
+                st.append(i)  # 多出来的 ')' 成为新哨兵，切断连续段
             else:
+                # 栈顶是这段合法括号左边第一个未匹配位置。
                 best = max(best, i - st[-1])
     print(best)
 
@@ -59,6 +61,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：栈存下标，哨兵 -1 钉住无效段左边界；弹出后用 i-栈顶更新长度。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -70,13 +73,13 @@ int main() {
     if (!s.empty() && s.back() == '\r') s.pop_back();
     int best = 0;
     vector<int> st;
-    st.push_back(-1);
+    st.push_back(-1);  // 哨兵：无效段左边界
     for (int i = 0; i < (int)s.size(); i++) {
         if (s[i] == '(') {
             st.push_back(i);
         } else {
             st.pop_back();
-            if (st.empty()) st.push_back(i);
+            if (st.empty()) st.push_back(i);  // 多余 ')' 钉住新边界
             else best = max(best, i - st.back());
         }
     }

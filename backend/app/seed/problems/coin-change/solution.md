@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：完全背包。dp[x] 是凑出金额 x 的最少枚数，同一面额可反复用。
 import sys
 
 
@@ -40,26 +41,28 @@ def main() -> None:
     n = int(data[0])
     coins = list(map(int, data[1 : 1 + n]))
     amount = int(data[1 + n])
-    inf = amount + 1
+    inf = amount + 1  # 哨兵：比任意合法枚数都大
     dp = [inf] * (amount + 1)
     dp[0] = 0
     for coin in coins:
         if coin > amount:
             continue
-        for x in range(coin, amount + 1):
+        for x in range(coin, amount + 1):  # 金额正序枚举，才能重复使用当前硬币
             cand = dp[x - coin] + 1
             if cand < dp[x]:
                 dp[x] = cand
-    print(-1 if dp[amount] >= inf else dp[amount])
+    print(-1 if dp[amount] >= inf else dp[amount])  # 仍是哨兵说明凑不出
 
 
 if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：完全背包。dp[x] 是凑出金额 x 的最少枚数，同一面额可反复用。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -72,16 +75,17 @@ int main() {
     for (int i = 0; i < n; ++i) cin >> coins[i];
     int amount;
     cin >> amount;
-    int inf = amount + 1;
+    int inf = amount + 1;  // 哨兵：比任意合法枚数都大
     vector<int> dp(amount + 1, inf);
     dp[0] = 0;
     for (int coin : coins) {
         if (coin > amount) continue;
-        for (int x = coin; x <= amount; ++x) {
+        for (int x = coin; x <= amount; ++x) {  // 金额正序枚举，才能重复使用当前硬币
             dp[x] = min(dp[x], dp[x - coin] + 1);
         }
     }
-    cout << (dp[amount] >= inf ? -1 : dp[amount]) << '\n';
+    cout << (dp[amount] >= inf ? -1 : dp[amount]) << '\n';  // 仍是哨兵说明凑不出
     return 0;
 }
 ```
+

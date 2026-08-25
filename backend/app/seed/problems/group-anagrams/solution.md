@@ -34,6 +34,7 @@ from collections import defaultdict
 
 
 def main():
+    # 按行读：空串是合法组，split() 会丢掉所以不能整段按空白切
     data = sys.stdin.read()
     lines = data.split("\n")
     if lines and lines[-1] == "":
@@ -44,12 +45,14 @@ def main():
         strs.append("")
     groups = defaultdict(list)
     for s in strs:
+        # 排序后的串当键，异位词落入同一组
         key = "".join(sorted(s))
         groups[key].append(s)
     result = []
     for g in groups.values():
         g.sort()
         result.append(g)
+    # 组内字典序，组间按组内首串字典序，输出顺序才确定
     result.sort(key=lambda g: g[0])
     for g in result:
         print(" ".join(g))
@@ -72,11 +75,13 @@ int main() {
     if (!getline(cin, line)) return 0;
     int n = stoi(line);
     vector<string> strs(n);
+    // 按行读：空串是合法组，不能用 >> 否则空白会被吃掉
     for (int i = 0; i < n; i++) {
         if (!getline(cin, strs[i])) strs[i] = "";
     }
     unordered_map<string, vector<string>> groups;
     for (const string& s : strs) {
+        // 排序后的串当键，异位词落入同一组
         string key = s;
         sort(key.begin(), key.end());
         groups[key].push_back(s);
@@ -87,6 +92,7 @@ int main() {
         sort(kv.second.begin(), kv.second.end());
         result.push_back(kv.second);
     }
+    // 组内已排序，组间按组内首串字典序
     sort(result.begin(), result.end(),
          [](const vector<string>& a, const vector<string>& b) {
              return a[0] < b[0];

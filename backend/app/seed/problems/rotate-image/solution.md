@@ -37,14 +37,15 @@ import sys
 
 def main() -> None:
     data = list(map(int, sys.stdin.read().split()))
-    n = data[0]
+    n = data[0]  # 读入 m n（方阵），idx 从 2 起跳过第二维
     mat: list[list[int]] = []
     idx = 2
     for _ in range(n):
         mat.append(data[idx : idx + n])
         idx += n
+    # 顺时针 90° = 转置 + 每行左右翻转
     for i in range(n):
-        for j in range(i + 1, n):
+        for j in range(i + 1, n):  # 只换上三角，避免换两次回到原地
             mat[i][j], mat[j][i] = mat[j][i], mat[i][j]
     for i in range(n):
         mat[i].reverse()
@@ -67,13 +68,14 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int m, n;
-    cin >> m >> n;
+    cin >> m >> n;  // 方阵，m == n
     vector<vector<int>> mat(n, vector<int>(n));
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             cin >> mat[i][j];
+    // 顺时针 90° = 转置 + 每行左右翻转
     for (int i = 0; i < n; i++)
-        for (int j = i + 1; j < n; j++)
+        for (int j = i + 1; j < n; j++)  // 只换上三角，避免换两次回到原地
             swap(mat[i][j], mat[j][i]);
     for (int i = 0; i < n; i++)
         reverse(mat[i].begin(), mat[i].end());

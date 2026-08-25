@@ -44,10 +44,11 @@ def main() -> None:
         matrix.append(data[idx : idx + n])
         idx += n
     target = data[idx]
+    # 行尾 < 下一行首，整表行优先即一段有序序列；空表时 hi=-1，循环不进
     lo, hi = 0, m * n - 1
     while lo <= hi:
         mid = (lo + hi) // 2
-        val = matrix[mid // n][mid % n]
+        val = matrix[mid // n][mid % n]  # 一维下标映射回 (行, 列)
         if val == target:
             print("true")
             return
@@ -79,10 +80,11 @@ int main() {
             cin >> matrix[i][j];
     int target;
     cin >> target;
+    // 行尾 < 下一行首，整表行优先即一段有序序列；空表时 hi=-1
     int lo = 0, hi = m * n - 1;
     while (lo <= hi) {
         int mid = lo + (hi - lo) / 2;
-        int val = matrix[mid / n][mid % n];
+        int val = matrix[mid / n][mid % n];  // 一维下标映射回 (行, 列)
         if (val == target) {
             cout << "true\n";
             return 0;

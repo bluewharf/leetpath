@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：哈希定位 + OrderedDict 改序；左端 LRU，右端 MRU。
 import sys
 from collections import OrderedDict
 
@@ -40,23 +41,24 @@ from collections import OrderedDict
 class LRUCache:
     def __init__(self, capacity):
         self.cap = capacity
-        self.od = OrderedDict()
+        self.od = OrderedDict()  # 左端 LRU，右端 MRU
 
     def get(self, key):
         if key not in self.od:
             return -1
-        self.od.move_to_end(key)
+        self.od.move_to_end(key)  # 视为一次使用，挪到最近端
         return self.od[key]
 
     def put(self, key, value):
         if key in self.od:
-            self.od.move_to_end(key)
+            self.od.move_to_end(key)  # 更新已有键也算使用，容量不变
         self.od[key] = value
         if len(self.od) > self.cap:
-            self.od.popitem(last=False)
+            self.od.popitem(last=False)  # 超容量淘汰最久未用
 
 
 def main():
+    # 操作序列：无返回输出 null，get 输出值。
     q = int(sys.stdin.readline())
     cache = None
     for _ in range(q):
@@ -79,13 +81,14 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：哈希定位 + 双向链表改序；front=LRU，back=MRU。
 #include <bits/stdc++.h>
 using namespace std;
 
 class LRUCache {
     int cap;
-    list<pair<int, int>> lst;  // front = LRU, back = MRU
-    unordered_map<int, list<pair<int, int>>::iterator> mp;
+    list<pair<int, int>> lst;  // front = LRU，back = MRU
+    unordered_map<int, list<pair<int, int>>::iterator> mp;  // 哈希定位，链表改序
 
 public:
     LRUCache(int capacity) : cap(capacity) {}
@@ -93,7 +96,7 @@ public:
     int get(int key) {
         auto it = mp.find(key);
         if (it == mp.end()) return -1;
-        lst.splice(lst.end(), lst, it->second);
+        lst.splice(lst.end(), lst, it->second);  // O(1) 挪到最近端
         return it->second->second;
     }
 
@@ -101,14 +104,14 @@ public:
         auto it = mp.find(key);
         if (it != mp.end()) {
             it->second->second = value;
-            lst.splice(lst.end(), lst, it->second);
+            lst.splice(lst.end(), lst, it->second);  // 已有键只更新，不增容量
             return;
         }
         lst.emplace_back(key, value);
         mp[key] = prev(lst.end());
         if ((int)mp.size() > cap) {
             mp.erase(lst.front().first);
-            lst.pop_front();
+            lst.pop_front();  // 淘汰最久未用
         }
     }
 };
@@ -117,7 +120,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int q;
-    cin >> q;
+    cin >> q;  // 操作序列：构造/put 输出 null，get 输出值或 -1
     LRUCache* cache = nullptr;
     for (int i = 0; i < q; i++) {
         string op;

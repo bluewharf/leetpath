@@ -37,19 +37,21 @@ import sys
 
 
 def main() -> None:
+    # 读入：一行 s，一行 m，随后 m 个字典词
     s = sys.stdin.readline().rstrip("\n")
     m = int(sys.stdin.readline())
     words = set()
     for _ in range(m):
         words.add(sys.stdin.readline().rstrip("\n"))
     n = len(s)
+    # dp[i]：前缀 s[:i] 能否拆成字典词；空前缀可拆
     dp = [False] * (n + 1)
     dp[0] = True
     for i in range(1, n + 1):
         for j in range(i):
             if dp[j] and s[j:i] in words:
                 dp[i] = True
-                break
+                break  # 单词可重复用，集合不删；找到一种切法即可
     print("true" if dp[n] else "false")
 
 
@@ -66,6 +68,7 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：s、词数 m、m 个词
     string s;
     cin >> s;
     int m;
@@ -78,6 +81,7 @@ int main() {
         words.insert(w);
     }
     int n = (int)s.size();
+    // dp[i]：前 i 个字符能否拆完；dp[0] 空前缀为真
     vector<char> dp(n + 1, 0);
     dp[0] = 1;
     for (int i = 1; i <= n; i++) {

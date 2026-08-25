@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：双指针接较小头；一侧耗尽则把另一侧剩余直接挂上。
 import sys
 
 
@@ -43,6 +44,7 @@ class ListNode:
 
 
 def read_list():
+    # ACM 读入建链表：先长度后节点值；n=0 为空。与合并算法无关。
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -66,6 +68,7 @@ def write_list(head):
 
 
 def merge(l1, l2):
+    # 算法：每次接更小的头；一侧耗尽则把另一侧剩余直接挂上（本身已有序）。
     dummy = ListNode()
     cur = dummy
     while l1 and l2:
@@ -91,6 +94,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：双指针接较小头；一侧耗尽则把另一侧剩余直接挂上。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -101,6 +105,7 @@ struct ListNode {
 };
 
 ListNode* read_list() {
+    // ACM 读入建链表：先长度后节点值；n=0 为空。
     int n;
     cin >> n;
     if (n == 0) return nullptr;
@@ -132,6 +137,7 @@ void write_list(ListNode* head) {
 }
 
 ListNode* merge(ListNode* l1, ListNode* l2) {
+    // 双指针接较小头；一侧空则挂上另一侧剩余。
     ListNode dummy;
     ListNode* cur = &dummy;
     while (l1 && l2) {

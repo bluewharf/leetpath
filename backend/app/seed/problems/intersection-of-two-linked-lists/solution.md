@@ -53,6 +53,7 @@ def read_vals(lines, i):
 
 
 def build(vals):
+    # 按值序列建链，同时记下节点数组以便后面接交点
     dummy = ListNode()
     cur = dummy
     nodes = []
@@ -71,6 +72,7 @@ def main():
     skip_a, skip_b = map(int, lines[i].split())
 
     head_a, nodes_a = build(vals_a)
+    # skip_a < 0 表示不相交；否则 B 的前 skip_b 个接到 A[skip_a]
     if skip_a < 0:
         head_b, _ = build(vals_b)
     else:
@@ -82,6 +84,7 @@ def main():
         cur.next = nodes_a[skip_a]
         head_b = dummy.next
 
+    # a 走完接 B 头、b 走完接 A 头：相交则在同一节点相遇，否则同时走到空
     a, b = head_a, head_b
     while a is not b:
         a = a.next if a else head_b
@@ -114,6 +117,7 @@ vector<int> read_vals() {
 }
 
 pair<ListNode*, vector<ListNode*>> build(const vector<int>& vals) {
+    // 按值序列建链，同时记下节点数组以便后面接交点
     ListNode dummy(0);
     ListNode* cur = &dummy;
     vector<ListNode*> nodes;
@@ -135,6 +139,7 @@ int main() {
 
     auto [head_a, nodes_a] = build(vals_a);
     ListNode* head_b;
+    // skip_a < 0 表示不相交；否则 B 的前 skip_b 个接到 A[skip_a]
     if (skip_a < 0) {
         head_b = build(vals_b).first;
     } else {
@@ -148,6 +153,7 @@ int main() {
         head_b = dummy.next;
     }
 
+    // a 走完接 B 头、b 走完接 A 头：相交则在同一节点相遇，否则同时走到空
     ListNode *a = head_a, *b = head_b;
     while (a != b) {
         a = a ? a->next : head_b;

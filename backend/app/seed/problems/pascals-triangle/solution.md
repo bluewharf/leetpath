@@ -35,13 +35,13 @@ import sys
 
 
 def main() -> None:
-    n = int(sys.stdin.read().split()[0])
+    n = int(sys.stdin.read().split()[0])  # 读入行数 numRows
     row = [1]
-    print(1)
+    print(1)  # 第 0 行恒为 [1]；n>=1 由题目保证
     for i in range(1, n):
-        nxt = [1] * (i + 1)
+        nxt = [1] * (i + 1)  # 两端恒为 1，长度 i+1
         for j in range(1, i):
-            nxt[j] = row[j - 1] + row[j]
+            nxt[j] = row[j - 1] + row[j]  # C(i,j)=C(i-1,j-1)+C(i-1,j)
         print(" ".join(str(x) for x in nxt))
         row = nxt
 
@@ -60,12 +60,12 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n;
-    cin >> n;
+    cin >> n;  // 读入行数 numRows
     vector<int> row = {1};
-    cout << 1 << '\n';
+    cout << 1 << '\n';  // 第 0 行恒为 [1]
     for (int i = 1; i < n; ++i) {
-        vector<int> nxt(i + 1, 1);
-        for (int j = 1; j < i; ++j) nxt[j] = row[j - 1] + row[j];
+        vector<int> nxt(i + 1, 1);  // 两端恒为 1，长度 i+1
+        for (int j = 1; j < i; ++j) nxt[j] = row[j - 1] + row[j];  // C(i,j)=C(i-1,j-1)+C(i-1,j)
         for (int j = 0; j <= i; ++j) {
             if (j) cout << ' ';
             cout << nxt[j];

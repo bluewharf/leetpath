@@ -45,6 +45,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 建树：层序 token，null 为空，末尾连续 null 已省略
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -75,10 +76,13 @@ def read_tree():
 
 def is_symmetric(root):
     def mirror(a, b):
+        # 一边空一边不空失败；两边都空（a is b）才算这一对匹配
         if a is None or b is None:
             return a is b
+        # 镜像：值相等，且交叉比较左右
         return a.val == b.val and mirror(a.left, b.right) and mirror(a.right, b.left)
 
+    # 空树约定对称；只需左右子树互为镜像
     return root is None or mirror(root.left, root.right)
 
 
@@ -103,6 +107,7 @@ struct TreeNode {
 };
 
 TreeNode* readTree() {
+    // 建树：层序 token，与镜像判定分开
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -132,7 +137,7 @@ TreeNode* readTree() {
 }
 
 bool isMirror(TreeNode* a, TreeNode* b) {
-    if (!a || !b) return a == b;
+    if (!a || !b) return a == b;  // 都空才对称，一空一非空失败
     return a->val == b->val && isMirror(a->left, b->right) && isMirror(a->right, b->left);
 }
 
@@ -140,7 +145,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     TreeNode* root = readTree();
-    bool ok = !root || isMirror(root->left, root->right);
+    bool ok = !root || isMirror(root->left, root->right);  // 空树为真
     cout << (ok ? "true" : "false") << "\n";
     return 0;
 }

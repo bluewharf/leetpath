@@ -38,11 +38,13 @@ from collections import Counter
 
 
 def main() -> None:
+    # 读入：n、数组、k（k 不超过不同元素个数）
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
     k = int(data[n + 1])
     cnt = Counter(nums)
+    # 确定性输出：频次降序，同频按值升序；只对去重后的键排序
     ranked = sorted(cnt.keys(), key=lambda x: (-cnt[x], x))
     print(" ".join(str(x) for x in ranked[:k]))
 
@@ -60,6 +62,7 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、数组、k
     int n;
     cin >> n;
     vector<int> nums(n);
@@ -72,6 +75,7 @@ int main() {
     vector<int> keys;
     keys.reserve(cnt.size());
     for (auto& p : cnt) keys.push_back(p.first);
+    // 频次降序，同频按值升序，再切前 k
     sort(keys.begin(), keys.end(), [&](int a, int b) {
         if (cnt[a] != cnt[b]) return cnt[a] > cnt[b];
         return a < b;

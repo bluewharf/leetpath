@@ -42,19 +42,20 @@ def is_square(x: int) -> bool:
 
 
 def num_squares(n: int) -> int:
+    # 四平方定理：答案只可能是 1/2/3/4，按判定顺序排除
     if is_square(n):
         return 1
     x = n
     while x % 4 == 0:
         x //= 4
-    if x % 8 == 7:
+    if x % 8 == 7:  # 勒让德：n=4^k(8m+7) 必须四个平方数
         return 4
     i = 1
     while i * i <= n:
-        if is_square(n - i * i):
+        if is_square(n - i * i):  # 拆成两个平方
             return 2
         i += 1
-    return 3
+    return 3  # 其余只能是 3
 
 
 def main() -> None:
@@ -74,20 +75,21 @@ using namespace std;
 
 bool isSquare(int x) {
     long long r = (long long)sqrt((double)x);
-    while (r * r > x) --r;
+    while (r * r > x) --r;  // 纠正浮点 sqrt 可能的偏差
     while ((r + 1) * (r + 1) <= x) ++r;
     return r * r == x;
 }
 
 int numSquares(int n) {
+    // 四平方定理：答案只可能是 1/2/3/4
     if (isSquare(n)) return 1;
     int x = n;
     while (x % 4 == 0) x /= 4;
-    if (x % 8 == 7) return 4;
+    if (x % 8 == 7) return 4;  // 勒让德：n=4^k(8m+7) 必须四个平方数
     for (int i = 1; i * i <= n; ++i) {
-        if (isSquare(n - i * i)) return 2;
+        if (isSquare(n - i * i)) return 2;  // 拆成两个平方
     }
-    return 3;
+    return 3;  // 其余只能是 3
 }
 
 int main() {
