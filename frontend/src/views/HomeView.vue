@@ -53,22 +53,39 @@
       <div class="heatmap-head">
         <div>
           <h3>刷题活跃度与打卡记录</h3>
-          <span class="heatmap-sub">过去 52 周提交记录</span>
+          <span class="heatmap-sub">今天 {{ formatZhDate(todayStr) }} · 过去 52 周</span>
         </div>
         <div class="heatmap-streak">
-          <span class="streak-tag">🔥 持续打卡手感火热</span>
+          <span class="streak-tag">{{ streakLabel }}</span>
         </div>
       </div>
 
       <div class="heatmap-scroll-wrap">
-        <div class="heatmap-grid">
-          <div
-            v-for="(day, idx) in heatmapDays"
-            :key="idx"
-            class="heatmap-cell"
-            :class="`level-${day.level}`"
-            :title="`${day.date}: ${day.count} 次提交`"
-          ></div>
+        <div class="heatmap-chart">
+          <div class="heatmap-wdays" aria-hidden="true">
+            <span v-for="(w, i) in WEEKDAY_LABELS" :key="i">{{ w }}</span>
+          </div>
+          <div class="heatmap-right">
+            <div class="heatmap-months">
+              <span
+                v-for="(label, i) in heatmapMonths"
+                :key="i"
+                class="heatmap-month"
+              >{{ label }}</span>
+            </div>
+            <div class="heatmap-grid">
+              <div
+                v-for="(day, idx) in heatmapDays"
+                :key="idx"
+                class="heatmap-cell"
+                :class="[
+                  `level-${day.level}`,
+                  { 'is-today': day.isToday, 'is-pad': day.pad },
+                ]"
+                :title="day.pad ? '' : `${formatZhDate(day.date)}：${day.count} 次提交`"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -126,6 +143,7 @@ import { api } from '../api'
 import JobBoard from '../components/JobBoard.vue'
 import PlanCard from '../components/PlanCard.vue'
 import PlanModal from '../components/PlanModal.vue'
+import { addDays, formatZhDate, todayLocalDate } from '../dates'
 import type { Job, ProblemListItem, Submission } from '../types'
 
 const router = useRouter()
@@ -142,8 +160,19 @@ interface HeatmapDay {
   date: string
   count: number
   level: number
+  isToday: boolean
+  pad: boolean
 }
+const WEEKDAY_LABELS = ['一', '', '三', '', '五', '', '日']
 const heatmapDays = ref<HeatmapDay[]>([])
+const heatmapMonths = ref<string[]>([])
+const todayStr = todayLocalDate()
+const streakDays = ref(0)
+
+const streakLabel = computed(() => {
+  if (streakDays.value <= 0) return '今天还没提交'
+  return `连续打卡 ${streakDays.value} 天`
+})
 
 // 随机一题
 function pickRandomProblem() {
@@ -174,30 +203,67 @@ const categoryStats = computed(() => {
   }).filter((c) => c.total > 0)
 })
 
-// 生成过去 52 周 (364 天) 热力图占位与真实数据映射
+function countLevel(count: number): number {
+  if (count >= 5) return 4
+  if (count >= 3) return 3
+  if (count >= 2) return 2
+  if (count >= 1) return 1
+  return 0
+}
+
 function generateHeatmap(submissions: Submission[]) {
-  const days: HeatmapDay[] = []
   const countMap = new Map<string, number>()
-
   for (const s of submissions) {
-    const d = s.created_at.split('T')[0]
-    countMap.set(d, (countMap.get(d) || 0) + 1)
+    const key = s.created_at.split('T')[0]
+    if (key) countMap.set(key, (countMap.get(key) || 0) + 1)
   }
 
-  const today = new Date()
-  for (let i = 363; i >= 0; i--) {
-    const d = new Date(today)
-    d.setDate(today.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
-    const count = countMap.get(dateStr) || 0
-    let level = 0
-    if (count >= 5) level = 4
-    else if (count >= 3) level = 3
-    else if (count >= 2) level = 2
-    else if (count >= 1) level = 1
-    days.push({ date: dateStr, count, level })
+  const today = todayLocalDate()
+  const todayDate = new Date()
+  const mondayOffset = (todayDate.getDay() + 6) % 7
+  const start = addDays(today, -(52 * 7 - 1 + mondayOffset))
+
+  const days: HeatmapDay[] = []
+  for (let cursor = start; cursor <= today; cursor = addDays(cursor, 1)) {
+    const count = countMap.get(cursor) || 0
+    days.push({
+      date: cursor,
+      count,
+      level: countLevel(count),
+      isToday: cursor === today,
+      pad: false,
+    })
   }
+  while (days.length % 7 !== 0) {
+    days.push({ date: '', count: 0, level: 0, isToday: false, pad: true })
+  }
+
+  const weekCount = days.length / 7
+  const months: string[] = Array.from({ length: weekCount }, () => '')
+  let lastMonth = ''
+  for (let w = 0; w < weekCount; w++) {
+    const cell = days[w * 7]
+    if (!cell || cell.pad) continue
+    const month = cell.date.slice(0, 7)
+    if (month !== lastMonth) {
+      months[w] = `${Number(cell.date.slice(5, 7))}月`
+      lastMonth = month
+    }
+  }
+
   heatmapDays.value = days
+  heatmapMonths.value = months
+
+  let streak = 0
+  let cursor = today
+  if ((countMap.get(today) || 0) === 0) {
+    cursor = addDays(today, -1)
+  }
+  while ((countMap.get(cursor) || 0) > 0) {
+    streak += 1
+    cursor = addDays(cursor, -1)
+  }
+  streakDays.value = streak
 }
 
 async function loadHome() {
