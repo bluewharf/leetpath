@@ -10,23 +10,15 @@
       </div>
 
       <div class="modal-body">
-        <p class="muted" style="margin-bottom:16px;font-size:13px">
-          默认已接入 <strong>Antithor 专属中转站</strong>（也支持直接切换为 DeepSeek 官方或自定义中转）。密钥和问答缓存仅保存在你的本地浏览器中，绝不上报服务器。
+        <p class="muted" style="margin-bottom:14px;font-size:13px">
+          默认已接入 <strong>Antithor 专属中转站</strong>。密钥和问答缓存仅保存在你的本地浏览器中，绝不上报服务器。
         </p>
 
-        <!-- 快捷预设服务商 -->
-        <div class="form-group">
-          <label class="form-label">快速预设填入：</label>
-          <div class="preset-pills">
-            <button
-              v-for="p in AI_PRESETS"
-              :key="p.name"
-              type="button"
-              class="preset-pill-btn"
-              @click="applyPreset(p)"
-            >
-              {{ p.name }}
-            </button>
+        <!-- 专属中转站标识 -->
+        <div class="form-group" style="margin-bottom:14px">
+          <div class="relay-brand-badge">
+            <span class="relay-dot"></span>
+            <span class="relay-title">⚡ Antithor 专属中转站 (默认高速通道)</span>
           </div>
         </div>
 
@@ -41,14 +33,25 @@
             class="input mono"
             placeholder="默认: https://api.antithor.asia/v1"
           />
-          <small class="form-help">默认已配置 <code>https://api.antithor.asia/v1</code>，可直接输入 Key 拉取模型</small>
+          <small class="form-help">默认已配置 <code>https://api.antithor.asia/v1</code>，输入 Key 即可直接拉取并使用全部模型</small>
         </div>
 
         <!-- API Key -->
         <div class="form-group">
-          <label class="form-label">
-            API 密钥 (API Key) <span class="req">*</span>
-          </label>
+          <div class="label-with-link">
+            <label class="form-label" style="margin-bottom:0">
+              API 密钥 (API Key) <span class="req">*</span>
+            </label>
+            <a
+              href="https://api.antithor.asia"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="key-portal-link"
+              title="点击在新窗口打开 Antithor 中转站控制台获取或创建你的 Key"
+            >
+              🔗 点击链接跳转登录 antithor 获取你的 key ↗
+            </a>
+          </div>
           <div class="input-with-action">
             <input
               v-model="ai.apiKey.value"
@@ -60,6 +63,9 @@
               {{ showKey ? '隐藏' : '显示' }}
             </button>
           </div>
+          <small class="form-help">
+            还没有 API Key？请 <a href="https://api.antithor.asia" target="_blank" rel="noopener noreferrer" class="link-highlight">点击链接跳转登录 antithor 获取你的 key</a>
+          </small>
         </div>
 
         <!-- 选用模型与拉取 -->
@@ -84,84 +90,66 @@
               list="models-datalist"
               type="text"
               class="input mono"
-              placeholder="可直接手填或从下方选择 (如: claude-3-5-sonnet-20241022, deepseek-chat)"
+              placeholder="请输入或点击上方一键拉取 (例如: deepseek-chat, claude-3-5-sonnet...)"
             />
             <datalist id="models-datalist">
               <option v-for="m in ai.modelsList.value" :key="m" :value="m" />
             </datalist>
           </div>
 
-          <!-- 快捷常用高频模型标签 -->
-          <div class="quick-model-pills" style="margin-top:8px">
-            <span class="muted" style="font-size:11px;margin-right:4px">常用模型直选:</span>
-            <button
-              type="button"
-              class="preset-pill-btn"
-              style="font-size:11px;padding:2px 8px"
-              @click="ai.selectedModel.value = 'claude-3-5-sonnet-20241022'"
-            >
-              ⚡ Claude 3.5 Sonnet
-            </button>
-            <button
-              type="button"
-              class="preset-pill-btn"
-              style="font-size:11px;padding:2px 8px"
-              @click="ai.selectedModel.value = 'deepseek-chat'"
-            >
-              🚀 DeepSeek-V3
-            </button>
-            <button
-              type="button"
-              class="preset-pill-btn"
-              style="font-size:11px;padding:2px 8px"
-              @click="ai.selectedModel.value = 'deepseek-reasoner'"
-            >
-              🧠 DeepSeek-R1 (思考模式)
-            </button>
-            <button
-              type="button"
-              class="preset-pill-btn"
-              style="font-size:11px;padding:2px 8px"
-              @click="ai.selectedModel.value = 'gpt-4o'"
-            >
-              🪐 GPT-4o
-            </button>
-            <button
-              type="button"
-              class="preset-pill-btn"
-              style="font-size:11px;padding:2px 8px"
-              @click="ai.selectedModel.value = 'grok-2-latest'"
-            >
-              ⚡ Grok 2
-            </button>
-          </div>
-
           <small v-if="ai.modelsList.value.length > 0" class="form-help" style="color:var(--green);margin-top:6px">
-            ✓ 已从中转站自动识别 {{ ai.modelsList.value.length }} 个模型（输入框支持模糊联想与手动自由输入）
+            ✓ 已从中转站成功识别 {{ ai.modelsList.value.length }} 个可用模型（输入框支持直接搜索与手动输入）
           </small>
         </div>
 
         <!-- Token 节省与上下文约束设置 -->
         <div class="token-saving-card">
           <div class="saving-card-head">
-            <span class="saving-title">⚡ Token 节省与性能约束</span>
+            <span class="saving-title">⚡ 上下文长度限制与 Token 防溢出策略</span>
+          </div>
+
+          <!-- 最大输入上下文 Token 预算 -->
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label" style="font-size:13px">最大上下文 Token 预算 (Max Context Tokens)</label>
+            <select v-model.number="ai.maxContextTokens.value" class="input mono" style="font-size:13px">
+              <option :value="32768">32,768 Tokens (32K · 常用紧凑)</option>
+              <option :value="65536">65,536 Tokens (64K · 进阶长文)</option>
+              <option :value="131072">131,072 Tokens (128K · 热门长文本 · 默认)</option>
+              <option :value="262144">262,144 Tokens (256K · 超大窗口)</option>
+              <option :value="524288">524,288 Tokens (500K · 海量上下文)</option>
+              <option :value="1048576">1,048,576 Tokens (1M · 百万级全量窗口)</option>
+            </select>
+            <small class="form-help">
+              内置<strong>滑动窗口智能裁剪算法</strong>：题干与系统核心 Prompt 永远锁定保护，多轮追问超限时自动丢弃最旧历史，<strong>绝不发生 Context Length Exceeded (400) 报错</strong>。
+            </small>
+          </div>
+
+          <!-- 单次回复最大 Token -->
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label" style="font-size:13px">单次回复最大输出 (Max Response Tokens)</label>
+            <select v-model.number="ai.maxResponseTokens.value" class="input mono" style="font-size:13px">
+              <option :value="1024">1,024 Tokens (简短答疑)</option>
+              <option :value="2048">2,048 Tokens (标准代码与解析)</option>
+              <option :value="4096">4,096 Tokens (推荐 · 深度详尽题解)</option>
+              <option :value="8192">8,192 Tokens (超长代码生成)</option>
+            </select>
           </div>
 
           <!-- 上下文轮数约束 -->
           <div class="form-group" style="margin-bottom:12px">
             <div style="display:flex;justify-content:space-between">
-              <label class="form-label" style="font-size:13px">上下文记忆深度 (Context Turns)</label>
-              <span class="mono" style="font-size:13px;color:var(--accent)">{{ ai.maxContextTurns.value }} 轮 ({{ ai.maxContextTurns.value * 2 }}条消息)</span>
+              <label class="form-label" style="font-size:13px">对话记忆深度 (Context Turns)</label>
+              <span class="mono" style="font-size:13px;color:var(--accent)">{{ ai.maxContextTurns.value }} 轮 ({{ ai.maxContextTurns.value * 2 }} 条消息)</span>
             </div>
             <input
               v-model.number="ai.maxContextTurns.value"
               type="range"
               min="1"
-              max="5"
+              max="10"
               step="1"
               class="range-slider"
             />
-            <small class="form-help">限制每次提问只附带最近 {{ ai.maxContextTurns.value }} 轮对话，防止多轮追问后 Token 消耗呈指数级膨胀</small>
+            <small class="form-help">限制追问时仅携带最近 {{ ai.maxContextTurns.value }} 轮历史，配合 Token 滑动裁剪，双重防止费用爆炸</small>
           </div>
 
           <!-- 本地响应缓存开关 -->
@@ -369,26 +357,53 @@ function onSave() {
   color: var(--text-dim);
 }
 
-.preset-pills {
+.label-with-link {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
-.preset-pill-btn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
+.key-portal-link {
   font-size: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.15s;
 }
 
-.preset-pill-btn:hover {
-  border-color: var(--accent);
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+.key-portal-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.link-highlight {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.relay-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.relay-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green, #10b981);
+  box-shadow: 0 0 6px var(--green, #10b981);
 }
 
 .input-with-action {

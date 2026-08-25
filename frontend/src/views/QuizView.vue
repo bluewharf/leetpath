@@ -52,7 +52,7 @@
         🗡️ 错题斩题 ({{ stats?.wrong_count || 0 }})
       </button>
       <button :class="{ active: currentTab === 'banks' }" @click="switchTab('banks')">
-        📑 34 个专题库
+        📑 {{ bankCount }} 个专题库
       </button>
       <button :class="{ active: currentTab === 'favorites' }" @click="switchTab('favorites')">
         ⭐ 收藏夹 ({{ stats?.favorite_count || 0 }})
@@ -71,13 +71,31 @@
           <div class="quiz-filter-item" v-if="currentTab === 'practice'">
             <label>专题分类：</label>
             <select v-model="selectedBank" @change="fetchQuestions">
-              <option value="">全部 34 个专题 ({{ stats?.total_questions }}题)</option>
+              <option value="">全部 {{ bankCount }} 个专题 ({{ stats?.total_questions }}题)</option>
               <optgroup v-for="(bList, cat) in groupedBanks" :key="cat" :label="cat">
                 <option v-for="b in bList" :key="b.bank" :value="b.bank">
-                  {{ b.bank }} ({{ b.total }}题 · {{ b.answered }}/{{ b.total }})
+                  {{ b.bank === HARNESS_BANK ? '新 · ' : '' }}{{ b.bank }} ({{ b.total }}题 · {{ b.answered }}/{{ b.total }})
                 </option>
               </optgroup>
             </select>
+          </div>
+          <div class="quiz-featured" v-if="currentTab === 'practice'">
+            <button
+              type="button"
+              class="quiz-feat-chip"
+              :class="{ active: selectedBank === HARNESS_BANK }"
+              @click="startBankPractice(HARNESS_BANK)"
+            >
+              新 · Agent Harness
+            </button>
+            <button
+              type="button"
+              class="quiz-feat-chip"
+              :class="{ active: selectedBank === '' }"
+              @click="startBankPractice('')"
+            >
+              全部专题
+            </button>
           </div>
 
           <!-- 错题本提示 -->
@@ -194,7 +212,7 @@
               :key="key"
               class="quiz-option-btn"
               :class="getOptionClass(key)"
-              :disabled="submitting"
+              :disabled="submitting || Boolean(currentResult || currentQ.is_answered)"
               @click="onOptionClick(key)"
             >
               <div class="opt-prefix mono">{{ key }}</div>
@@ -285,12 +303,12 @@
       </div>
     </div>
 
-    <!-- ==================== 视图 2: 34 个专题库大纲 (Banks) ==================== -->
+    <!-- ==================== 视图 2: 专题库大纲 (Banks) ==================== -->
     <div v-else-if="currentTab === 'banks'" class="banks-view">
       <div class="banks-header card">
         <div class="banks-header-info">
-          <h2>34 个大模型与算法核心专题库</h2>
-          <p class="muted">涵盖 AI Agent、Transformer 底层、RAG 向量检索、强化学习、训练微调与反直觉杀手题，点击专题直接开启专项刷题。</p>
+          <h2>{{ bankCount }} 个大模型与算法核心专题库</h2>
+          <p class="muted">涵盖 Agent Harness、MCP/Skills、Transformer、RAG、强化学习、训练微调与反直觉杀手题，点击专题直接开启专项刷题。</p>
         </div>
       </div>
 
@@ -369,7 +387,8 @@ const loading = ref(true)
 const submitting = ref(false)
 const stats = ref<QuizStats | null>(null)
 const banks = ref<QuizBank[]>([])
-const selectedBank = ref<string>('')
+const HARNESS_BANK = 'Agent Harness 与编码智能体'
+const selectedBank = ref<string>(HARNESS_BANK)
 const onlyUnanswered = ref(false)
 const randomOrder = ref(false)
 const aiDrawerVisible = ref(false)
@@ -433,14 +452,30 @@ const quizPresetPrompts = computed<PromptPreset[]>(() => {
   return list
 })
 
-// 按大类对 34 个专题库分组
+const bankCount = computed(() => banks.value.length)
+
 const groupedBanks = computed(() => {
   const map: Record<string, QuizBank[]> = {}
   for (const b of banks.value) {
     if (!map[b.category]) map[b.category] = []
     map[b.category].push(b)
   }
-  return map
+  for (const list of Object.values(map)) {
+    list.sort((a, b) => {
+      if (a.bank === HARNESS_BANK) return -1
+      if (b.bank === HARNESS_BANK) return 1
+      return a.bank.localeCompare(b.bank, 'zh')
+    })
+  }
+  const ordered: Record<string, QuizBank[]> = {}
+  const preferred = ['AI Agent 与智能体']
+  for (const cat of preferred) {
+    if (map[cat]) ordered[cat] = map[cat]
+  }
+  for (const [cat, list] of Object.entries(map)) {
+    if (!ordered[cat]) ordered[cat] = list
+  }
+  return ordered
 })
 
 const isCurrentCorrect = computed(() => {
@@ -518,7 +553,7 @@ async function fetchQuestions() {
   currentResult.value = null
   multiSelected.value = []
   try {
-    let url = '/api/quiz/questions?limit=500'
+    let url = '/api/quiz/questions?limit=800'
     if (currentTab.value === 'wrongbook') {
       url += '&status=wrong'
     } else if (currentTab.value === 'favorites') {
@@ -533,6 +568,17 @@ async function fetchQuestions() {
 
     const res = await api.get<{ total: number; items: QuizQuestionItem[] }>(url)
     questions.value = res.items
+    if (
+      currentTab.value === 'practice' &&
+      selectedBank.value === HARNESS_BANK &&
+      res.items.length === 0
+    ) {
+      selectedBank.value = ''
+      const retry = await api.get<{ total: number; items: QuizQuestionItem[] }>(
+        '/api/quiz/questions?limit=800',
+      )
+      questions.value = retry.items
+    }
     currentIndex.value = 0
     await loadStatsAndBanks()
   } catch {
@@ -599,6 +645,12 @@ async function onOptionClick(key: string) {
   const q = currentQ.value
   if (!q || submitting.value) return
 
+  // 严格防作弊锁定：如果本题已作答过，坚决不允许再次点击修改答案
+  if (currentResult.value !== null || q.is_answered) {
+    toast.info('本题已完成作答，答案与解析已揭晓，不可重复提交刷分')
+    return
+  }
+
   // 多选题点击是勾选/反勾选
   if (q.type === 'multiple') {
     if (multiSelected.value.includes(key)) {
@@ -655,7 +707,10 @@ function retryCurrentQuestion() {
   currentResult.value = null
   q.is_answered = false
   q.user_answer = null
+  q.answer = null
+  q.analysis = null
   multiSelected.value = []
+  toast.info('已重置作答状态，请独立思考后重新作答')
 }
 
 // 斩题
@@ -796,7 +851,29 @@ onBeforeUnmount(() => {
   background: var(--bg);
   color: var(--text);
   font-size: 13px;
-  max-width: 320px;
+  max-width: 420px;
+}
+.quiz-featured {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.quiz-feat-chip {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.quiz-feat-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
 }
 
 .wrongbook-hint {

@@ -10552,5 +10552,359 @@
     },
     "answer": "ABC",
     "analysis": "本题考点:位置编码方案(多选).\n【正确项】A、B、C 正确:\n- A 绝对位置(正余弦/可学习位置嵌入):最经典,加到 token embedding 上.\n- B RoPE:通过旋转把相对位置编进 q/k 点积.\n- C ALiBi:直接在注意力分数上加减与距离成正比的偏置,无需额外位置向量,外推性好.\n【D 选项】错误:Transformer 的注意力本身是\"无序\"的(对位置不敏感),完全不使用位置信息会导致模型无法区分词序,故不选."
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 1,
+    "type": "single",
+    "stem": "2026 年常说的「Agent Harness」（智能体套件/缰绳）最准确的定义是？",
+    "options": {
+      "A": "比 GPT-4 更大的基座模型名称",
+      "B": "包在模型外面的持久层：指令、工具、权限、上下文管理与验证闭环",
+      "C": "专门训练 Agent 的强化学习算法",
+      "D": "向量数据库的另一种叫法"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Agent Harness 的定义（2026 热点）.\n【正确项】B 正确:Harness 是模型外面的耐用系统——系统提示/CLAUDE.md、工具面、权限与沙箱、上下文压缩、Skills/MCP、以及用测试证明改动有效。Claude Code、Codex 本身就是一套 harness。OpenAI 把围绕 Codex 打磨这层的工作叫 harness engineering。\n【A 选项】Harness 不是模型名，更不是参数量竞赛。\n【C 选项】RL 是训练方法，不是运行时套件。\n【D 选项】向量库是 RAG 存储，只是 harness 可能接入的一种工具。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 2,
+    "type": "single",
+    "stem": "Claude Code 与 OpenAI Codex CLI 在工程讨论里通常被归为什么？",
+    "options": {
+      "A": "微调平台",
+      "B": "编码 Agent Harness：用系统提示、工具循环、权限和沙箱把模型包起来",
+      "C": "只读的代码补全插件，不能改文件",
+      "D": "评测榜单网站"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Claude Code / Codex 的产品定位.\n【正确项】B 正确:二者都是编码智能体套件，各自绑定自家模型，提供工具面（读改文件、跑命令）、权限模型、沙箱和循环。团队再在上面叠一层：AGENTS.md/CLAUDE.md、Skills、MCP、评审与验证。\n【A 选项】微调平台是训练侧。\n【C 选项】它们能改仓库、跑测试，不是只读补全。\n【D 选项】评测是 eval harness，不是这两个产品。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 3,
+    "type": "single",
+    "stem": "当各家基座模型能力逐渐接近时，团队的差异化更应该积累在哪一层？",
+    "options": {
+      "A": "只换更大的闭源模型，规则和工具可以每次重写",
+      "B": "自己的 harness：约定、Skills、验证闭环、权限与可移植的工作流",
+      "C": "把全部知识微调进权重，不再需要文档",
+      "D": "只做更花哨的聊天 UI"
+    },
+    "answer": "B",
+    "analysis": "本题考点:模型趋同后的优势上移.\n【正确项】B 正确:模型越接近，优势就在你积累的工作流、验证、决策记录和可移植规则。同一套文件应能指向 Claude Code、Codex 或下一个套件，而不是绑定一家。\n【A 选项】每次换模型就重建 harness，说明你没有真正拥有它。\n【C 选项】仓库约定和事故记录应放在文件/规则里，而不是全部塞进权重。\n【D 选项】UI 只是展示层，不是差异化的主战场。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 4,
+    "type": "single",
+    "stem": "关于 CLAUDE.md 与 Skill（技能）的加载方式，下列哪项正确？",
+    "options": {
+      "A": "两者都只在用户手动 /命令 时加载",
+      "B": "CLAUDE.md 每个会话自动加载，适合「始终遵守」的约定；Skill 按需加载，适合可复用工作流和参考资料",
+      "C": "Skill 会塞进每一次请求的完整正文，CLAUDE.md 反而按需",
+      "D": "二者完全等价，只是文件名不同"
+    },
+    "answer": "B",
+    "analysis": "本题考点:CLAUDE.md vs Skills.\n【正确项】B 正确:CLAUDE.md 是持久上下文，会话开始就进上下文，适合「用 pnpm、提交前跑测试」这类 always-on 规则，官方建议尽量短（常提 200 行以内）。Skill 是可复用知识/工作流，开始只加载描述，相关或被调用时才加载全文，也可用 /name 触发。\n【A 选项】CLAUDE.md 不是命令才加载。\n【C 选项】说反了。\n【D 选项】加载时机、上下文成本和触发方式都不同。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 5,
+    "type": "single",
+    "stem": "Skill 与 MCP 的分工，下列哪句最准确？",
+    "options": {
+      "A": "Skill 提供连接到外部系统的工具，MCP 教模型怎么用这些工具",
+      "B": "MCP 提供工具/数据连接，Skill 教模型如何用好这些工具（约定、schema、排查步骤）",
+      "C": "两者都只是 Prompt 模板，不能碰外部系统",
+      "D": "MCP 只能读文件，Skill 才能调 API"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Skills vs MCP.\n【正确项】B 正确:MCP（Model Context Protocol）被比作 AI 应用的 USB-C，用标准协议把 Agent 连到数据库、浏览器、GitHub 等。Skill 是「怎么用」的说明书：数据模型、查询习惯、发布清单。典型组合：MCP 连上库，Skill 写清表结构和禁查生产。\n【A 选项】说反了。\n【C 选项】MCP 就是用来碰外部系统的。\n【D 选项】MCP 完全可以封装 API；Skill 本身通常不「变成」API。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 6,
+    "type": "single",
+    "stem": "什么时候更该用 Subagent（子代理），而不是只在当前会话里塞一个 Skill？",
+    "options": {
+      "A": "只是想让模型记住「用 4 空格缩进」",
+      "B": "需要隔离上下文、并行干活或限制工具权限，例如广搜代码后只把摘要交回主会话",
+      "C": "想把外部数据库做成标准工具接口",
+      "D": "想在每次保存文件时自动跑 lint"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Skills vs Subagents.\n【正确项】B 正确:Subagent 拥有独立上下文窗口、自己的系统提示和工具权限，干完把摘要交回，避免主会话被几十个文件读爆。Skill 是往当前（或指定）上下文注入知识。\n【A 选项】这是 CLAUDE.md / 规则文件的事。\n【C 选项】这是 MCP。\n【D 选项】这是 Hooks（生命周期脚本）。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 7,
+    "type": "judge",
+    "stem": "Claude Code 的 Subagent 会自动继承主会话里已经加载的全部 Skills。",
+    "options": {
+      "A": "正确",
+      "B": "错误"
+    },
+    "answer": "错误",
+    "analysis": "本题考点:Subagent 与 Skills 的继承.\n【正确项】错误:子代理默认不继承主会话已加载的 Skills。要预载，需在 `.claude/agents/` 的 frontmatter 里写 `skills:` 列表；否则它仍可通过 Skill 工具自行调用，但不会自动带着主会话那一套。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 8,
+    "type": "single",
+    "stem": "会话接近上下文上限发生 compaction（压缩）时，下列哪项通常还能保住？",
+    "options": {
+      "A": "只在聊天里随口说的、从未落盘的约束",
+      "B": "项目根目录的 CLAUDE.md，以及会从磁盘重新读入的自动记忆",
+      "C": "已经被清掉的旧工具输出原文",
+      "D": "子代理内部完整的中间推理过程"
+    },
+    "answer": "B",
+    "analysis": "本题考点:compaction 存活什么.\n【正确项】B 正确:压缩会先丢掉旧工具输出，再总结对话。项目级 CLAUDE.md 和自动记忆会在压缩后从磁盘重新加载；只存在对话里的口头指令可能丢。所以关键约定必须写进文件，而不是只 chat 一句。\n【A 选项】口头约束最容易丢。\n【C 选项】旧工具输出正是优先被清的。\n【D 选项】子代理本就只回摘要，中间过程不在主会话里。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 9,
+    "type": "single",
+    "stem": "仓库里的 CLAUDE.md / AGENTS.md 主要承担什么角色？",
+    "options": {
+      "A": "给 CI 用的机器可读 SBOM",
+      "B": "会话开始就注入的根指令：约定、架构入口、永远不要做的事",
+      "C": "替代 git 的版本历史",
+      "D": "模型权重的量化配置"
+    },
+    "answer": "B",
+    "analysis": "本题考点:根指令文件.\n【正确项】B 正确:CLAUDE.md（Claude Code）和 AGENTS.md（Codex 及不少开源套件）是项目级说明书，启动时加载。路径级规则（如 `.claude/rules/`）可按目录再加载，避免把 React 规范灌进 iOS 代码。\n【A 选项】SBOM 是软件物料清单。\n【C 选项】历史仍在 git。\n【D 选项】量化是推理配置，与文档无关。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 10,
+    "type": "single",
+    "stem": "把 MCP 比作「AI 应用的 USB-C」是在强调什么？",
+    "options": {
+      "A": "MCP 是一种新的 GPU 互联总线",
+      "B": "用开放协议把 Agent 连到外部数据、工具和工作流，一次实现、多家客户端复用",
+      "C": "MCP 能替代基座模型本身",
+      "D": "MCP 只用于给模型做预训练"
+    },
+    "answer": "B",
+    "analysis": "本题考点:MCP 定位.\n【正确项】B 正确:Model Context Protocol 是把 AI 应用连到文件系统、数据库、浏览器、SaaS 的开放标准。Claude、ChatGPT、VS Code、Cursor、Claude Code、Codex 等都在用，避免为每个 Agent 重写一套集成。\n【A 选项】不是硬件总线。\n【C 选项】MCP 不生成 token，只扩展工具/数据面。\n【D 选项】它是推理期的连接协议。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 11,
+    "type": "single",
+    "stem": "Agent Harness 与 Eval Harness（评测套件）的差别是？",
+    "options": {
+      "A": "没有差别，都是跑基准测试的脚本",
+      "B": "前者是让模型在真实环境里干活的运行时；后者是用固定题集可复现地给模型打分",
+      "C": "Eval Harness 只能测编码 Agent，Agent Harness 只能测选择题",
+      "D": "Eval Harness 会改你的生产数据库，Agent Harness 不会"
+    },
+    "answer": "B",
+    "analysis": "本题考点:两类 harness 不要混.\n【正确项】B 正确:Agent Harness = Claude Code / Codex 这类运行时。Eval Harness = EleutherAI lm-evaluation-harness、UK AISI Inspect 等，把模型放到标准任务上复现打分。OpenAI 也用评测套件回归 Codex 的 harness 改动。面试里要先问清楚对方说的是哪一种。\n【A 选项】运行时 ≠ 评测器。\n【C 选项】说反了，且评测不限于编码。\n【D 选项】评测套件默认不碰你的生产库；编码套件若没沙箱反而更危险。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 12,
+    "type": "single",
+    "stem": "EleutherAI 的 lm-evaluation-harness 主要用来做什么？",
+    "options": {
+      "A": "给 VS Code 装自动补全",
+      "B": "统一、可复现地评测语言模型在各类基准上的表现",
+      "C": "把私有知识库做成 MCP 服务器",
+      "D": "在生产环境替模型执行 shell"
+    },
+    "answer": "B",
+    "analysis": "本题考点:lm-eval-harness.\n【正确项】B 正确:这是开源评测套件，覆盖大量 NLP/LLM 基准，方便对比模型和设置。它不是编码 Agent 运行时。\n【A 选项】那是编辑器插件。\n【C 选项】那是 MCP server。\n【D 选项】生产 shell 属于 Agent 运行时+沙箱问题。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 13,
+    "type": "single",
+    "stem": "成熟编码 Agent 的沙箱，下列哪项更符合常见默认？",
+    "options": {
+      "A": "默认root、不限制网络，方便装包",
+      "B": "命令在隔离环境执行，网络常常默认关闭，写操作受限，危险动作要批准",
+      "C": "模型在云端直接 SSH 进生产机",
+      "D": "沙箱只对 Python 生效，C++ 可以随便跑"
+    },
+    "answer": "B",
+    "analysis": "本题考点:沙箱与约束（Restraint）.\n【正确项】B 正确:Codex 使用 Seatbelt / bubblewrap+Landlock 等内核级隔离，网络默认关；Claude Code 也有权限模式和批准流。能力（能跑命令）必须和约束（不能乱来）一起做。\n【A 选项】这是事故模板。\n【C 选项】生产 SSH 必须隔离+审批。\n【D 选项】隔离应对所有命令，不按语言开后门。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 14,
+    "type": "single",
+    "stem": "Claude Code / Codex 里的 Hooks 主要是？",
+    "options": {
+      "A": "把模型微调到私有数据上的训练钩子",
+      "B": "工具生命周期上的脚本：例如改文件后跑 lint、拦危险命令",
+      "C": "MCP 的传输层协议名",
+      "D": "上下文压缩算法的别名"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Hooks.\n【正确项】B 正确:Hooks 挂在工具调用前后等事件上，用确定性脚本补模型的不确定。例如保存后格式化、提交前检查密钥。Claude Code 文档里有大量生命周期事件。\n【A 选项】不是训练回调。\n【C 选项】MCP 传输是 stdio / Streamable HTTP 等。\n【D 选项】压缩叫 compaction。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 15,
+    "type": "single",
+    "stem": "Nimbalyst 把编码 Agent Harness 拆成八根支柱。下列哪一项通常不算这八根里的？",
+    "options": {
+      "A": "Context（项目约定与记忆）",
+      "B": "Verification（用测试证明改对了）",
+      "C": "Pretraining（从零预训练一个 70B 模型）",
+      "D": "Restraint（权限、批准、审计）"
+    },
+    "answer": "C",
+    "analysis": "本题考点:harness 八支柱.\n【正确项】C（应选）:从零预训练不是套件层的事。八根大致是：Context、Provenance、Capability、Workflow、Restraint、Verification、Visual interface、Coordination。对应「不知道项目 / 不知来龙去脉 / 不能动手 / 每次重发明 / 乱来 / 嘴上说修好了 / 结果看不清 / 多 Agent 失控」。\n【A/B/D】都是支柱。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 16,
+    "type": "judge",
+    "stem": "一套合格的团队 harness 应当能在 Claude Code 和 Codex 之间切换任务，而不用把规则、工具和验证流程全部推倒重来。",
+    "options": {
+      "A": "正确",
+      "B": "错误"
+    },
+    "answer": "正确",
+    "analysis": "本题考点:harness 可移植性.\n【正确项】正确:文件化的约定、MCP、测试和工单链接应独立于某一家套件。换底层 Agent 若等于重建工作流，说明你没有真正拥有 harness，只是租用了厂商的壳。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 17,
+    "type": "single",
+    "stem": "Agent 宣称「已经修好了」，最靠谱的验收方式是？",
+    "options": {
+      "A": "看它的语气是否自信",
+      "B": "先有失败复现（测试/截图/日志），再改到证据变绿",
+      "C": "只要 git diff 非空就算修好",
+      "D": "连续三次口头保证即可合并"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Verification.\n【正确项】B 正确:常见失败模式是幻觉式「fixed」。好套件要求 fail-first：先写失败测试或固定复现，再改到绿，类型检查和 e2e 进循环。OpenAI 的 harness engineering 也强调用标准工具自审、直到评审满意（类似反复迭代的 Ralph loop）。\n【A/D 选项】自信不是证据。\n【C 选项】diff 只说明改过，不说明对了。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 18,
+    "type": "multiple",
+    "stem": "一套能干活的编码 Agent Harness，通常包含哪些部分？（多选）",
+    "options": {
+      "A": "根指令文件（CLAUDE.md / AGENTS.md）与路径级规则",
+      "B": "工具面：shell/编辑/MCP，外加权限与沙箱",
+      "C": "上下文管理：压缩、子代理隔离、按需 Skills",
+      "D": "把全部 git 历史微调进 7B 模型，从而不再需要测试"
+    },
+    "answer": "ABC",
+    "analysis": "本题考点:harness 组成（多选）.\n【正确项】A、B、C：指令、带约束的工具、上下文治理是套件三件套，再加验证与协调。\n【D 选项】不选:不能用微调代替测试和权限；历史应在 git/工单里按需检索，而不是一股脑写进权重。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 19,
+    "type": "single",
+    "stem": "相对「把 Prompt 写得更巧」，Context Engineering（上下文工程）更强调什么？",
+    "options": {
+      "A": "只增加温度和 top_p",
+      "B": "系统性地决定每次循环喂给模型什么：规则、检索片段、工具结果、记忆，以及压缩掉什么",
+      "C": "禁止模型调用任何工具",
+      "D": "把上下文窗口永远扩到无限，因而无需取舍"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Context Engineering vs Prompt Engineering.\n【正确项】B 正确:2025–2026 面试常把「提示词修辞」升级成「每次请求的信息供给」：哪些文件、哪条规则、哪段检索、哪些工具回包进上下文，哪些该摘要或丢弃。Harness 很大一部分就是在做这件事。\n【A 选项】那是采样参数。\n【C 选项】工具是能力支柱。\n【D 选项】窗口再大也有噪声和费用，压缩和隔离仍然必要。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 20,
+    "type": "single",
+    "stem": "工具调用时，「模型」和「harness」各自做什么？",
+    "options": {
+      "A": "模型直接在你电脑上执行任意二进制，harness 只负责画 UI",
+      "B": "模型根据工具 schema 决定调用并生成参数；harness 校验、执行、把观察结果喂回模型",
+      "C": "harness 生成自然语言，模型负责 rm -rf",
+      "D": "两者都不执行工具，全靠用户复制粘贴"
+    },
+    "answer": "B",
+    "analysis": "本题考点:谁思考、谁动手.\n【正确项】B 正确:LLM 只输出「调哪个、参数是什么」（JSON / 协议消息）。真正执行、权限检查、超时、沙箱、结果回灌，都是 harness。这是 Function Calling 与 Agent 运行时的分界，也是安全边界所在。\n【A 选项】模型不能直接获得无约束的本机执行权。\n【C 选项】说反了。\n【D 选项】那是没有套件的原始聊天。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 21,
+    "type": "judge",
+    "stem": "只要在对话里口头说过「不要读 .env」，compaction 之后这条禁令一定还在。",
+    "options": {
+      "A": "正确",
+      "B": "错误"
+    },
+    "answer": "错误",
+    "analysis": "本题考点:口头约束不可靠.\n【正确项】错误:压缩可能丢掉只存在于对话里的指令。禁止读密钥这类硬规则应写进 CLAUDE.md / 规则文件，并配权限与 Hooks。事故里「我明明说过」往往已经不在上下文中。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 22,
+    "type": "single",
+    "stem": "Skills 在会话开始往往只注入「描述」而不是全文，主要是为了？",
+    "options": {
+      "A": "让 MCP 服务器启动更快",
+      "B": "控制上下文成本：需要时再加载全文，避免把所有手册塞进每次请求",
+      "C": "绕过沙箱",
+      "D": "强迫用户把技能背下来"
+    },
+    "answer": "B",
+    "analysis": "本题考点:Skill 的上下文预算.\n【正确项】B 正确:描述一直在，全文按需。这和「CLAUDE.md 保持短、长参考放进 Skills」是同一套预算策略。\n【A 选项】与 MCP 进程启动无关。\n【C 选项】加载方式不等于提权。\n【D 选项】技能是写给 Agent 的，不是默写材料。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 23,
+    "type": "single",
+    "stem": "所谓用 Agent 把 PR「闭环到可合并」，更接近哪一种做法？",
+    "options": {
+      "A": "生成一次 diff 就开 PR，不再看测试",
+      "B": "在套件里循环：改代码 → 跑仓库里的检查/测试 → 根据失败再改，直到证据通过（必要时再拉评审 Agent）",
+      "C": "把 PR 描述写得更长来代替测试",
+      "D": "关掉沙箱以提高速度"
+    },
+    "answer": "B",
+    "analysis": "本题考点:验证闭环 / Ralph loop 一类实践.\n【正确项】B 正确:OpenAI 的 harness engineering 描述 Codex 用仓库脚本、gh、Skills 自查，必要时拉额外评审 Agent，直到人类或 Agent 评审满意。这是套件层的产品能力，不是「模型突然变乖」。\n【A/C 选项】没有证据。\n【D 选项】速度不能用关闭隔离换。"
+  },
+  {
+    "bank": "Agent Harness 与编码智能体",
+    "category": "AI Agent 与智能体",
+    "ordinal": 24,
+    "type": "multiple",
+    "stem": "下列哪些属于 2026 常见的编码 Agent Harness 或可对标产品？（多选）",
+    "options": {
+      "A": "Claude Code",
+      "B": "OpenAI Codex CLI",
+      "C": "OpenCode 等可接开源权重的开源套件",
+      "D": "仅负责离线 C-Eval 打分、不提供工具循环的评测脚本"
+    },
+    "answer": "ABC",
+    "analysis": "本题考点:产品地图（多选）.\n【正确项】A、B、C：Claude Code、Codex 是闭源厂商套件；OpenCode 一类开源套件可跑开源权重。Cursor、GitHub Copilot Agent 也在同一赛道。\n【D 选项】不选:那是 eval harness，没有「读改跑」的 Agent 循环。"
   }
 ]

@@ -9,7 +9,7 @@
         <div class="kicker">Interview Notes</div>
         <h1 class="display">八股笔记</h1>
       </div>
-      <span class="sub">内容不自建，跳转小林面试笔记</span>
+      <span class="sub">小林笔记 + 2026 Agent Harness / MCP / Skills 一手文档</span>
     </div>
     <div v-if="loading" class="empty">加载中…</div>
     <template v-else>

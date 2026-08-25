@@ -87,6 +87,14 @@
                 <div class="rc-slug mono" style="margin-top:4px">{{ current.slug }} · {{ current.tags.join(' · ') }}</div>
               </div>
               <div class="review-canvas-bar-actions">
+                <button
+                  class="btn btn-xs btn-outline"
+                  style="border-color:var(--accent);color:var(--accent)"
+                  type="button"
+                  @click="openAiTutor"
+                >
+                  🤖 问 AI 更多解法 / 口诀
+                </button>
                 <button class="btn btn-xs btn-ghost" type="button" @click="flipped = false">↺ 翻回正面</button>
                 <RouterLink :to="`/problems/${current.slug}`">去刷这道题 →</RouterLink>
               </div>
@@ -120,11 +128,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import Skeleton from '../components/Skeleton.vue'
 import { useLangPref } from '../stores/pref'
+import { useAiAssistant } from '../stores/aiAssistant'
 import {
   problemHeading,
   type Difficulty,
@@ -133,6 +142,7 @@ import {
 } from '../types'
 
 const { langPref, setLang } = useLangPref()
+const assistant = useAiAssistant()
 
 interface ReviewPayload {
   statement_md: string
@@ -168,6 +178,50 @@ const solutionHtml = computed(() => {
 function difficultyText(d: Difficulty) {
   return d === 'easy' ? '简单' : d === 'medium' ? '中等' : '困难'
 }
+
+function updateAiContext() {
+  const p = current.value
+  if (!p) return
+  assistant.setContext({
+    source: 'review',
+    title: `背题 · ${problemHeading(p)}`,
+    contextKey: `review:${p.slug}`,
+    contextText: `【当前背题】：${problemHeading(p)} (${difficultyText(p.difficulty)} · 标签: ${p.tags.join(', ')})
+【语言】：${langPref.value === 'cpp' ? 'C++' : 'Python 3'}
+【题面描述】：
+${statementMd.value}
+
+【参考题解】：
+${solutionMd.value}`,
+    presetPrompts: [
+      {
+        label: '💡 这道题还有更多解法吗？（对比时空复杂度）',
+        prompt: `对于这道《${problemHeading(p)}》，除了当前给出的解法外，还有哪些其他经典或进阶解法？（请按思维演进从基础到最优解清晰分析，并对比各自的时空复杂度与适用场景）`,
+      },
+      {
+        label: '🧠 提炼极简记忆口诀与代码模板骨架',
+        prompt: `请用 1-2 句极简口诀和最精炼的核心代码骨架，帮我在面试前能快速回忆起本题的关键思路。`,
+      },
+      {
+        label: '🔍 面试官通常会顺着这个解法怎么追问？',
+        prompt: `在技术面试中，如果我写出了当前这种解法，面试官通常会提出哪些 follow-up 进阶深挖问题？（例如大数据量、并发场景、内存受限等）`,
+      },
+      {
+        label: '⚡ 核心易错点与边界条件清单',
+        prompt: `这道题在手撕写代码时最容易踩的 3 个边界 Bug 或隐蔽陷阱是什么？`,
+      },
+    ],
+  })
+}
+
+function openAiTutor() {
+  updateAiContext()
+  assistant.openWithContext(assistant.currentContext.value)
+}
+
+watch([current, statementMd, solutionMd], () => {
+  updateAiContext()
+})
 
 async function fetchPayload(slug: string): Promise<ReviewPayload> {
   const hit = payloadCache.get(slug)

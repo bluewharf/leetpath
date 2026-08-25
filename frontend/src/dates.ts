@@ -22,6 +22,23 @@ export function addDays(iso: string, n: number): string {
   return formatLocalDate(d)
 }
 
+/** 两个本地日历日相差几天（可负）。同一天为 0。 */
+export function diffDays(fromIso: string, toIso: string): number {
+  const a = parseLocalDate(fromIso)
+  const b = parseLocalDate(toIso)
+  a.setHours(0, 0, 0, 0)
+  b.setHours(0, 0, 0, 0)
+  return Math.round((b.getTime() - a.getTime()) / 86400000)
+}
+
+export function formatMdSlash(iso: string): string {
+  const parts = iso.split('-')
+  const m = parts[1]
+  const d = parts[2]
+  if (!m || !d) return iso
+  return `${Number(m)}/${Number(d)}`
+}
+
 export function formatZhDate(iso: string): string {
   const [y, m, d] = iso.split('-')
   if (!y || !m || !d) return iso

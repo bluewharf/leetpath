@@ -20,7 +20,7 @@ def assign_category(bank: str) -> str:
         return "反直觉杀手题"
     if "强化学习" in bank:
         return "强化学习"
-    if "Agent" in bank or "智能体" in bank:
+    if "Agent" in bank or "智能体" in bank or "Harness" in bank:
         return "AI Agent 与智能体"
     if "RAG" in bank or "向量" in bank or "Embedding" in bank or "检索" in bank or "幻觉" in bank:
         return "RAG 与知识检索"

@@ -34,8 +34,8 @@
           <div class="hero-feat-item">
             <div class="feat-icon">📝</div>
             <div class="feat-info">
-              <h4>726 道八股客观题</h4>
-              <p>34 个大模型核心专题，错题本与斩题模式</p>
+              <h4>750+ 道八股客观题</h4>
+              <p>含 Agent Harness / MCP / Skills，错题本与斩题模式</p>
             </div>
           </div>
 

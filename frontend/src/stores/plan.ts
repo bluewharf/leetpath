@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { addDays, diffDays, todayLocalDate } from '../dates'
 import type { ProblemListItem } from '../types'
 
 export interface StudyPlan {
@@ -8,11 +9,95 @@ export interface StudyPlan {
   badge: string
   totalDays: number
   dailyGoal: number
-  startDate: string // YYYY-MM-DD
+  startDate: string // YYYY-MM-DD，含当天
+  endDate: string // YYYY-MM-DD，含当天
   // 每天分配的题目 slug 列表 (1-indexed, day 1..totalDays)
   schedule: Record<number, string[]>
   // 打卡记录：key 为 "YYYY-MM-DD"
   punchRecords: Record<string, { solvedSlugs: string[]; completed: boolean }>
+}
+
+export type PlanPhase = 'idle' | 'upcoming' | 'active' | 'ended'
+
+export const PLAN_DAYS_MIN = 1
+export const PLAN_DAYS_MAX = 180
+export const PLAN_GOAL_MIN = 1
+export const PLAN_GOAL_MAX = 20
+
+export function clampPlanDays(n: number): number {
+  if (!Number.isFinite(n)) return 14
+  return Math.min(PLAN_DAYS_MAX, Math.max(PLAN_DAYS_MIN, Math.round(n)))
+}
+
+export function clampPlanGoal(n: number): number {
+  if (!Number.isFinite(n)) return 2
+  return Math.min(PLAN_GOAL_MAX, Math.max(PLAN_GOAL_MIN, Math.round(n)))
+}
+
+export function endDateFromStart(startDate: string, totalDays: number): string {
+  return addDays(startDate, clampPlanDays(totalDays) - 1)
+}
+
+export function daysFromRange(startDate: string, endDate: string): number {
+  return clampPlanDays(diffDays(startDate, endDate) + 1)
+}
+
+/** 计划第几天（1-indexed）。日期落在区间外则 null。 */
+export function dayIndexOn(startDate: string, totalDays: number, iso: string): number | null {
+  const d = diffDays(startDate, iso) + 1
+  if (d < 1 || d > totalDays) return null
+  return d
+}
+
+function statusRank(p: ProblemListItem): number {
+  if (p.my_status === 'solved') return 2
+  if (p.my_status === 'attempted') return 1
+  return 0
+}
+
+export function pickPlanSlugs(allProblems: ProblemListItem[], needed: number, preferred: string[] = []): string[] {
+  const existing = new Set(allProblems.map((p) => p.slug))
+  const chosen: string[] = []
+  for (const slug of preferred) {
+    if (existing.has(slug) && !chosen.includes(slug)) chosen.push(slug)
+    if (chosen.length >= needed) return chosen
+  }
+  const rest = [...allProblems]
+    .filter((p) => !chosen.includes(p.slug))
+    .sort((a, b) => statusRank(a) - statusRank(b) || a.id - b.id)
+  for (const p of rest) {
+    chosen.push(p.slug)
+    if (chosen.length >= needed) break
+  }
+  return chosen
+}
+
+/** 把题目均匀排进每一天，每天不超过 dailyGoal，不循环复用同一题。 */
+export function buildSchedule(
+  slugs: string[],
+  totalDays: number,
+  dailyGoal: number,
+): Record<number, string[]> {
+  const days = Math.max(0, totalDays)
+  const cap = Math.max(0, dailyGoal)
+  const schedule: Record<number, string[]> = {}
+  const use = Math.min(slugs.length, days * cap)
+  const counts = Array<number>(days).fill(0)
+  if (days > 0 && use > 0) {
+    const base = Math.floor(use / days)
+    let extra = use % days
+    for (let i = 0; i < days; i++) {
+      counts[i] = base + (extra > 0 ? 1 : 0)
+      if (extra > 0) extra -= 1
+    }
+  }
+  let ptr = 0
+  for (let day = 1; day <= days; day++) {
+    const n = counts[day - 1] ?? 0
+    schedule[day] = slugs.slice(ptr, ptr + n)
+    ptr += n
+  }
+  return schedule
 }
 
 export interface PresetPlanConfig {
@@ -98,11 +183,25 @@ export const PRESET_PLANS: PresetPlanConfig[] = [
 
 const STORAGE_KEY = 'leetpath_active_study_plan'
 
+function normalizePlan(raw: StudyPlan): StudyPlan {
+  const totalDays = clampPlanDays(raw.totalDays)
+  const startDate = raw.startDate || todayLocalDate()
+  return {
+    ...raw,
+    totalDays,
+    dailyGoal: clampPlanGoal(raw.dailyGoal),
+    startDate,
+    endDate: raw.endDate || endDateFromStart(startDate, totalDays),
+    schedule: raw.schedule || {},
+    punchRecords: raw.punchRecords || {},
+  }
+}
+
 function loadSavedPlan(): StudyPlan | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    return JSON.parse(raw) as StudyPlan
+    return normalizePlan(JSON.parse(raw) as StudyPlan)
   } catch {
     return null
   }
@@ -112,8 +211,7 @@ const activePlan = ref<StudyPlan | null>(loadSavedPlan())
 
 export function useStudyPlan() {
   function getTodayDateStr(): string {
-    const d = new Date()
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return todayLocalDate()
   }
 
   function savePlan() {
@@ -124,88 +222,76 @@ export function useStudyPlan() {
     }
   }
 
-  // 创建/激活预设计划
-  function activatePreset(preset: PresetPlanConfig, allProblems: ProblemListItem[]) {
-    const schedule: Record<number, string[]> = {}
-    let slugsToUse = [...preset.recommendedSlugs]
-
-    // 如果推荐列表不足，从题库中按对应标签补齐
-    if (slugsToUse.length < preset.totalDays * preset.dailyGoal) {
-      const candidates = allProblems
-        .filter((p) => !slugsToUse.includes(p.slug))
-        .map((p) => p.slug)
-      slugsToUse = [...slugsToUse, ...candidates]
-    }
-
-    let ptr = 0
-    for (let day = 1; day <= preset.totalDays; day++) {
-      schedule[day] = []
-      for (let g = 0; g < preset.dailyGoal; g++) {
-        if (ptr < slugsToUse.length) {
-          schedule[day].push(slugsToUse[ptr++])
-        }
-      }
-    }
+  function activatePreset(
+    preset: PresetPlanConfig,
+    allProblems: ProblemListItem[],
+    startDate = todayLocalDate(),
+  ) {
+    const totalDays = clampPlanDays(preset.totalDays)
+    const dailyGoal = clampPlanGoal(preset.dailyGoal)
+    const needed = totalDays * dailyGoal
+    const slugs = pickPlanSlugs(allProblems, needed, preset.recommendedSlugs)
+    const schedule = buildSchedule(slugs, totalDays, dailyGoal)
 
     activePlan.value = {
       id: preset.id,
       title: preset.title,
       tagline: preset.tagline,
       badge: preset.badge,
-      totalDays: preset.totalDays,
-      dailyGoal: preset.dailyGoal,
-      startDate: getTodayDateStr(),
+      totalDays,
+      dailyGoal,
+      startDate,
+      endDate: endDateFromStart(startDate, totalDays),
       schedule,
       punchRecords: {},
     }
     savePlan()
   }
 
-  // 创建自定义计划
   function createCustomPlan(
     title: string,
     totalDays: number,
     dailyGoal: number,
     allProblems: ProblemListItem[],
-  ) {
-    const schedule: Record<number, string[]> = {}
-    const slugs = allProblems.map((p) => p.slug)
-    let ptr = 0
-
-    for (let day = 1; day <= totalDays; day++) {
-      schedule[day] = []
-      for (let g = 0; g < dailyGoal; g++) {
-        if (slugs.length > 0) {
-          schedule[day].push(slugs[ptr % slugs.length])
-          ptr++
-        }
-      }
+    startDate = todayLocalDate(),
+  ): { ok: boolean; message: string } {
+    if (allProblems.length === 0) {
+      return { ok: false, message: '题库为空，无法制定计划' }
     }
+    const days = clampPlanDays(totalDays)
+    const goal = clampPlanGoal(dailyGoal)
+    const start = startDate || todayLocalDate()
+    const needed = days * goal
+    const slugs = pickPlanSlugs(allProblems, needed)
+    const schedule = buildSchedule(slugs, days, goal)
+    const endDate = endDateFromStart(start, days)
 
     activePlan.value = {
       id: `custom-${Date.now()}`,
-      title: title || `🎯 我的 ${totalDays} 天打卡计划`,
-      tagline: `每日目标 ${dailyGoal} 题，坚持 ${totalDays} 天突破算法瓶颈！`,
+      title: title.trim() || `🎯 我的 ${days} 天打卡计划`,
+      tagline: `每日目标 ${goal} 题，坚持 ${days} 天突破算法瓶颈！`,
       badge: '✨ 自定义计划',
-      totalDays,
-      dailyGoal,
-      startDate: getTodayDateStr(),
+      totalDays: days,
+      dailyGoal: goal,
+      startDate: start,
+      endDate,
       schedule,
       punchRecords: {},
     }
     savePlan()
+    return { ok: true, message: '' }
   }
 
-  // 放弃/重置当前计划
   function resetPlan() {
     activePlan.value = null
     savePlan()
   }
 
-  // 当用户通过一道题目时，记录打卡
   function recordSolvedProblem(slug: string) {
     if (!activePlan.value) return
-    const todayStr = getTodayDateStr()
+    const todayStr = todayLocalDate()
+    const dayIdx = dayIndexOn(activePlan.value.startDate, activePlan.value.totalDays, todayStr)
+    if (dayIdx == null) return
     const rec = activePlan.value.punchRecords[todayStr] || {
       solvedSlugs: [],
       completed: false,
@@ -215,35 +301,40 @@ export function useStudyPlan() {
       rec.solvedSlugs.push(slug)
     }
 
-    // 检查是否达到今日目标
-    if (rec.solvedSlugs.length >= activePlan.value.dailyGoal) {
-      rec.completed = true
-    }
+    const todayQuota = activePlan.value.schedule[dayIdx] || []
+    const quota = todayQuota.length > 0 ? todayQuota.length : activePlan.value.dailyGoal
+    rec.completed = quota > 0 && rec.solvedSlugs.length >= quota
 
     activePlan.value.punchRecords[todayStr] = rec
     savePlan()
   }
 
-  // 计算当前处于计划的第几天 (1-indexed)
-  const currentDayIndex = computed(() => {
-    if (!activePlan.value) return 1
-    const start = new Date(activePlan.value.startDate).getTime()
-    const today = new Date(getTodayDateStr()).getTime()
-    const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1
-    return Math.max(1, Math.min(diffDays, activePlan.value.totalDays))
+  const planEndDate = computed(() => {
+    if (!activePlan.value) return ''
+    return activePlan.value.endDate || endDateFromStart(activePlan.value.startDate, activePlan.value.totalDays)
   })
 
-  // 今日分配的题目 slugs
+  const planPhase = computed<PlanPhase>(() => {
+    if (!activePlan.value) return 'idle'
+    const today = todayLocalDate()
+    if (today < activePlan.value.startDate) return 'upcoming'
+    if (today > planEndDate.value) return 'ended'
+    return 'active'
+  })
+
+  const currentDayIndex = computed(() => {
+    if (!activePlan.value) return null
+    return dayIndexOn(activePlan.value.startDate, activePlan.value.totalDays, todayLocalDate())
+  })
+
   const todayTargetSlugs = computed(() => {
-    if (!activePlan.value) return []
+    if (!activePlan.value || currentDayIndex.value == null) return []
     return activePlan.value.schedule[currentDayIndex.value] || []
   })
 
-  // 今日已完成打卡题数
   const todayProgress = computed(() => {
     if (!activePlan.value) return { count: 0, completed: false }
-    const todayStr = getTodayDateStr()
-    const rec = activePlan.value.punchRecords[todayStr]
+    const rec = activePlan.value.punchRecords[todayLocalDate()]
     if (!rec) return { count: 0, completed: false }
     return {
       count: rec.solvedSlugs.length,
@@ -251,13 +342,15 @@ export function useStudyPlan() {
     }
   })
 
-  // 累计达标天数
   const completedDaysCount = computed(() => {
     if (!activePlan.value) return 0
-    return Object.values(activePlan.value.punchRecords).filter((r) => r.completed).length
+    const start = activePlan.value.startDate
+    const days = activePlan.value.totalDays
+    return Object.entries(activePlan.value.punchRecords).filter(([iso, rec]) => {
+      return rec.completed && dayIndexOn(start, days, iso) != null
+    }).length
   })
 
-  // 计划完成百分比 (已达标天数 / 总天数)
   const planProgressPercent = computed(() => {
     if (!activePlan.value || activePlan.value.totalDays <= 0) return 0
     return Math.min(100, Math.round((completedDaysCount.value / activePlan.value.totalDays) * 100))
@@ -266,6 +359,8 @@ export function useStudyPlan() {
   return {
     activePlan,
     currentDayIndex,
+    planPhase,
+    planEndDate,
     todayTargetSlugs,
     todayProgress,
     completedDaysCount,

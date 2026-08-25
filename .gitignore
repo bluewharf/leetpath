@@ -10,3 +10,5 @@ __pycache__/
 .grok-tasks/
 .env
 .DS_Store
+.playwright-cli/
+output/

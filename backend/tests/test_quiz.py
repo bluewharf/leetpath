@@ -102,3 +102,19 @@ def test_quiz_crud_and_practice(admin_client):
     assert stats["correct_count"] == 1
     assert stats["accuracy_rate"] == 50.0
     assert stats["favorite_count"] == 1
+
+
+def test_quiz_seed_includes_agent_harness_bank():
+    from pathlib import Path
+    import json
+
+    path = Path(__file__).resolve().parents[1] / "app" / "seed" / "quiz_questions.json"
+    questions = json.loads(path.read_text(encoding="utf-8"))
+    harness = [q for q in questions if q["bank"] == "Agent Harness 与编码智能体"]
+    assert len(harness) >= 20
+    assert all(q["category"] == "AI Agent 与智能体" for q in harness)
+    stems = " ".join(q["stem"] + q["analysis"] for q in harness)
+    for kw in ("Harness", "MCP", "CLAUDE.md", "Skill", "compaction"):
+        assert kw in stems
+    answers = {q["answer"] for q in harness}
+    assert "B" in answers

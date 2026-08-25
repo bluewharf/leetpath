@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     PUBLIC_ORIGIN: str = "http://localhost:5173"
     # AI 助教代理允许转发的目标域名（逗号分隔），防止 SSRF
     AI_ALLOWED_HOSTS: str = "api.antithor.asia,api.deepseek.com"
+    # 内测阶段服务端内置 AI 密钥（保存在 .env 中，绝不泄露给前端或 Git）
+    SYSTEM_AI_API_KEY: str = ""
+    SYSTEM_AI_BASE_URL: str = "https://api.antithor.asia/v1"
+    SYSTEM_AI_MODEL: str = "grok-4.6-xhigh"
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":
