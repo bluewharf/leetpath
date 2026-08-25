@@ -11,7 +11,7 @@ from app.db import Base, configure_db, get_db
 from app.deps import get_current_user
 from app.config import get_settings
 from app.rate_limit import request_limiter
-from app.routers import admin, auth, drafts, invites, jobs, links, problems, quiz, submissions
+from app.routers import admin, ai, auth, drafts, invites, jobs, links, problems, quiz, submissions
 
 
 @asynccontextmanager
@@ -68,6 +68,7 @@ app.include_router(drafts.router, prefix="/api", dependencies=_protected)
 app.include_router(jobs.router, prefix="/api", dependencies=_protected)
 app.include_router(links.router, prefix="/api", dependencies=_protected)
 app.include_router(quiz.router, prefix="/api", dependencies=_protected)
+app.include_router(ai.router, prefix="/api", dependencies=_protected)
 app.include_router(admin.router, prefix="/api", dependencies=_protected)
 app.include_router(invites.router, prefix="/api", dependencies=_protected)
 
