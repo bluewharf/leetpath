@@ -153,3 +153,45 @@ class Job(Base):
     apply_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="open")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+QUIZ_TYPES = ("single", "multiple", "judge")
+
+
+class QuizQuestion(Base):
+    """客观题题库（单选/多选/判断）"""
+    __tablename__ = "quiz_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bank: Mapped[str] = mapped_column(String(128), index=True)  # 专题名，例如 "AI Agent 核心概念与架构"
+    category: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)  # 大类分类
+    type: Mapped[str] = mapped_column(String(16), index=True)  # single / multiple / judge
+    ordinal: Mapped[int] = mapped_column(Integer)  # 题号
+    stem: Mapped[str] = mapped_column(Text)  # 题干
+    options: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)  # {"A": "...", "B": "..."}
+    answer: Mapped[str] = mapped_column(String(32))  # "B", "ACD", "正确", "错误"
+    analysis: Mapped[str] = mapped_column(Text)  # 考点与详细解析
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    records: Mapped[list["QuizRecord"]] = relationship(
+        back_populates="question", cascade="all, delete-orphan"
+    )
+
+
+class QuizRecord(Base):
+    """用户答题记录与错题/收藏状态"""
+    __tablename__ = "quiz_records"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("quiz_questions.id"), primary_key=True)
+    is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
+    user_answer: Mapped[str] = mapped_column(String(32))  # 用户最后提交的答案
+    attempts_count: Mapped[int] = mapped_column(Integer, default=1)
+    wrong_count: Mapped[int] = mapped_column(Integer, default=0)
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_slashed: Mapped[bool] = mapped_column(Boolean, default=False)  # 斩题标记（移出错题本）
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+    user: Mapped[User] = relationship()
+    question: Mapped[QuizQuestion] = relationship(back_populates="records")
+

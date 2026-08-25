@@ -119,3 +119,56 @@ export const FINAL_STATUSES: SubmissionStatus[] = ['AC', 'WA', 'TLE', 'MLE', 'CE
 export function isFinal(s: SubmissionStatus): boolean {
   return FINAL_STATUSES.includes(s)
 }
+
+export type QuizQuestionType = 'single' | 'multiple' | 'judge'
+
+export interface QuizBank {
+  bank: string
+  category: string
+  total: number
+  answered: number
+  correct: number
+  wrong: number
+}
+
+export interface QuizQuestionItem {
+  id: number
+  bank: string
+  category: string
+  type: QuizQuestionType
+  ordinal: number
+  stem: string
+  options: Record<string, string>
+  is_answered: boolean
+  is_correct: boolean | null
+  user_answer: string | null
+  is_favorite: boolean
+  is_slashed: boolean
+  wrong_count: number
+  attempts_count: number
+  answer: string | null
+  analysis: string | null
+}
+
+export interface QuizAnswerResult {
+  id: number
+  is_correct: boolean
+  correct_answer: string
+  analysis: string
+  user_answer: string
+  wrong_count: number
+  attempts_count: number
+  is_slashed: boolean
+}
+
+export interface QuizStats {
+  total_questions: number
+  answered_count: number
+  correct_count: number
+  wrong_count: number
+  slashed_count: number
+  favorite_count: number
+  accuracy_rate: number
+  today_count: number
+}
+

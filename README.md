@@ -57,6 +57,9 @@ npm run dev
 # 导入题库（在 backend/ 目录）
 python -m app.seed.loader
 
+# 导入八股客观题库（726 题，/quiz 页面数据源）
+python -m app.seed.quiz_loader
+
 # 校验参考解与用例（仓库根目录）
 python scripts/validate_seed.py
 python scripts/validate_seed.py two-sum
@@ -108,6 +111,7 @@ python -m judge.worker
    ```bash
    docker compose exec backend python -m app.manage create-admin owner
    docker compose exec backend python -m app.seed.loader
+   docker compose exec backend python -m app.seed.quiz_loader
    ```
 
 6. 打开 `https://learn.example.com`，用管理员账号登录，在「管理 → 邀请码」生成邀请码并发给好友。邀请码只显示一次、只能使用一次，可设置 1-30 天有效期或在使用前撤销。

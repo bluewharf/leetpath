@@ -10,6 +10,7 @@ const ReviewView = () => import('./views/ReviewView.vue')
 const JobsView = () => import('./views/JobsView.vue')
 const LinksView = () => import('./views/LinksView.vue')
 const HandbookView = () => import('./views/HandbookView.vue')
+const QuizView = () => import('./views/QuizView.vue')
 const AdminView = () => import('./views/AdminView.vue')
 
 export const router = createRouter({
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: '/register', component: RegisterView, meta: { public: true } },
     { path: '/problems', component: ProblemListView },
     { path: '/problems/:slug', component: ProblemView },
+    { path: '/quiz', component: QuizView },
     { path: '/review', component: ReviewView },
     { path: '/handbook', component: HandbookView },
     { path: '/jobs', component: JobsView },
