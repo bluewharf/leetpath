@@ -63,7 +63,7 @@
               题目描述
             </button>
             <button class="pane-tab" :class="{ active: leftPaneTab === 'solution' }" @click="leftPaneTab = 'solution'">
-              官方题解
+              题解
             </button>
           </div>
 
@@ -121,7 +121,7 @@
           <!-- 题解内容 -->
           <div v-show="!isDesktop ? tab === 'solution' : leftPaneTab === 'solution'" class="solution-pane-wrap">
             <h2 style="font-size:18px;margin-top:6px;display:flex;align-items:center;gap:8px">
-              <span>{{ problemHeading(problem) }} · 官方题解</span>
+              <span>{{ problemHeading(problem) }} · 题解（多种解法）</span>
             </h2>
             <div v-if="solutionLoading" class="empty" style="padding:24px 0">题解加载中…</div>
             <div v-else-if="solutionHtml" class="markdown-body rc-solution" v-html="solutionHtml"></div>
