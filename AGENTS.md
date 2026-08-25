@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 后端：FastAPI + SQLAlchemy 2.x + SQLite(WAL)，JWT cookie 认证（bcrypt）
-- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，手写响应式 CSS（断点 768px/1024px）
+- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，手写响应式 CSS（主断点 1023px，宽屏增强 1800px；主题四态：light/dark/cyber/sepia 护眼）
 - 判题：独立 worker 进程轮询 SQLite，每次提交起一次性 Docker 容器（`--network none --read-only`）
 - 部署：docker-compose（nginx 静态+反代 / backend / judge worker）
 

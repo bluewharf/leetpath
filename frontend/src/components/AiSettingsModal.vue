@@ -430,8 +430,8 @@ function onSave() {
 
 .token-saving-card {
   border-radius: 8px;
-  border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.25);
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.04);
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
   padding: 14px 16px;
   margin: 18px 0;
 }

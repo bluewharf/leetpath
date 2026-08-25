@@ -45,7 +45,7 @@
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px">
             <div class="field"><label>公司 *</label><input v-model="jobForm.company" class="input" required /></div>
             <div class="field"><label>岗位 *</label><input v-model="jobForm.position" class="input" required /></div>
-            <div class="field"><label>批次</label><input v-model="jobForm.batch" class="input" placeholder="如 2026秋招" /></div>
+            <div class="field"><label>批次</label><input v-model="jobForm.batch" class="input" placeholder="如 2027秋招" /></div>
             <div class="field"><label>开投日期</label><input v-model="jobForm.open_at" class="input" type="date" /></div>
             <div class="field"><label>截止日期</label><input v-model="jobForm.deadline_at" class="input" type="date" /></div>
             <div class="field"><label>投递链接</label><input v-model="jobForm.apply_url" class="input" type="url" placeholder="https://" /></div>

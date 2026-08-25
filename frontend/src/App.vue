@@ -40,7 +40,7 @@
           <span class="font-label">{{ fontSizeLabel }}</span>
         </button>
 
-        <!-- 三态主题切换：浅色 ➔ 深色 ➔ 赛博霓虹 -->
+        <!-- 四态主题切换：浅色 ➔ 深色 ➔ 赛博霓虹 ➔ 豆沙护眼 -->
         <button
           class="theme-btn"
           :title="themeTooltip"
@@ -112,13 +112,15 @@ const currentTheme = ref<Theme>(getTheme())
 const themeIcon = computed(() => {
   if (currentTheme.value === 'light') return '☀'
   if (currentTheme.value === 'dark') return '☾'
-  return '🌌'
+  if (currentTheme.value === 'cyber') return '🌌'
+  return '🍵'
 })
 
 const themeTooltip = computed(() => {
   if (currentTheme.value === 'light') return '当前：极简冷白（点击切换为黑曜石深色）'
   if (currentTheme.value === 'dark') return '当前：黑曜石深色（点击切换为赛博极客霓虹）'
-  return '当前：赛博极客霓虹（点击切换为极简冷白）'
+  if (currentTheme.value === 'cyber') return '当前：赛博极客霓虹（点击切换为豆沙护眼绿）'
+  return '当前：豆沙护眼绿（点击切换为极简冷白）'
 })
 
 const fontSizeLabel = computed(() => {
