@@ -49,7 +49,7 @@
               'is-past': d < currentDayIndex && !isDayCompleted(d),
               'is-future': d > currentDayIndex,
             }"
-            :title="`第 ${d} 天打卡记录`"
+            :title="planDayTitle(d)"
           >
             <span class="day-num">D{{ d }}</span>
             <span class="day-status-icon">
@@ -63,7 +63,7 @@
       <div class="today-mission-box">
         <div class="today-mission-head">
           <div class="today-target-line">
-            <span class="today-tag">🎯 今日目标</span>
+            <span class="today-tag">🎯 今日目标 · {{ formatZhMd(todayStr) }}</span>
             <span class="today-count mono">
               已完成 <strong>{{ todayProgress.count }}</strong> / {{ activePlan.dailyGoal }} 题
             </span>
@@ -125,6 +125,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { addDays, formatZhDate, formatZhMd, todayLocalDate } from '../dates'
 import { useStudyPlan } from '../stores/plan'
 import { useToast } from '../stores/toast'
 import { problemHeading, type ProblemListItem } from '../types'
@@ -146,14 +147,21 @@ const {
   completedDaysCount,
   planProgressPercent,
   resetPlan,
-  getTodayDateStr,
 } = useStudyPlan()
 
 // 获取今日分配的真实题目对象
+const todayStr = todayLocalDate()
+
 const todayProblems = computed(() => {
   if (!todayTargetSlugs.value.length) return []
   return props.problems.filter((p) => todayTargetSlugs.value.includes(p.slug))
 })
+
+function planDayTitle(day: number): string {
+  if (!activePlan.value) return `第 ${day} 天`
+  const iso = addDays(activePlan.value.startDate, day - 1)
+  return `${formatZhDate(iso)} · 第 ${day} 天`
+}
 
 // 判断某一特定天数是否达标
 function isDayCompleted(day: number): boolean {
