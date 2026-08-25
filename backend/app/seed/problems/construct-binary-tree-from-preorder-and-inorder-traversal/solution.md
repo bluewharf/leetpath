@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：先序取根，中序哈希切左右，递归分治建树。
 import sys
 from collections import deque
 
@@ -41,13 +42,13 @@ class TreeNode:
 def build_tree(preorder, inorder):
     if not preorder:
         return None
-    pos = {v: i for i, v in enumerate(inorder)}
-    i = 0
+    pos = {v: i for i, v in enumerate(inorder)}  # 值互异，切分 O(1)
+    i = 0  # 先序下标；必须先递归左再右，才能对齐「根-左-右」
 
     def helper(lo, hi):
         nonlocal i
         if lo > hi:
-            return None
+            return None  # 中序闭区间为空
         val = preorder[i]
         i += 1
         node = TreeNode(val)
@@ -60,6 +61,7 @@ def build_tree(preorder, inorder):
 
 
 def serialize(root):
+    # ACM 输出：层序序列化，丢掉末尾连续 null；空树输出 0。
     if root is None:
         print(0)
         return
@@ -79,6 +81,7 @@ def serialize(root):
     print(" ".join(tokens))
 
 
+
 def main():
     n = int(sys.stdin.readline().strip())
     if n == 0:
@@ -96,6 +99,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：先序取根，中序哈希切左右，递归分治建树。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -108,10 +112,10 @@ struct TreeNode {
 TreeNode* build_tree(const vector<int>& preorder, const vector<int>& inorder) {
     if (preorder.empty()) return nullptr;
     unordered_map<int, int> pos;
-    for (int i = 0; i < (int)inorder.size(); i++) pos[inorder[i]] = i;
-    int i = 0;
+    for (int i = 0; i < (int)inorder.size(); i++) pos[inorder[i]] = i;  // 值互异，切分 O(1)
+    int i = 0;  // 先序下标；必须先递归左再右，才能对齐「根-左-右」
     function<TreeNode*(int, int)> helper = [&](int lo, int hi) -> TreeNode* {
-        if (lo > hi) return nullptr;
+        if (lo > hi) return nullptr;  // 中序闭区间为空
         int val = preorder[i++];
         TreeNode* node = new TreeNode(val);
         int mid = pos[val];
@@ -123,6 +127,7 @@ TreeNode* build_tree(const vector<int>& preorder, const vector<int>& inorder) {
 }
 
 void serialize(TreeNode* root) {
+    // ACM 输出：层序序列化，丢掉末尾连续 null；空树输出 0。
     if (!root) {
         cout << 0 << "\n";
         return;

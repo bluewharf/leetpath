@@ -38,7 +38,8 @@ import sys
 
 
 def main() -> None:
-    n = int(sys.stdin.read().split()[0])
+    n = int(sys.stdin.read().split()[0])  # 读入边长；本题只输出方案总数
+    # 不变量：col / 主对角(row-col) / 副对角(row+col) 已占用则不能放；row-col 加 n-1 保证下标非负
     col = [False] * n
     diag1 = [False] * (2 * n)
     diag2 = [False] * (2 * n)
@@ -46,7 +47,7 @@ def main() -> None:
 
     def dfs(row: int) -> None:
         nonlocal ans
-        if row == n:
+        if row == n:  # 前 n 行各放一枚，构成一种合法方案
             ans += 1
             return
         for c in range(n):
@@ -56,7 +57,7 @@ def main() -> None:
                 continue
             col[c] = diag1[d1] = diag2[d2] = True
             dfs(row + 1)
-            col[c] = diag1[d1] = diag2[d2] = False
+            col[c] = diag1[d1] = diag2[d2] = False  # 回溯：本列与两条对角线腾出来
 
     dfs(0)
     print(ans)
@@ -76,24 +77,25 @@ int n, ans;
 vector<int> col, diag1, diag2;
 
 void dfs(int row) {
-    if (row == n) {
+    if (row == n) {  // 前 n 行各放一枚，构成一种合法方案
         ++ans;
         return;
     }
     for (int c = 0; c < n; ++c) {
-        int d1 = row - c + n - 1;
-        int d2 = row + c;
+        int d1 = row - c + n - 1;  // 主对角 row-col，平移 n-1 后下标非负
+        int d2 = row + c;          // 副对角 row+col
         if (col[c] || diag1[d1] || diag2[d2]) continue;
         col[c] = diag1[d1] = diag2[d2] = 1;
         dfs(row + 1);
-        col[c] = diag1[d1] = diag2[d2] = 0;
+        col[c] = diag1[d1] = diag2[d2] = 0;  // 回溯腾出本列与对角线
     }
 }
 
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    cin >> n;
+    cin >> n;  // 读入边长；本题只输出方案总数
+    // 不变量：列、主对角、副对角任一已占则当前格不能放
     col.assign(n, 0);
     diag1.assign(2 * n, 0);
     diag2.assign(2 * n, 0);

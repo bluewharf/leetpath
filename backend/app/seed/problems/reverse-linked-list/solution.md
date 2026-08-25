@@ -41,6 +41,7 @@ class ListNode:
         self.next = next
 
 
+# —— 建表（I/O）：第一行 n，随后 n 个值；空表输出单行 0 ——
 def read_list() -> ListNode | None:
     data = sys.stdin.read().split()
     n = int(data[0])
@@ -66,15 +67,16 @@ def write_list(head: ListNode | None) -> None:
     print(" ".join(vals))
 
 
+# —— 算法：三指针迭代反转；结束时 prev 是新头 ——
 def reverse_list(head: ListNode | None) -> ListNode | None:
     prev = None
     cur = head
     while cur:
-        nxt = cur.next
+        nxt = cur.next  # 先保住后继，再把边拧向 prev
         cur.next = prev
         prev = cur
         cur = nxt
-    return prev
+    return prev  # 空表/单结点自然正确
 
 
 def main() -> None:
@@ -97,6 +99,7 @@ struct ListNode {
     ListNode(int v = 0, ListNode* n = nullptr) : val(v), next(n) {}
 };
 
+// —— 建表（I/O）：第一行 n，随后 n 个值；空表输出单行 0 ——
 ListNode* read_list() {
     int n;
     cin >> n;
@@ -130,16 +133,17 @@ void write_list(ListNode* head) {
     cout << '\n';
 }
 
+// —— 算法：三指针迭代反转；结束时 prev 是新头 ——
 ListNode* reverse_list(ListNode* head) {
     ListNode* prev = nullptr;
     ListNode* cur = head;
     while (cur) {
-        ListNode* nxt = cur->next;
+        ListNode* nxt = cur->next;  // 先保住后继，再把边拧向 prev
         cur->next = prev;
         prev = cur;
         cur = nxt;
     }
-    return prev;
+    return prev;  // 空表/单结点自然正确
 }
 
 int main() {

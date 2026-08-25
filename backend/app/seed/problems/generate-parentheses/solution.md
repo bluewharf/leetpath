@@ -37,6 +37,7 @@ def main():
     ans = []
 
     def dfs(cur, open_cnt, close_cnt):
+        # 不变量：任何前缀左括号不少于右括号，且左右各最多 n 个
         if len(cur) == 2 * n:
             ans.append("".join(cur))
             return
@@ -50,7 +51,7 @@ def main():
             cur.pop()
 
     dfs([], 0, 0)
-    ans.sort()
+    ans.sort()  # 多解题按字典序逐行输出
     for s in ans:
         print(s)
 
@@ -73,6 +74,7 @@ int main() {
     vector<string> ans;
     string cur;
     function<void(int, int)> dfs = [&](int open_cnt, int close_cnt) {
+        // 不变量：任何前缀左括号不少于右括号，且左右各最多 n 个
         if ((int)cur.size() == 2 * n) {
             ans.push_back(cur);
             return;
@@ -89,7 +91,7 @@ int main() {
         }
     };
     dfs(0, 0);
-    sort(ans.begin(), ans.end());
+    sort(ans.begin(), ans.end());  // 多解题按字典序逐行输出
     for (const string& s : ans) cout << s << "\n";
     return 0;
 }

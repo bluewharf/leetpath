@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：小根堆 k 路归并；每条链同时最多一个节点在堆里，下标当第二关键字。
 import heapq
 import sys
 
@@ -44,6 +45,7 @@ class ListNode:
 
 
 def read_list():
+    # ACM 读入建链表：先长度后节点值；n=0 为空。与 k 路归并无关。
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -69,9 +71,11 @@ def write_list(head):
 
 
 def merge_k_lists(lists):
+    # 算法：小根堆始终放每条链当前头；弹出全局最小后再把后继塞回去。
     heap = []
     for idx, node in enumerate(lists):
         if node is not None:
+            # 值可能重复，用链表下标当第二关键字（同时每条链最多一个节点在堆里）。
             heapq.heappush(heap, (node.val, idx, node))
     dummy = ListNode()
     cur = dummy
@@ -86,7 +90,7 @@ def merge_k_lists(lists):
 
 def main():
     k = int(sys.stdin.readline())
-    lists = [read_list() for _ in range(k)]
+    lists = [read_list() for _ in range(k)]  # k=0 或全空链时堆为空，输出 0
     write_list(merge_k_lists(lists))
 
 
@@ -97,6 +101,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：小根堆 k 路归并；每条链同时最多一个节点在堆里，下标当第二关键字。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -107,6 +112,7 @@ struct ListNode {
 };
 
 ListNode* read_list() {
+    // ACM 读入建链表：先长度后节点值；n=0 为空。
     int n;
     cin >> n;
     if (n == 0) return nullptr;
@@ -149,7 +155,7 @@ int main() {
     using T = tuple<int, int, ListNode*>;
     priority_queue<T, vector<T>, greater<T>> heap;
     for (int i = 0; i < k; i++) {
-        if (lists[i]) heap.push({lists[i]->val, i, lists[i]});
+        if (lists[i]) heap.push({lists[i]->val, i, lists[i]});  // 下标保证值相同时可比较
     }
     ListNode dummy;
     ListNode* cur = &dummy;

@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：后序 DFS。直径 = 所有节点「左高 + 右高」的全局最大（边数）。
 import sys
 from collections import deque
 
@@ -39,6 +40,7 @@ class TreeNode:
 
 
 def read_tree():
+    # ACM 读入建树：层序 tokens，null 表示空孩子。下面 height 才是算法。
     n = int(sys.stdin.readline())
     if n == 0:
         return None
@@ -68,15 +70,15 @@ def read_tree():
 
 
 def diameter(root):
-    ans = 0
+    ans = 0  # 空树和单节点没有边，直径为 0
 
     def height(node):
         nonlocal ans
         if node is None:
-            return 0
+            return 0  # 空节点高度 0
         lh = height(node.left)
         rh = height(node.right)
-        ans = max(ans, lh + rh)
+        ans = max(ans, lh + rh)  # 经过本节点的最长路径；最长不一定过根
         return 1 + max(lh, rh)
 
     height(root)
@@ -91,9 +93,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：后序 DFS。直径 = 所有节点「左高 + 右高」的全局最大（边数）。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -104,6 +108,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // ACM 读入建树：层序 tokens，null 表示空孩子。下面 height 才是算法。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -134,12 +139,12 @@ TreeNode* read_tree() {
 }
 
 int diameter(TreeNode* root) {
-    int ans = 0;
+    int ans = 0;  // 空树和单节点没有边，直径为 0
     function<int(TreeNode*)> height = [&](TreeNode* node) -> int {
-        if (!node) return 0;
+        if (!node) return 0;  // 空节点高度 0
         int lh = height(node->left);
         int rh = height(node->right);
-        ans = max(ans, lh + rh);
+        ans = max(ans, lh + rh);  // 经过本节点的最长路径；最长不一定过根
         return 1 + max(lh, rh);
     };
     height(root);

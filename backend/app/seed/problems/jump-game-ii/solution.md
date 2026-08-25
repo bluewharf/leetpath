@@ -36,10 +36,11 @@ def main():
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
+    # 按层扩展：cur_end 是当前跳数的右边界，far 是这一层探到的最远
     jumps = 0
     cur_end = 0
     far = 0
-    for i in range(n - 1):
+    for i in range(n - 1):  # 只扫到 n-2，到达终点不必再跳；n=1 答案 0
         far = max(far, i + nums[i])
         if i == cur_end:
             jumps += 1
@@ -64,8 +65,9 @@ int main() {
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // 按层扩展：cur_end 是当前跳数的右边界，far 是这一层探到的最远
     int jumps = 0, cur_end = 0, far = 0;
-    for (int i = 0; i < n - 1; i++) {
+    for (int i = 0; i < n - 1; i++) {  // 只扫到 n-2，到达终点不必再跳
         far = max(far, i + nums[i]);
         if (i == cur_end) {
             jumps++;

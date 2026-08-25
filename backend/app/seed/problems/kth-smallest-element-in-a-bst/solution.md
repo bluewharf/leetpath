@@ -47,6 +47,7 @@ class TreeNode:
 
 
 def build_tree(tokens):
+    # 层序建树：只把非 null 节点入队
     if not tokens or tokens[0] == "null":
         return None
     root = TreeNode(int(tokens[0]))
@@ -70,6 +71,7 @@ def build_tree(tokens):
 
 
 def kth_smallest(root, k):
+    # 中序迭代：一路向左压栈，弹出即升序下一个；第 k 次弹出就是答案
     stack = []
     cur = root
     while True:
@@ -108,6 +110,7 @@ struct TreeNode {
 };
 
 TreeNode* build_tree(const vector<string>& tokens) {
+    // 层序建树：只把非 null 节点入队
     if (tokens.empty() || tokens[0] == "null") return nullptr;
     TreeNode* root = new TreeNode(stoi(tokens[0]));
     queue<TreeNode*> q;
@@ -135,6 +138,7 @@ TreeNode* build_tree(const vector<string>& tokens) {
 }
 
 int kth_smallest(TreeNode* root, int k) {
+    // 中序迭代：一路向左压栈，弹出即升序下一个；第 k 次弹出就是答案
     vector<TreeNode*> stack;
     TreeNode* cur = root;
     while (true) {

@@ -41,6 +41,7 @@ class ListNode:
         self.next = next
 
 
+# —— 建表（I/O）：n 与结点值后跟 k ——
 def read_list() -> tuple[ListNode | None, int]:
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
@@ -64,6 +65,7 @@ def write_list(head: ListNode | None) -> None:
         print(" ".join(vals))
 
 
+# —— 算法：按组数满 k 才反转；不足 k 的尾段保持原序 ——
 def reverse_k_group(head: ListNode | None, k: int) -> ListNode | None:
     dummy = ListNode(0, head)
     group_prev = dummy
@@ -71,16 +73,17 @@ def reverse_k_group(head: ListNode | None, k: int) -> ListNode | None:
         kth = group_prev
         for _ in range(k):
             kth = kth.next
-            if kth is None:
+            if kth is None:  # 本段不够 k 个，整段不动并结束
                 return dummy.next
         group_next = kth.next
+        # prev 初值接到下一组头，反转后原组头自然链向下一段
         prev, cur = group_next, group_prev.next
         while cur is not group_next:
             nxt = cur.next
             cur.next = prev
             prev = cur
             cur = nxt
-        tail = group_prev.next
+        tail = group_prev.next  # 原组头变成组尾，作为下一组前驱
         group_prev.next = kth
         group_prev = tail
 
@@ -106,6 +109,7 @@ struct ListNode {
     ListNode(int v = 0, ListNode* n = nullptr) : val(v), next(n) {}
 };
 
+// —— 建表（I/O）：n 与结点值后跟 k ——
 ListNode* read_list(int& k) {
     int n;
     cin >> n;
@@ -141,6 +145,7 @@ void write_list(ListNode* head) {
     }
 }
 
+// —— 算法：按组数满 k 才反转；不足 k 的尾段保持原序 ——
 ListNode* reverse_k_group(ListNode* head, int k) {
     ListNode dummy(0, head);
     ListNode* groupPrev = &dummy;
@@ -148,10 +153,10 @@ ListNode* reverse_k_group(ListNode* head, int k) {
         ListNode* kth = groupPrev;
         for (int i = 0; i < k; i++) {
             kth = kth->next;
-            if (!kth) return dummy.next;
+            if (!kth) return dummy.next;  // 本段不够 k 个，整段不动并结束
         }
         ListNode* groupNext = kth->next;
-        ListNode* prev = groupNext;
+        ListNode* prev = groupNext;  // 初值接到下一组头，反转后原组头自然链向下一段
         ListNode* cur = groupPrev->next;
         while (cur != groupNext) {
             ListNode* nxt = cur->next;
@@ -159,7 +164,7 @@ ListNode* reverse_k_group(ListNode* head, int k) {
             prev = cur;
             cur = nxt;
         }
-        ListNode* tail = groupPrev->next;
+        ListNode* tail = groupPrev->next;  // 原组头变成组尾，作为下一组前驱
         groupPrev->next = kth;
         groupPrev = tail;
     }

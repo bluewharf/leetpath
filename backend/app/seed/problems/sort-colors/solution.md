@@ -36,18 +36,20 @@ import sys
 
 
 def main() -> None:
+    # 读入：n 与只含 0/1/2 的数组
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : 1 + n]
+    # 荷兰国旗：[0,lo) 全 0，[lo,i) 全 1，(hi,n) 全 2，[i,hi] 未知
     lo, i, hi = 0, 0, n - 1
     while i <= hi:
         if nums[i] == 0:
             nums[lo], nums[i] = nums[i], nums[lo]
             lo += 1
-            i += 1
+            i += 1  # 从左边换来的只可能是 0/1，已处理过
         elif nums[i] == 2:
             nums[i], nums[hi] = nums[hi], nums[i]
-            hi -= 1
+            hi -= 1  # 从右边换来的还没看过，i 不动
         else:
             i += 1
     print(*nums)
@@ -66,19 +68,21 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n 与只含 0/1/2 的数组
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // 荷兰国旗：[0,lo) 全 0，[lo,i) 全 1，(hi,n) 全 2，[i,hi] 未知
     int lo = 0, i = 0, hi = n - 1;
     while (i <= hi) {
         if (nums[i] == 0) {
             swap(nums[lo], nums[i]);
             lo++;
-            i++;
+            i++;  // 左边换来的已处理过
         } else if (nums[i] == 2) {
             swap(nums[i], nums[hi]);
-            hi--;
+            hi--;  // 右边换来的未看过，i 不动
         } else {
             i++;
         }

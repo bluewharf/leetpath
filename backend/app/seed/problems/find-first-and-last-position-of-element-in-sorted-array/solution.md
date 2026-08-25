@@ -33,6 +33,7 @@ import sys
 
 
 def lower_bound(a, x):
+    # 左闭右开：lo 最终是第一个 >= x 的下标；全小于则落到 n
     lo, hi = 0, len(a)
     while lo < hi:
         mid = (lo + hi) // 2
@@ -49,9 +50,11 @@ def main():
     nums = data[1 : 1 + n]
     target = data[1 + n]
     left = lower_bound(nums, target)
+    # 越界或值对不上：区间为空
     if left == n or nums[left] != target:
         print(-1, -1)
         return
+    # 最后一个 target = 第一个 >= target+1 的前驱
     right = lower_bound(nums, target + 1) - 1
     print(left, right)
 
@@ -67,6 +70,7 @@ if __name__ == "__main__":
 using namespace std;
 
 int lower_bound_idx(const vector<int>& a, int x) {
+    // 左闭右开：返回第一个 >= x 的下标；全小于则落到 n
     int lo = 0, hi = (int)a.size();
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
@@ -86,10 +90,12 @@ int main() {
     int target;
     cin >> target;
     int left = lower_bound_idx(nums, target);
+    // 越界或值对不上：区间为空
     if (left == n || nums[left] != target) {
         cout << -1 << " " << -1 << "\n";
         return 0;
     }
+    // 最后一个 target = 第一个 >= target+1 的前驱
     int right = lower_bound_idx(nums, target + 1) - 1;
     cout << left << " " << right << "\n";
     return 0;

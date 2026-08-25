@@ -42,6 +42,7 @@ class Trie:
         self.root = TrieNode()
 
     def insert(self, word):
+        # 沿字符建缺失边，终点打成词标记；公共前缀共享同一条路径
         node = self.root
         for ch in word:
             if ch not in node.children:
@@ -58,6 +59,7 @@ class Trie:
         return node
 
     def search(self, word):
+        # search 必须走完且终点成词；startsWith 只需路径存在
         node = self._walk(word)
         return node is not None and node.is_end
 
@@ -105,6 +107,7 @@ public:
     Trie() : root(new TrieNode()) {}
 
     void insert(const string& word) {
+        // 沿字符建缺失边，终点打成词标记；公共前缀共享同一条路径
         TrieNode* node = root;
         for (char ch : word) {
             int k = ch - 'a';
@@ -125,6 +128,7 @@ public:
     }
 
     bool search(const string& word) {
+        // search 必须走完且终点成词；startsWith 只需路径存在
         TrieNode* node = walk(word);
         return node && node->is_end;
     }

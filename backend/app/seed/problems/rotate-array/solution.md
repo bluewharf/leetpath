@@ -47,12 +47,12 @@ def main() -> None:
     n = data[0]
     nums = data[1 : n + 1]
     k = data[n + 1]
-    if n == 0:
+    if n == 0:  # 边界：空数组
         print()
         return
-    k %= n
+    k %= n  # 右旋 k 步 ≡ 后 k%n 个搬到前面
     if k:
-        reverse_range(nums, 0, n - 1)
+        reverse_range(nums, 0, n - 1)  # 整体翻 → 前 k 翻 → 后 n-k 翻
         reverse_range(nums, 0, k - 1)
         reverse_range(nums, k, n - 1)
     print(" ".join(map(str, nums)))
@@ -77,15 +77,15 @@ int main() {
     for (int i = 0; i < n; i++) cin >> nums[i];
     int k;
     cin >> k;
-    if (n == 0) {
+    if (n == 0) {  // 边界：空数组
         cout << '\n';
         return 0;
     }
-    k %= n;
+    k %= n;  // 右旋 k 步 ≡ 后 k%n 个搬到前面
     if (k) {
-        reverse(nums.begin(), nums.end());
-        reverse(nums.begin(), nums.begin() + k);
-        reverse(nums.begin() + k, nums.end());
+        reverse(nums.begin(), nums.end());          // 整体翻
+        reverse(nums.begin(), nums.begin() + k);    // 前 k 翻
+        reverse(nums.begin() + k, nums.end());      // 后 n-k 翻
     }
     for (int i = 0; i < n; i++) {
         if (i) cout << ' ';

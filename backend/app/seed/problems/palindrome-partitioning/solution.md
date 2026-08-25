@@ -37,8 +37,9 @@ import sys
 
 
 def main() -> None:
-    s = sys.stdin.readline().rstrip("\n").rstrip("\r")
+    s = sys.stdin.readline().rstrip("\n").rstrip("\r")  # 读入一行（可能为空）
     n = len(s)
+    # 预处理 pal[i][j]：两端相同且内部已是回文；i 从大到小，保证 pal[i+1][j-1] 先算好
     pal = [[False] * n for _ in range(n)]
     for i in range(n - 1, -1, -1):
         for j in range(i, n):
@@ -47,17 +48,17 @@ def main() -> None:
     path: list[str] = []
 
     def dfs(start: int) -> None:
-        if start == n:
+        if start == n:  # 切到末尾，收一种方案
             ans.append(" ".join(path))
             return
         for end in range(start, n):
-            if pal[start][end]:
+            if pal[start][end]:  # 只有 s[start..end] 是回文才切这一刀
                 path.append(s[start : end + 1])
                 dfs(end + 1)
                 path.pop()
 
     dfs(0)
-    ans.sort()
+    ans.sort()  # 多解按字典序输出，保证顺序确定
     sys.stdout.write("\n".join(ans))
     if ans:
         sys.stdout.write("\n")
@@ -79,7 +80,7 @@ vector<vector<char>> pal;
 vector<string> path, ans;
 
 void dfs(int start) {
-    if (start == n) {
+    if (start == n) {  // 切到末尾，收一种方案
         string line;
         for (int i = 0; i < (int)path.size(); ++i) {
             if (i) line.push_back(' ');
@@ -89,7 +90,7 @@ void dfs(int start) {
         return;
     }
     for (int end = start; end < n; ++end) {
-        if (pal[start][end]) {
+        if (pal[start][end]) {  // 只有 s[start..end] 是回文才切这一刀
             path.push_back(s.substr(start, end - start + 1));
             dfs(end + 1);
             path.pop_back();
@@ -100,9 +101,10 @@ void dfs(int start) {
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
-    getline(cin, s);
+    getline(cin, s);  // 读入一行（可能为空）
     if (!s.empty() && s.back() == '\r') s.pop_back();
     n = (int)s.size();
+    // 预处理 pal[i][j]：两端相同且内部已是回文；i 从大到小保证 pal[i+1][j-1] 先算好
     pal.assign(n, vector<char>(n, 0));
     for (int i = n - 1; i >= 0; --i) {
         for (int j = i; j < n; ++j) {
@@ -110,7 +112,7 @@ int main() {
         }
     }
     dfs(0);
-    sort(ans.begin(), ans.end());
+    sort(ans.begin(), ans.end());  // 多解按字典序输出
     for (const auto& line : ans) cout << line << '\n';
     return 0;
 }

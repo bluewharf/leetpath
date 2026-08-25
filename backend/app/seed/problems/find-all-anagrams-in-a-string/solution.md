@@ -26,6 +26,7 @@
 ### Python3
 
 ```python
+# 解法一：定长滑窗。窗口长度 |p|，26 计数与 p 完全一致即为异位词。
 import sys
 
 
@@ -35,7 +36,7 @@ def main() -> None:
     p = lines[1] if len(lines) > 1 else ""
     ns, np = len(s), len(p)
     if np == 0 or ns < np:
-        print()
+        print()  # 窗口都铺不满，不可能有异位词
         return
     need = [0] * 26
     for ch in p:
@@ -47,10 +48,10 @@ def main() -> None:
     if win == need:
         ans.append(0)
     for i in range(np, ns):
-        win[ord(s[i]) - 97] += 1
+        win[ord(s[i]) - 97] += 1  # 右端进一个、左端出一个
         win[ord(s[i - np]) - 97] -= 1
         if win == need:
-            ans.append(i - np + 1)
+            ans.append(i - np + 1)  # 记下窗口左端下标
     print(" ".join(map(str, ans)))
 
 
@@ -58,9 +59,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：定长滑窗。窗口长度 |p|，26 计数与 p 完全一致即为异位词。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -74,7 +77,7 @@ int main() {
     if (!p.empty() && p.back() == '\r') p.pop_back();
     int ns = (int)s.size(), np = (int)p.size();
     if (np == 0 || ns < np) {
-        cout << "\n";
+        cout << "\n";  // 窗口都铺不满，不可能有异位词
         return 0;
     }
     array<int, 26> need{}, win{};
@@ -83,9 +86,9 @@ int main() {
     vector<int> ans;
     if (win == need) ans.push_back(0);
     for (int i = np; i < ns; i++) {
-        win[s[i] - 'a']++;
+        win[s[i] - 'a']++;  // 右端进一个、左端出一个
         win[s[i - np] - 'a']--;
-        if (win == need) ans.push_back(i - np + 1);
+        if (win == need) ans.push_back(i - np + 1);  // 记下窗口左端下标
     }
     for (int i = 0; i < (int)ans.size(); i++) {
         if (i) cout << " ";
@@ -95,3 +98,4 @@ int main() {
     return 0;
 }
 ```
+

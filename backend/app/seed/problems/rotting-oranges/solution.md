@@ -38,7 +38,7 @@ from collections import deque
 
 def main() -> None:
     data = list(map(int, sys.stdin.read().split()))
-    m, n = data[0], data[1]
+    m, n = data[0], data[1]  # 读入网格：0 空、1 新鲜、2 腐烂
     grid: list[list[int]] = []
     idx = 2
     for _ in range(m):
@@ -50,11 +50,11 @@ def main() -> None:
     for i in range(m):
         for j in range(n):
             if grid[i][j] == 2:
-                q.append((i, j, 0))
+                q.append((i, j, 0))  # 多源 BFS：所有初始腐烂同时当第 0 分钟源
             elif grid[i][j] == 1:
                 fresh += 1
 
-    if fresh == 0:
+    if fresh == 0:  # 边界：一开始就没有新鲜橘子
         print(0)
         return
 
@@ -66,11 +66,11 @@ def main() -> None:
         for di, dj in dirs:
             ni, nj = i + di, j + dj
             if 0 <= ni < m and 0 <= nj < n and grid[ni][nj] == 1:
-                grid[ni][nj] = 2
+                grid[ni][nj] = 2  # 入队时标记腐烂，避免重复入队
                 fresh -= 1
                 q.append((ni, nj, t + 1))
 
-    print(-1 if fresh else minutes)
+    print(-1 if fresh else minutes)  # 扩散完仍有新鲜则不可能全部腐烂
 
 
 if __name__ == "__main__":
@@ -87,7 +87,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int m, n;
-    cin >> m >> n;
+    cin >> m >> n;  // 读入网格：0 空、1 新鲜、2 腐烂
     vector<vector<int>> grid(m, vector<int>(n));
     for (int i = 0; i < m; i++)
         for (int j = 0; j < n; j++)
@@ -97,11 +97,11 @@ int main() {
     int fresh = 0;
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            if (grid[i][j] == 2) q.push({i, j, 0});
+            if (grid[i][j] == 2) q.push({i, j, 0});  // 多源：初始腐烂同时当第 0 分钟源
             else if (grid[i][j] == 1) fresh++;
         }
     }
-    if (fresh == 0) {
+    if (fresh == 0) {  // 边界：一开始就没有新鲜橘子
         cout << 0 << '\n';
         return 0;
     }
@@ -115,13 +115,13 @@ int main() {
         for (auto& d : dirs) {
             int ni = i + d[0], nj = j + d[1];
             if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {
-                grid[ni][nj] = 2;
+                grid[ni][nj] = 2;  // 入队时标记，避免重复入队
                 fresh--;
                 q.push({ni, nj, t + 1});
             }
         }
     }
-    cout << (fresh ? -1 : minutes) << '\n';
+    cout << (fresh ? -1 : minutes) << '\n';  // 仍有新鲜则不可能全部腐烂
     return 0;
 }
 ```

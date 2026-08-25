@@ -45,6 +45,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 建树：层序 token，与 BST 判定分开
     line = sys.stdin.readline()
     if not line:
         return None
@@ -73,10 +74,12 @@ def read_tree():
 
 
 def is_valid_bst(root, low=float("-inf"), high=float("inf")):
+    # 空子树合法；节点必须落在开区间 (low, high)
     if root is None:
         return True
     if not (low < root.val < high):
-        return False
+        return False  # 相等也非法；±inf 覆盖 32 位端点
+    # 左子树右界收成自己，右子树左界收成自己
     return is_valid_bst(root.left, low, root.val) and is_valid_bst(
         root.right, root.val, high
     )
@@ -104,6 +107,7 @@ struct TreeNode {
 };
 
 TreeNode* readTree() {
+    // 建树：层序 token，与 BST 判定分开
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -135,6 +139,7 @@ TreeNode* readTree() {
 
 bool isValidBST(TreeNode* node, long long lo, long long hi) {
     if (!node) return true;
+    // 开区间：相等非法；long long 避免根为 INT_MIN/MAX 时边界溢出
     if (!(lo < node->val && node->val < hi)) return false;
     return isValidBST(node->left, lo, node->val) &&
            isValidBST(node->right, node->val, hi);

@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：后序归约。左右都命中则当前为 LCA；节点可以是自己的祖先。
 import sys
 from collections import deque
 
@@ -45,6 +46,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 层序建树：n=0 为空；只把非 null 节点入队。与 LCA 算法无关。
     line = sys.stdin.readline()
     if not line:
         return None
@@ -73,13 +75,14 @@ def read_tree():
 
 
 def lowest_common_ancestor(root, p, q):
+    # 算法：后序归约。空或命中 p/q 向上传（节点可以是自己的祖先）。
     if root is None or root.val == p or root.val == q:
         return root
     left = lowest_common_ancestor(root.left, p, q)
     right = lowest_common_ancestor(root.right, p, q)
     if left is not None and right is not None:
-        return root
-    return left if left is not None else right
+        return root  # 两目标分居两侧，当前就是 LCA
+    return left if left is not None else right  # 都在同一侧，或都未找到
 
 
 def main():
@@ -95,6 +98,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：后序归约。左右都命中则当前为 LCA；节点可以是自己的祖先。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -105,6 +109,7 @@ struct TreeNode {
 };
 
 TreeNode* read_tree() {
+    // 层序建树：n=0 为空；只把非 null 节点入队。与 LCA 算法无关。
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -135,6 +140,7 @@ TreeNode* read_tree() {
 }
 
 TreeNode* lca(TreeNode* root, int p, int q) {
+    // 后序：左右都命中则当前为 LCA；只一侧非空则 LCA 在那一侧。
     if (!root || root->val == p || root->val == q) return root;
     TreeNode* left = lca(root->left, p, q);
     TreeNode* right = lca(root->right, p, q);

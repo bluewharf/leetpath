@@ -41,6 +41,7 @@ class ListNode:
         self.next = next
 
 
+# —— 建表（I/O）：第一行 n，第二行 n 个值；空表 n=0 ——
 def read_list() -> ListNode | None:
     data = sys.stdin.read().split()
     n = int(data[0])
@@ -54,15 +55,17 @@ def read_list() -> ListNode | None:
     return dummy.next
 
 
+# —— 算法：快慢指针找中点，原地反转后半，再与前半对撞比对 ——
 def is_palindrome(head: ListNode | None) -> bool:
-    if head is None or head.next is None:
+    if head is None or head.next is None:  # 边界：空表/单结点是回文
         return True
+    # 偶数时 slow 停在前半末尾，奇数时停在正中（正中不参与比较）
     slow, fast = head, head.next
     while fast and fast.next:
         slow = slow.next
         fast = fast.next.next
     pre, cur = None, slow.next
-    while cur:
+    while cur:  # 反转后半，pre 成为后半新头
         nxt = cur.next
         cur.next = pre
         pre, cur = cur, nxt
@@ -94,6 +97,7 @@ struct ListNode {
     ListNode(int v = 0) : val(v), next(nullptr) {}
 };
 
+// —— 建表（I/O）：第一行 n，随后 n 个值；空表 n=0 ——
 ListNode* readList() {
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
@@ -108,8 +112,10 @@ ListNode* readList() {
     return dummy.next;
 }
 
+// —— 算法：快慢指针找中点，原地反转后半，再与前半对撞比对 ——
 bool isPalindrome(ListNode* head) {
-    if (!head || !head->next) return true;
+    if (!head || !head->next) return true;  // 边界：空表/单结点是回文
+    // 偶数时 slow 停在前半末尾，奇数时停在正中（正中不参与比较）
     ListNode* slow = head;
     ListNode* fast = head->next;
     while (fast && fast->next) {
@@ -118,7 +124,7 @@ bool isPalindrome(ListNode* head) {
     }
     ListNode* pre = nullptr;
     ListNode* cur = slow->next;
-    while (cur) {
+    while (cur) {  // 反转后半，pre 成为后半新头
         ListNode* nxt = cur->next;
         cur->next = pre;
         pre = cur;

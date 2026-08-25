@@ -35,9 +35,11 @@ import sys
 
 
 def main() -> None:
+    # 读入：n 与数组（其余元素均出现两次）
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
+    # x^x=0、x^0=x，且异或可交换结合：成对抵消后只剩出现一次的那个
     x = 0
     for v in nums:
         x ^= v
@@ -57,8 +59,10 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n 与数组（其余元素均出现两次）
     int n;
     cin >> n;
+    // 成对异或抵消，顺序无关；负数补码同样成立
     int x = 0;
     for (int i = 0; i < n; i++) {
         int v;

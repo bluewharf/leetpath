@@ -44,6 +44,7 @@ def main() -> None:
         matrix.append(data[idx : idx + n])
         idx += n
     target = data[idx]
+    # 左下角：当前值是该行最小、该列最大，一次比较丢掉一行或一列
     i, j = m - 1, 0
     while i >= 0 and j < n:
         val = matrix[i][j]
@@ -51,10 +52,10 @@ def main() -> None:
             print("true")
             return
         if val > target:
-            i -= 1
+            i -= 1  # 整行都更大，上移
         else:
-            j += 1
-    print("false")
+            j += 1  # 整列都更小，右移
+    print("false")  # 越界仍未命中则不存在
 
 
 if __name__ == "__main__":
@@ -78,6 +79,7 @@ int main() {
             cin >> matrix[i][j];
     int target;
     cin >> target;
+    // 左下角：当前值是该行最小、该列最大，一次比较丢掉一行或一列
     int i = m - 1, j = 0;
     while (i >= 0 && j < n) {
         int val = matrix[i][j];
@@ -85,10 +87,10 @@ int main() {
             cout << "true\n";
             return 0;
         }
-        if (val > target) i--;
-        else j++;
+        if (val > target) i--;  // 整行都更大，上移
+        else j++;               // 整列都更小，右移
     }
-    cout << "false\n";
+    cout << "false\n";  // 越界仍未命中则不存在
     return 0;
 }
 ```

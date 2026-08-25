@@ -40,13 +40,16 @@ import sys
 def next_permutation(a: list[int]) -> None:
     n = len(a)
     i = n - 2
+    # 从右找第一个升序拐点：它是必须变大的最右位置，左边保持不动增幅才最小
     while i >= 0 and a[i] >= a[i + 1]:
         i -= 1
     if i >= 0:
         j = n - 1
+        # 右侧非严格递减，从右取第一个 > a[i] 的后继，交换后新前缀刚好变大
         while a[j] <= a[i]:
             j -= 1
         a[i], a[j] = a[j], a[i]
+    # 边界：找不到拐点则整段递减，反转即最小排列；有拐点时右侧仍递减，反转变最小后缀
     a[i + 1 :] = reversed(a[i + 1 :])
 
 
@@ -70,14 +73,17 @@ using namespace std;
 
 void nextPermutation(vector<int>& a) {
     int n = (int)a.size();
-    if (n <= 1) return;
+    if (n <= 1) return;  // 边界：空/单元素已是唯一排列
     int i = n - 2;
+    // 从右找第一个升序拐点：必须变大的最右位置，左边不动才能让增幅最小
     while (i >= 0 && a[i] >= a[i + 1]) --i;
     if (i >= 0) {
         int j = n - 1;
+        // 右侧非严格递减，从右取第一个 > a[i] 的后继
         while (a[j] <= a[i]) --j;
         swap(a[i], a[j]);
     }
+    // 找不到拐点则整段递减，反转即最小排列；有拐点时反转后缀得到最小后缀
     reverse(a.begin() + i + 1, a.end());
 }
 
@@ -85,7 +91,7 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     int n;
-    if (!(cin >> n)) return 0;
+    if (!(cin >> n)) return 0;  // 读入：第一行 n，随后 n 个数
     vector<int> a(n);
     for (int i = 0; i < n; ++i) cin >> a[i];
     nextPermutation(a);

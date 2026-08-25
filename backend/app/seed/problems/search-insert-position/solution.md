@@ -37,17 +37,20 @@ import sys
 
 
 def main() -> None:
+    # 读入：n、升序数组、target（插入点可能是 n）
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
     target = data[n + 1]
+    # 左闭右开 [lo, hi)：插入点（第一个 >= target）始终落在此区间
     lo, hi = 0, n
     while lo < hi:
         mid = (lo + hi) // 2
         if nums[mid] < target:
-            lo = mid + 1
+            lo = mid + 1  # mid 太小，答案在右侧
         else:
-            hi = mid
+            hi = mid  # mid 仍可能是插入点，不能 mid-1
+    # 结束时 lo == hi，全部更小则落到 n
     print(lo)
 
 
@@ -64,17 +67,19 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n、升序数组、target（插入点可能是 n）
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int target;
     cin >> target;
+    // 左闭右开 [lo, hi)：第一个 >= target 的下标始终在此区间
     int lo = 0, hi = n;
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
-        if (nums[mid] < target) lo = mid + 1;
-        else hi = mid;
+        if (nums[mid] < target) lo = mid + 1;  // mid 太小
+        else hi = mid;                        // mid 仍可能是插入点
     }
     cout << lo << '\n';
     return 0;

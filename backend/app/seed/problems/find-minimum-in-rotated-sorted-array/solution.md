@@ -36,6 +36,7 @@ def main():
     n = data[0]
     nums = data[1 : n + 1]
     lo, hi = 0, n - 1
+    # 不变量：最小值始终在 [lo, hi]。mid > 右端说明还在左半升序段，断点在右侧
     while lo < hi:
         mid = (lo + hi) // 2
         if nums[mid] > nums[hi]:
@@ -63,6 +64,7 @@ int main() {
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     int lo = 0, hi = n - 1;
+    // 不变量：最小值始终在 [lo, hi]。mid > 右端说明还在左半升序段，断点在右侧
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
         if (nums[mid] > nums[hi]) lo = mid + 1;

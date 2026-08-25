@@ -37,14 +37,17 @@ import sys
 
 
 def main() -> None:
+    # 读入：n 与互不相同的 n 个数
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
     subsets = []
+    # 掩码第 i 位为 1 表示选 nums[i]；0 对应空集
     for mask in range(1 << n):
         cur = [nums[i] for i in range(n) if mask & (1 << i)]
-        cur.sort()
+        cur.sort()  # 行内升序，与枚举顺序无关
         subsets.append(cur)
+    # 多解按 (长度, 序列) 字典序，空集打一个空行
     subsets.sort(key=lambda s: (len(s), s))
     for s in subsets:
         if s:
@@ -66,18 +69,21 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：n 与互不相同的 n 个数
     int n;
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
     vector<vector<int>> subsets;
+    // 二进制枚举幂集：第 i 位表示选不选 nums[i]
     for (int mask = 0; mask < (1 << n); mask++) {
         vector<int> cur;
         for (int i = 0; i < n; i++)
             if (mask & (1 << i)) cur.push_back(nums[i]);
-        sort(cur.begin(), cur.end());
+        sort(cur.begin(), cur.end());  // 行内升序
         subsets.push_back(cur);
     }
+    // 先按长度再按序列，空集输出空行
     sort(subsets.begin(), subsets.end(), [](const vector<int>& a, const vector<int>& b) {
         if (a.size() != b.size()) return a.size() < b.size();
         return a < b;

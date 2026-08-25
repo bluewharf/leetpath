@@ -33,26 +33,29 @@
 ### Python3
 
 ```python
+# 解法一：2n-1 个中心扩展；更长优先，同长取字典序更小以保证输出确定。
 import sys
 
 
 def expand(s: str, l: int, r: int) -> str:
+    # 从中心 (l,r) 向外扩到两边不等；奇数中心传 (i,i)，偶数传 (i,i+1)。
     n = len(s)
     while l >= 0 and r < n and s[l] == s[r]:
         l -= 1
         r += 1
-    return s[l + 1 : r]
+    return s[l + 1 : r]  # 循环结束时 [l,r] 已越界或不等，合法区间是开区间内侧
 
 
 def main() -> None:
     s = sys.stdin.readline().rstrip("\n")
     if not s:
-        print()
+        print()  # 空串按约定输出空行
         return
-    best = s[0]
+    best = s[0]  # 单字符必回文，作为初始答案
     n = len(s)
     for i in range(n):
         for pal in (expand(s, i, i), expand(s, i, i + 1)):
+            # 更长优先；同长取字典序更小，保证多解时输出确定。
             if len(pal) > len(best) or (len(pal) == len(best) and pal < best):
                 best = pal
     print(best)
@@ -65,10 +68,12 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：2n-1 个中心扩展；更长优先，同长取字典序更小以保证输出确定。
 #include <bits/stdc++.h>
 using namespace std;
 
 string expand(const string& s, int l, int r) {
+    // 从中心向外扩；结束后 [l,r] 已非法，合法子串是 (l, r)。
     int n = (int)s.size();
     while (l >= 0 && r < n && s[l] == s[r]) {
         l--;
@@ -82,7 +87,7 @@ int main() {
     cin.tie(nullptr);
     string s;
     getline(cin, s);
-    if (!s.empty() && s.back() == '\r') s.pop_back();
+    if (!s.empty() && s.back() == '\r') s.pop_back();  // 兼容 CRLF
     if (s.empty()) {
         cout << "\n";
         return 0;
@@ -93,6 +98,7 @@ int main() {
         string odd = expand(s, i, i);
         string even = expand(s, i, i + 1);
         for (const string& pal : {odd, even}) {
+            // 更长优先；同长取字典序最小。
             if ((int)pal.size() > (int)best.size() ||
                 (pal.size() == best.size() && pal < best)) {
                 best = pal;

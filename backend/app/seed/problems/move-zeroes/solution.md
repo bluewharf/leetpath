@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：慢指针把非零稳定压到前面，尾巴统一填零，相对顺序不变。
 import sys
 
 
@@ -39,17 +40,17 @@ def main():
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
-    write = 0
+    write = 0  # 下一个该放非零的位置；左侧已是非零原相对顺序
     for x in nums:
         if x != 0:
             nums[write] = x
             write += 1
     for i in range(write, n):
-        nums[i] = 0
+        nums[i] = 0  # 尾巴统一填零
     if n:
         print(" ".join(map(str, nums)))
     else:
-        print()
+        print()  # n=0 按约定输出空行
 
 
 if __name__ == "__main__":
@@ -59,6 +60,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：慢指针把非零稳定压到前面，尾巴统一填零，相对顺序不变。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -69,13 +71,13 @@ int main() {
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
-    int write = 0;
+    int write = 0;  // 慢指针：下一个非零坑
     for (int x : nums) {
         if (x != 0) nums[write++] = x;
     }
     for (int i = write; i < n; i++) nums[i] = 0;
     if (n == 0) {
-        cout << '\n';
+        cout << '\n';  // 空数组输出空行
     } else {
         for (int i = 0; i < n; i++) {
             if (i) cout << ' ';

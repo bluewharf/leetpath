@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：排序后枚举最小元，左右指针找相反数，并跳过重复值。
 import sys
 
 
@@ -34,12 +35,12 @@ def main() -> None:
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
-    nums.sort()
+    nums.sort()  # 有序后相同值挤在一起，去重和双指针收缩才成立
     for i in range(n):
         if i > 0 and nums[i] == nums[i - 1]:
-            continue
+            continue  # 同一最小元只枚举一次，避免重复三元组
         if nums[i] > 0:
-            break
+            break  # 最小元已为正，后面全更大，和不可能为 0
         l, r = i + 1, n - 1
         while l < r:
             s = nums[i] + nums[l] + nums[r]
@@ -52,7 +53,7 @@ def main() -> None:
                 l += 1
                 r -= 1
                 while l < r and nums[l] == nums[l - 1]:
-                    l += 1
+                    l += 1  # 收缩后仍要跳过刚用过的相同值
                 while l < r and nums[r] == nums[r + 1]:
                     r -= 1
 
@@ -61,9 +62,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：排序后枚举最小元，左右指针找相反数，并跳过重复值。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -74,13 +77,13 @@ int main() {
     if (!(cin >> n)) return 0;
     vector<int> nums(n);
     for (int i = 0; i < n; ++i) cin >> nums[i];
-    sort(nums.begin(), nums.end());
+    sort(nums.begin(), nums.end());  // 有序后相同值挤在一起，去重和双指针收缩才成立
     for (int i = 0; i < n; ++i) {
-        if (i > 0 && nums[i] == nums[i - 1]) continue;
-        if (nums[i] > 0) break;
+        if (i > 0 && nums[i] == nums[i - 1]) continue;  // 同一最小元只枚举一次
+        if (nums[i] > 0) break;  // 最小元已为正，后面全更大，和不可能为 0
         int l = i + 1, r = n - 1;
         while (l < r) {
-            long long s = 1LL * nums[i] + nums[l] + nums[r];
+            long long s = 1LL * nums[i] + nums[l] + nums[r];  // 防三数之和溢出
             if (s < 0) {
                 ++l;
             } else if (s > 0) {
@@ -89,7 +92,7 @@ int main() {
                 cout << nums[i] << ' ' << nums[l] << ' ' << nums[r] << '\n';
                 ++l;
                 --r;
-                while (l < r && nums[l] == nums[l - 1]) ++l;
+                while (l < r && nums[l] == nums[l - 1]) ++l;  // 跳过刚用过的相同值
                 while (l < r && nums[r] == nums[r + 1]) --r;
             }
         }
@@ -97,3 +100,4 @@ int main() {
     return 0;
 }
 ```
+

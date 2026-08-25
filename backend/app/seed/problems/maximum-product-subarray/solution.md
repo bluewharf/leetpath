@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：同时滚 imax/imin；负数会把最大最小对调，0 等价于另起一段。
 import sys
 
 
@@ -40,9 +41,10 @@ def main():
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : 1 + n]
+    # imax/imin：以当前位置结尾的子数组乘积的最大/最小值（负数会把二者对调）。
     imax = imin = ans = nums[0]
     for x in nums[1:]:
-        cand = (x, imax * x, imin * x)
+        cand = (x, imax * x, imin * x)  # 另起一段 / 接最大 / 接最小（x<0 时后者可能翻成最大）
         imax = max(cand)
         imin = min(cand)
         if imax > ans:
@@ -57,6 +59,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：同时滚 imax/imin；负数会把最大最小对调，0 等价于另起一段。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -67,6 +70,7 @@ int main() {
     cin >> n;
     vector<long long> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // imax/imin 同时滚：负数翻转最大最小，0 等价于从当前另起一段。
     long long imax = nums[0], imin = nums[0], ans = nums[0];
     for (int i = 1; i < n; i++) {
         long long x = nums[i];

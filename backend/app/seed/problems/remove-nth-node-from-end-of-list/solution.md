@@ -41,6 +41,7 @@ class ListNode:
         self.next = next
 
 
+# —— 建表（I/O）：n 与结点值后跟 k；空表只读 n 与 k ——
 def read_list() -> tuple[ListNode | None, int]:
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
@@ -64,10 +65,11 @@ def write_list(head: ListNode | None) -> None:
         print(" ".join(vals))
 
 
+# —— 算法：dummy + 快慢间距 k，fast 到尾时 slow 停在待删前驱 ——
 def remove_nth(head: ListNode | None, k: int) -> ListNode | None:
-    dummy = ListNode(0, head)
+    dummy = ListNode(0, head)  # 哨兵让删头与删中间走同一套
     fast = dummy
-    for _ in range(k):
+    for _ in range(k):  # 题目保证 k 合法，先走 k 步不会落空
         fast = fast.next
     slow = dummy
     while fast.next:
@@ -98,6 +100,7 @@ struct ListNode {
     ListNode(int v = 0, ListNode* n = nullptr) : val(v), next(n) {}
 };
 
+// —— 建表（I/O）：n 与结点值后跟 k；空表只读 n 与 k ——
 ListNode* read_list(int& k) {
     int n;
     cin >> n;
@@ -133,10 +136,11 @@ void write_list(ListNode* head) {
     }
 }
 
+// —— 算法：dummy + 快慢间距 k，fast 到尾时 slow 停在待删前驱 ——
 ListNode* remove_nth(ListNode* head, int k) {
-    ListNode dummy(0, head);
+    ListNode dummy(0, head);  // 哨兵让删头与删中间走同一套
     ListNode* fast = &dummy;
-    for (int i = 0; i < k; i++) fast = fast->next;
+    for (int i = 0; i < k; i++) fast = fast->next;  // k 合法，先走 k 步不会落空
     ListNode* slow = &dummy;
     while (fast->next) {
         slow = slow->next;

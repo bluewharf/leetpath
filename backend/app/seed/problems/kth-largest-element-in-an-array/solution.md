@@ -45,6 +45,7 @@ def main():
     n = data[0]
     nums = data[1 : n + 1]
     k = data[n + 1]
+    # 大小为 k 的小根堆：堆顶是「当前 k 个大数里最小的」，扫完即第 k 大
     h = []
     for x in nums:
         heapq.heappush(h, x)
@@ -72,6 +73,7 @@ int main() {
     for (int i = 0; i < n; i++) cin >> nums[i];
     int k;
     cin >> k;
+    // 大小为 k 的小根堆：堆顶是「当前 k 个大数里最小的」，扫完即第 k 大
     priority_queue<int, vector<int>, greater<int>> h;
     for (int x : nums) {
         h.push(x);

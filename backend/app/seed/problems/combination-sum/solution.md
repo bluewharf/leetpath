@@ -27,6 +27,7 @@
 ### Python3
 
 ```python
+# 解法一：排序回溯。同一下标可重复选，路径非递减从而组合去重。
 import sys
 
 
@@ -35,7 +36,7 @@ def main() -> None:
     n = int(data[0])
     candidates = list(map(int, data[1 : 1 + n]))
     target = int(data[1 + n])
-    candidates.sort()
+    candidates.sort()  # 有序后才能 break 剪枝，路径也非递减
     res = []
 
     def dfs(start, remain, path):
@@ -45,9 +46,9 @@ def main() -> None:
         for i in range(start, n):
             c = candidates[i]
             if c > remain:
-                break
+                break  # 已排序，后面更大，直接剪枝
             path.append(c)
-            dfs(i, remain - c, path)
+            dfs(i, remain - c, path)  # 传 i 而不是 i+1，允许重复选当前数
             path.pop()
 
     dfs(0, target, [])
@@ -60,9 +61,11 @@ if __name__ == "__main__":
     main()
 ```
 
+
 ### C++
 
 ```cpp
+// 解法一：排序回溯。同一下标可重复选，路径非递减从而组合去重。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -74,9 +77,9 @@ void dfs(int start, int remain, vector<int>& path, const vector<int>& cand,
     }
     int n = (int)cand.size();
     for (int i = start; i < n; ++i) {
-        if (cand[i] > remain) break;
+        if (cand[i] > remain) break;  // 已排序，后面更大，直接剪枝
         path.push_back(cand[i]);
-        dfs(i, remain - cand[i], path, cand, res);
+        dfs(i, remain - cand[i], path, cand, res);  // 传 i 而不是 i+1，允许重复选
         path.pop_back();
     }
 }
@@ -90,7 +93,7 @@ int main() {
     for (int i = 0; i < n; ++i) cin >> candidates[i];
     int target;
     cin >> target;
-    sort(candidates.begin(), candidates.end());
+    sort(candidates.begin(), candidates.end());  // 有序后才能 break 剪枝，路径也非递减
     vector<vector<int>> res;
     vector<int> path;
     dfs(0, target, path, candidates, res);

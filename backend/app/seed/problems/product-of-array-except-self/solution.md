@@ -42,11 +42,11 @@ def main() -> None:
     ans = [1] * n
     pref = 1
     for i in range(n):
-        ans[i] = pref
+        ans[i] = pref  # 先写入不含自己的左侧积
         pref *= nums[i]
     suf = 1
     for i in range(n - 1, -1, -1):
-        ans[i] *= suf
+        ans[i] *= suf  # 再乘不含自己的右侧积；0 会自然落到正确位置
         suf *= nums[i]
     print(" ".join(map(str, ans)))
 
@@ -66,16 +66,16 @@ int main() {
     cin.tie(nullptr);
     int n;
     cin >> n;
-    vector<long long> nums(n), ans(n, 1);
+    vector<long long> nums(n), ans(n, 1);  // 乘积可能超出 32 位
     for (int i = 0; i < n; i++) cin >> nums[i];
     long long pref = 1;
     for (int i = 0; i < n; i++) {
-        ans[i] = pref;
+        ans[i] = pref;  // 先写入不含自己的左侧积
         pref *= nums[i];
     }
     long long suf = 1;
     for (int i = n - 1; i >= 0; i--) {
-        ans[i] *= suf;
+        ans[i] *= suf;  // 再乘不含自己的右侧积；0 会自然落到正确位置
         suf *= nums[i];
     }
     for (int i = 0; i < n; i++) {

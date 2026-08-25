@@ -43,6 +43,7 @@ def main():
     data = sys.stdin.read().split()
     n = int(data[0])
     nums = list(map(int, data[1 : 1 + n]))
+    # 下标 i → nums[i] 构成有环函数图，重复值就是环入口
     slow = nums[0]
     fast = nums[0]
     while True:
@@ -50,6 +51,7 @@ def main():
         fast = nums[nums[fast]]
         if slow == fast:
             break
+    # 一个从头、一个从相遇点同步走，第二次相遇必在入口
     slow = nums[0]
     while slow != fast:
         slow = nums[slow]
@@ -74,12 +76,14 @@ int main() {
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // 下标 i → nums[i] 构成有环函数图，重复值就是环入口
     int slow = nums[0], fast = nums[0];
     while (true) {
         slow = nums[slow];
         fast = nums[nums[fast]];
         if (slow == fast) break;
     }
+    // 一个从头、一个从相遇点同步走，第二次相遇必在入口
     slow = nums[0];
     while (slow != fast) {
         slow = nums[slow];

@@ -32,6 +32,7 @@
 ### Python3
 
 ```python
+# 解法一：按左端点排序后线性合并；有空隙才新开段，端点相等仍合并。
 import sys
 
 
@@ -43,13 +44,13 @@ def main():
     for _ in range(m):
         intervals.append((data[idx], data[idx + 1]))
         idx += n
-    intervals.sort()
+    intervals.sort()  # 按左端点排序后，可能相交的区间一定相邻
     merged = []
     for a, b in intervals:
         if not merged or merged[-1][1] < a:
-            merged.append([a, b])
+            merged.append([a, b])  # 与上一段有空隙，开新段（端点相等仍合并）
         elif b > merged[-1][1]:
-            merged[-1][1] = b
+            merged[-1][1] = b  # 重叠则右端取较大者
     for a, b in merged:
         print(a, b)
 
@@ -61,6 +62,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：按左端点排序后线性合并；有空隙才新开段，端点相等仍合并。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -73,11 +75,11 @@ int main() {
     for (int i = 0; i < m; i++) {
         cin >> intervals[i].first >> intervals[i].second;
     }
-    sort(intervals.begin(), intervals.end());
+    sort(intervals.begin(), intervals.end());  // 按左端点；相交段必相邻
     vector<pair<int, int>> merged;
     for (auto [a, b] : intervals) {
         if (merged.empty() || merged.back().second < a) {
-            merged.push_back({a, b});
+            merged.push_back({a, b});  // 有空隙才新开；端点相等仍合并
         } else if (b > merged.back().second) {
             merged.back().second = b;
         }

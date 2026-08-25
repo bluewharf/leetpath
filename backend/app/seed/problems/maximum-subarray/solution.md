@@ -33,6 +33,7 @@
 ### Python3
 
 ```python
+# 解法一：Kadane。前缀为负则丢掉，cur 是以当前位置结尾的最大段和。
 import sys
 
 
@@ -40,12 +41,13 @@ def main():
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : 1 + n]
+    # Kadane：cur 是「以当前元素结尾」的最大段和；前缀已为负则丢掉另起。
     best = cur = nums[0]
     for x in nums[1:]:
         cur = x if cur + x < x else cur + x
         if cur > best:
             best = cur
-    print(best)
+    print(best)  # 全负时不断另起，答案落到最大的那个单元素
 
 
 if __name__ == "__main__":
@@ -55,6 +57,7 @@ if __name__ == "__main__":
 ### C++
 
 ```cpp
+// 解法一：Kadane。前缀为负则丢掉，cur 是以当前位置结尾的最大段和。
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -65,9 +68,9 @@ int main() {
     cin >> n;
     vector<long long> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
-    long long best = nums[0], cur = nums[0];
+    long long best = nums[0], cur = nums[0];  // cur：以 i 结尾的最大连续和
     for (int i = 1; i < n; i++) {
-        cur = max(nums[i], cur + nums[i]);
+        cur = max(nums[i], cur + nums[i]);  // 前缀为负则丢掉
         best = max(best, cur);
     }
     cout << best << '\n';

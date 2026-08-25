@@ -46,10 +46,11 @@ MAPPING = {
 def main():
     digits = sys.stdin.readline().rstrip("\n")
     if not digits:
-        return
+        return  # 空串没有任何组合，不要误输出空行
     ans = []
 
     def dfs(i, path):
+        # 按位笛卡尔积；映射表本身有序，回溯用 path 追加/弹出
         if i == len(digits):
             ans.append("".join(path))
             return
@@ -59,7 +60,7 @@ def main():
             path.pop()
 
     dfs(0, [])
-    ans.sort()
+    ans.sort()  # 多解题按字典序逐行输出
     for s in ans:
         print(s)
 
@@ -80,10 +81,11 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     string digits;
-    if (!(cin >> digits) || digits.empty()) return 0;
+    if (!(cin >> digits) || digits.empty()) return 0;  // 空串不输出
     vector<string> ans;
     string path;
     function<void(int)> dfs = [&](int i) {
+        // 按位笛卡尔积；映射表本身有序，回溯用 path 追加/弹出
         if (i == (int)digits.size()) {
             ans.push_back(path);
             return;
@@ -95,7 +97,7 @@ int main() {
         }
     };
     dfs(0);
-    sort(ans.begin(), ans.end());
+    sort(ans.begin(), ans.end());  // 多解题按字典序逐行输出
     for (const string& s : ans) cout << s << "\n";
     return 0;
 }

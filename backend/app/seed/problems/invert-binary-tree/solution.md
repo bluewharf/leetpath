@@ -40,6 +40,7 @@ class TreeNode:
 
 
 def read_tree():
+    # 层序建树：n=0 为空；只把非 null 节点入队
     data = sys.stdin.read().split()
     n = int(data[0])
     if n == 0:
@@ -70,6 +71,7 @@ def read_tree():
 
 
 def write_tree(root):
+    # 层序输出：内部空位保留 null，末尾连续 null 丢掉
     if root is None:
         print(0)
         return
@@ -90,6 +92,7 @@ def write_tree(root):
 
 
 def invert(root):
+    # 先交换左右再递归子树；空节点直接返回
     if root is None:
         return None
     root.left, root.right = root.right, root.left
@@ -124,6 +127,7 @@ TreeNode* parse(const string& s) {
 }
 
 TreeNode* read_tree() {
+    // 层序建树：n=0 为空；只把非 null 节点入队
     int n;
     if (!(cin >> n) || n == 0) return nullptr;
     vector<string> tokens(n);
@@ -148,6 +152,7 @@ TreeNode* read_tree() {
 }
 
 void write_tree(TreeNode* root) {
+    // 层序输出：内部空位保留 null，末尾连续 null 丢掉
     if (!root) {
         cout << 0 << "\n";
         return;
@@ -176,6 +181,7 @@ void write_tree(TreeNode* root) {
 }
 
 TreeNode* invert(TreeNode* root) {
+    // 先交换左右再递归子树；空节点直接返回
     if (!root) return nullptr;
     swap(root->left, root->right);
     invert(root->left);

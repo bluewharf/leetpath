@@ -37,14 +37,15 @@ import sys
 
 
 def main() -> None:
-    s = sys.stdin.readline().rstrip("\n").rstrip("\r")
-    last = {c: i for i, c in enumerate(s)}
+    s = sys.stdin.readline().rstrip("\n").rstrip("\r")  # 读入一行小写串
+    last = {c: i for i, c in enumerate(s)}  # 每个字母最后一次出现的下标
     start = end = 0
     parts: list[int] = []
     for i, c in enumerate(s):
+        # 不变量：当前段 [start, end] 必须覆盖段内每个字母的最后出现位置
         if last[c] > end:
             end = last[c]
-        if i == end:
+        if i == end:  # 扫到必须覆盖的最右边界，贪心切一刀
             parts.append(i - start + 1)
             start = i + 1
     print(" ".join(map(str, parts)))
@@ -64,17 +65,18 @@ int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
     string s;
-    getline(cin, s);
+    getline(cin, s);  // 读入一行小写串
     if (!s.empty() && s.back() == '\r') s.pop_back();
     int last[26];
     memset(last, -1, sizeof(last));
     int n = (int)s.size();
-    for (int i = 0; i < n; ++i) last[s[i] - 'a'] = i;
+    for (int i = 0; i < n; ++i) last[s[i] - 'a'] = i;  // 每个字母最后一次出现
     int start = 0, end = 0;
     vector<int> parts;
     for (int i = 0; i < n; ++i) {
+        // 不变量：当前段 [start, end] 必须覆盖段内每个字母的最后出现位置
         end = max(end, last[s[i] - 'a']);
-        if (i == end) {
+        if (i == end) {  // 扫到必须覆盖的最右边界，贪心切一刀
             parts.push_back(i - start + 1);
             start = i + 1;
         }

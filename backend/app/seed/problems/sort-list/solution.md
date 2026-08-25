@@ -42,6 +42,7 @@ class ListNode:
 
 
 def read_list() -> ListNode | None:
+    # 建链：第一行 n，第二行 n 个值；空链输出侧对应 n=0
     data = sys.stdin.read().split()
     n = int(data[0])
     if n == 0:
@@ -55,6 +56,7 @@ def read_list() -> ListNode | None:
 
 
 def write_list(head: ListNode | None) -> None:
+    # 输出链：同样 ACM 数组格式，与算法无关
     vals: list[str] = []
     while head:
         vals.append(str(head.val))
@@ -67,6 +69,7 @@ def write_list(head: ListNode | None) -> None:
 
 
 def split(head: ListNode) -> ListNode:
+    # 快慢指针切半：fast 先走一步，保证前半不长于后半，并断开中点
     slow, fast = head, head.next
     while fast and fast.next:
         slow = slow.next
@@ -77,6 +80,7 @@ def split(head: ListNode) -> ListNode:
 
 
 def merge(l1: ListNode | None, l2: ListNode | None) -> ListNode | None:
+    # 合并两条有序链，虚头避免特判新头
     dummy = ListNode()
     tail = dummy
     while l1 and l2:
@@ -92,6 +96,7 @@ def merge(l1: ListNode | None, l2: ListNode | None) -> ListNode | None:
 
 
 def sort_list(head: ListNode | None) -> ListNode | None:
+    # 空/单结点已有序；切半递归后再合并
     if head is None or head.next is None:
         return head
     mid = split(head)
@@ -119,6 +124,7 @@ struct ListNode {
 };
 
 ListNode* split(ListNode* head) {
+    // 快慢指针切半并断开，前半不长于后半
     ListNode* slow = head;
     ListNode* fast = head->next;
     while (fast && fast->next) {
@@ -131,6 +137,7 @@ ListNode* split(ListNode* head) {
 }
 
 ListNode* mergeList(ListNode* l1, ListNode* l2) {
+    // 合并两条有序链
     ListNode dummy;
     ListNode* tail = &dummy;
     while (l1 && l2) {
@@ -148,7 +155,7 @@ ListNode* mergeList(ListNode* l1, ListNode* l2) {
 }
 
 ListNode* sortList(ListNode* head) {
-    if (!head || !head->next) return head;
+    if (!head || !head->next) return head;  // 空/单结点
     ListNode* mid = split(head);
     return mergeList(sortList(head), sortList(mid));
 }
@@ -156,6 +163,7 @@ ListNode* sortList(ListNode* head) {
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 建链：n=0 直接输出空链
     int n;
     if (!(cin >> n) || n == 0) {
         cout << 0 << '\n';

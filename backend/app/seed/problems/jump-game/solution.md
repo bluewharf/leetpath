@@ -36,6 +36,7 @@ def main():
     data = list(map(int, sys.stdin.read().split()))
     n = data[0]
     nums = data[1 : n + 1]
+    # far 是目前能摸到的最远下标；不变量：[0, far] 都可达
     far = 0
     for i in range(n):
         if i > far:
@@ -62,6 +63,7 @@ int main() {
     cin >> n;
     vector<int> nums(n);
     for (int i = 0; i < n; i++) cin >> nums[i];
+    // far 是目前能摸到的最远下标；不变量：[0, far] 都可达
     int far = 0;
     for (int i = 0; i < n; i++) {
         if (i > far) {

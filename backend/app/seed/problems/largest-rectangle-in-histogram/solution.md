@@ -33,6 +33,7 @@ import sys
 
 
 def largest_rectangle(heights):
+    # 单调递增栈存下标；新柱更矮则栈顶右边界确定。末尾补 0 清空栈，-1 哨兵让最矮柱扩到 0
     heights = heights + [0]
     stack = [-1]
     ans = 0
@@ -71,6 +72,7 @@ int main() {
     cin >> n;
     vector<int> heights(n);
     for (int i = 0; i < n; i++) cin >> heights[i];
+    // 单调递增栈存下标；新柱更矮则栈顶右边界确定。末尾补 0 清空栈，-1 哨兵让最矮柱扩到 0
     heights.push_back(0);
     vector<int> stack;
     stack.push_back(-1);

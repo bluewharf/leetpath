@@ -45,11 +45,13 @@ def main():
         return
     vals = list(map(int, data[1 : 1 + n]))
     pos = int(data[1 + n])
+    # 建链：pos>=0 时尾接到 nodes[pos] 成环
     nodes = [ListNode(v) for v in vals]
     for i in range(n - 1):
         nodes[i].next = nodes[i + 1]
     if 0 <= pos < n:
         nodes[-1].next = nodes[pos]
+    # Floyd：快两步慢一步，对象相同才算相遇（值重复的无环链不误判）
     slow = fast = nodes[0]
     while fast and fast.next:
         slow = slow.next
@@ -94,7 +96,9 @@ int main() {
     for (int i = 0; i < n - 1; i++) nodes[i]->next = nodes[i + 1];
     int pos;
     cin >> pos;
+    // 建链：pos>=0 时尾接到 nodes[pos] 成环
     if (pos >= 0 && pos < n) nodes[n - 1]->next = nodes[pos];
+    // Floyd：快两步慢一步，指针相同才算相遇（值重复的无环链不误判）
     ListNode* slow = nodes[0];
     ListNode* fast = nodes[0];
     while (fast && fast->next) {

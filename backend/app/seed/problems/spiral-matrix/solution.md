@@ -38,6 +38,7 @@ import sys
 
 
 def main() -> None:
+    # 读入：m n 与矩阵
     data = list(map(int, sys.stdin.read().split()))
     m, n = data[0], data[1]
     mat = []
@@ -46,14 +47,16 @@ def main() -> None:
         mat.append(data[idx : idx + n])
         idx += n
     ans = []
+    # 当前层矩形 [top,bottom] × [left,right]，走完一条边立刻收缩对应边界
     top, bottom, left, right = 0, m - 1, 0, n - 1
     while top <= bottom and left <= right:
         for j in range(left, right + 1):
             ans.append(mat[top][j])
-        top += 1
+        top += 1  # 上边走完，拐角已计入，避免右边重复
         for i in range(top, bottom + 1):
             ans.append(mat[i][right])
         right -= 1
+        # 单行/单列时矩形已退化，不能再走回头
         if top <= bottom:
             for j in range(right, left - 1, -1):
                 ans.append(mat[bottom][j])
@@ -78,18 +81,21 @@ using namespace std;
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
+    // 读入：m n 与矩阵
     int m, n;
     cin >> m >> n;
     vector<vector<int>> mat(m, vector<int>(n));
     for (int i = 0; i < m; i++)
         for (int j = 0; j < n; j++) cin >> mat[i][j];
     vector<int> ans;
+    // 四边界圈出当前层；走完一条边立刻收缩，拐角不重复
     int top = 0, bottom = m - 1, left = 0, right = n - 1;
     while (top <= bottom && left <= right) {
         for (int j = left; j <= right; j++) ans.push_back(mat[top][j]);
         top++;
         for (int i = top; i <= bottom; i++) ans.push_back(mat[i][right]);
         right--;
+        // 单行/单列已退化则不再走左、上，否则会回头
         if (top <= bottom) {
             for (int j = right; j >= left; j--) ans.push_back(mat[bottom][j]);
             bottom--;
