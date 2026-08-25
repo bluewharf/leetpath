@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     COOKIE_NAME: str = "leetpath_token"
     COOKIE_SECURE: bool = False
     PUBLIC_ORIGIN: str = "http://localhost:5173"
+    # AI 助教代理允许转发的目标域名（逗号分隔），防止 SSRF
+    AI_ALLOWED_HOSTS: str = "api.antithor.asia,api.deepseek.com"
 
     @model_validator(mode="after")
     def validate_production_security(self) -> "Settings":

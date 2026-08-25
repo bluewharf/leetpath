@@ -151,6 +151,15 @@
                 {{ submitting ? '评测中…' : '提交评测' }}
               </button>
 
+              <button
+                class="btn btn-sm btn-outline"
+                style="border-color:var(--accent);color:var(--accent)"
+                @click="openAiDrawer"
+                title="让 AI 助教帮我找茬、分析复杂度或提供递进思路"
+              >
+                🤖 AI 助教
+              </button>
+
               <button class="btn btn-sm btn-ghost" @click="confirmResetCode" title="重置为初始模板代码">
                 重置
               </button>
@@ -215,6 +224,17 @@
         </section>
       </div>
     </template>
+
+    <!-- AI 助教抽屉 -->
+    <AiTutorDrawer
+      v-if="problem"
+      :visible="aiDrawerVisible"
+      :title="`🤖 AI 助教 · ${problemHeading(problem)} 代码找茬与提示`"
+      :context-key="`problem:${problem.slug}`"
+      :context-text="problemAiContext"
+      :preset-prompts="problemPresetPrompts"
+      @close="aiDrawerVisible = false"
+    />
   </div>
 </template>
 
@@ -222,6 +242,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
+import AiTutorDrawer, { type PromptPreset } from '../components/AiTutorDrawer.vue'
 import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -255,6 +276,61 @@ const tab = ref<'statement' | 'solution' | 'code' | 'result'>('statement')
 const leftPaneTab = ref<'statement' | 'solution'>('statement')
 const isDesktop = ref(window.innerWidth >= 1024)
 const isZen = ref(false)
+const aiDrawerVisible = ref(false)
+
+function openAiDrawer() {
+  aiDrawerVisible.value = true
+}
+
+const problemAiContext = computed(() => {
+  const p = problem.value
+  if (!p) return ''
+  const sub = submission.value
+  let subInfo = '当前尚未提交或评测。'
+  if (sub) {
+    subInfo = `最后一次评测状态：[${sub.status}]（耗时: ${sub.runtime_ms ?? '-'}ms）`
+    if (sub.compile_output) {
+      subInfo += `\n编译/错误输出：\n${sub.compile_output}`
+    }
+  }
+  return `【题目】：${problemHeading(p)} (${p.difficulty} · ${p.tags.join(', ')})
+【语言】：${language.value === 'cpp' ? 'C++ (C++20)' : 'Python 3'} (ACM 模式输入输出)
+【评测状态】：${subInfo}
+
+【用户当前代码】：
+\`\`\`${language.value === 'cpp' ? 'cpp' : 'python'}
+${code.value}
+\`\`\`
+
+【题目描述】：
+${p.statement_md}`
+})
+
+const problemPresetPrompts = computed<PromptPreset[]>(() => {
+  const sub = submission.value
+  const list: PromptPreset[] = []
+  if (sub && sub.status !== 'AC') {
+    list.push({
+      label: `🐞 帮我找当前 [${sub.status}] 的 Bug`,
+      prompt: `我的代码提交评测结果为 [${sub.status}]。请检查我的代码中可能遗漏的极端边界条件、越界、死循环或逻辑错误。请给出思考方向和引导，不要直接给我完整代码。`,
+    })
+  }
+  list.push(
+    {
+      label: '💡 递进式解题思路提示 (Hint)',
+      prompt: '请像技术面试官一样，给我一个层层递进的思路提示（Hint 1 ➔ Hint 2 ➔ 伪代码核心思想），不要直接剧透完整实现。',
+    },
+    {
+      label: '⏱️ 时空复杂度分析与瓶颈诊断',
+      prompt: '请分析我当前代码的时间复杂度和空间复杂度分别是多少？是否存在性能瓶颈或可以降阶优化的空间？',
+    },
+    {
+      label: '📝 ACM 输入输出规范排错',
+      prompt: '在当前这道题的 ACM 模式下，对于 Python / C++ 读入和打印格式有什么特别需要注意的避坑点吗？',
+    },
+  )
+  return list
+})
 
 // 分栏拖拽
 const splitRatio = ref(50)
