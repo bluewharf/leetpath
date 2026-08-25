@@ -8,3 +8,4 @@ PyJWT==2.13.0
 bcrypt==5.0.0
 pytest==9.1.1
 httpx==0.28.1
+tzdata==2026.3  # Windows 无系统时区库，zoneinfo 依赖

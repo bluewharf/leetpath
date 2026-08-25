@@ -932,8 +932,8 @@ onBeforeUnmount(() => {
 }
 
 .btn-favorite.active {
-  color: #f59e0b;
-  border-color: #f59e0b;
+  color: var(--amber);
+  border-color: var(--amber);
 }
 
 .quiz-stem {
@@ -980,7 +980,7 @@ onBeforeUnmount(() => {
 
 .quiz-option-btn:hover:not(:disabled) {
   border-color: var(--accent);
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.05);
+  background: var(--accent-soft);
 }
 
 .opt-prefix {
@@ -1014,11 +1014,11 @@ onBeforeUnmount(() => {
 }
 
 .indicator-tag.correct {
-  color: var(--green, #10b981);
+  color: var(--green);
 }
 
 .indicator-tag.wrong {
-  color: var(--red, #ef4444);
+  color: var(--red);
 }
 
 .indicator-tag.selected {
@@ -1027,30 +1027,30 @@ onBeforeUnmount(() => {
 
 /* 判定反馈样式 */
 .quiz-option-btn.opt-correct {
-  border-color: var(--green, #10b981) !important;
-  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: var(--green) !important;
+  background: var(--green-soft) !important;
 }
 
 .quiz-option-btn.opt-correct .opt-prefix {
-  background: var(--green, #10b981);
+  background: var(--green);
   color: #fff;
-  border-color: var(--green, #10b981);
+  border-color: var(--green);
 }
 
 .quiz-option-btn.opt-wrong {
-  border-color: var(--red, #ef4444) !important;
-  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: var(--red) !important;
+  background: var(--red-soft) !important;
 }
 
 .quiz-option-btn.opt-wrong .opt-prefix {
-  background: var(--red, #ef4444);
+  background: var(--red);
   color: #fff;
-  border-color: var(--red, #ef4444);
+  border-color: var(--red);
 }
 
 .quiz-option-btn.opt-selected {
   border-color: var(--accent);
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--accent-soft);
 }
 
 .multi-submit-bar {
@@ -1075,13 +1075,13 @@ onBeforeUnmount(() => {
 }
 
 .quiz-result-banner.res-correct {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--green-soft);
+  border: 1px solid var(--green);
 }
 
 .quiz-result-banner.res-wrong {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--red-soft);
+  border: 1px solid var(--red);
 }
 
 .res-icon {
@@ -1192,7 +1192,7 @@ kbd {
 .cat-pill {
   padding: 4px 10px;
   border-radius: 6px;
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.15);
+  background: var(--accent-soft);
   color: var(--accent);
   font-size: 13px;
   font-weight: 600;

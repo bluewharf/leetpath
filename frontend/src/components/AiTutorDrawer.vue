@@ -404,7 +404,7 @@ watch(
   padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.08);
+  background: var(--accent-soft);
   color: var(--text);
   font-size: 12px;
   white-space: nowrap;
@@ -414,7 +414,7 @@ watch(
 
 .chip-btn:hover:not(:disabled) {
   border-color: var(--accent);
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+  background: var(--accent-soft);
 }
 
 .drawer-messages {
@@ -452,8 +452,8 @@ watch(
 }
 
 .bubble-user .bubble-body {
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.15);
-  border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.3);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
   padding: 10px 14px;
   border-radius: 10px;
   border-top-right-radius: 2px;
@@ -491,9 +491,9 @@ watch(
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--green-soft);
   color: var(--green);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid var(--green);
 }
 
 .bubble-markdown {

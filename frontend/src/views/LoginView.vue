@@ -9,7 +9,7 @@
       <div class="auth-hero">
         <div class="auth-hero-brand">
           <span class="brand-logo">leet<span class="path">path</span></span>
-          <span class="brand-badge">2026 校招高频冲刺站</span>
+          <span class="brand-badge">2027 校招高频冲刺站</span>
         </div>
 
         <h1 class="auth-hero-title">

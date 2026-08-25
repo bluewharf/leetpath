@@ -12,6 +12,9 @@
   --surface: #ffffff;
   --surface-2: #f2f2f4;
   --surface-3: #e5e5e8;
+  /* 组件侧历史遗留引用，统一映射到 surface-2（随主题联动） */
+  --bg-soft: var(--surface-2);
+  --card: var(--surface);
   --border: #e5e5e8;
   --border-strong: #d3d3d8;
   --text: #1c1c1f;
@@ -145,6 +148,59 @@
 :root[data-theme="cyber"] .heatmap-cell.level-2 { background: rgba(0, 242, 254, 0.5); }
 :root[data-theme="cyber"] .heatmap-cell.level-3 { background: rgba(0, 242, 254, 0.75); }
 :root[data-theme="cyber"] .heatmap-cell.level-4 { background: #00f2fe; box-shadow: 0 0 8px #00f2fe; }
+
+/* 护眼主题：豆沙绿纸面阅读风。低蓝光绿底 + 暖白卡片 + 墨绿正文，
+   对比度刻意压柔，适合长时间刷题阅读 */
+:root[data-theme="sepia"] {
+  --bg: #c7edcc;
+  --bg-glow-1: transparent;
+  --bg-glow-2: transparent;
+  --surface: #f7fbf2;
+  --surface-2: #e9f3e1;
+  --surface-3: #d9e9cf;
+  --border: #c0dcbc;
+  --border-strong: #a4c99e;
+  --text: #25391f;
+  --text-dim: #50644b;
+  --text-faint: #7e927a;
+
+  --accent: #337a3d;
+  --accent-2: #5d9c5f;
+  --accent-hover: #275f2f;
+  --accent-soft: rgba(51, 122, 61, 0.1);
+  --accent-border: rgba(51, 122, 61, 0.32);
+  --ink: #1e3322;
+  --ink-hover: #35543a;
+  --grad: linear-gradient(135deg, #1e3322 0%, #337a3d 140%);
+  --grad-text: linear-gradient(135deg, #25391f 40%, #337a3d 100%);
+
+  --green: #2f7d46;
+  --green-soft: rgba(47, 125, 70, 0.12);
+  --red: #b04a2e;
+  --red-soft: rgba(176, 74, 46, 0.11);
+  --amber: #96721f;
+  --amber-soft: rgba(150, 114, 31, 0.13);
+  --purple: #71619e;
+  --purple-soft: rgba(113, 97, 158, 0.12);
+
+  --shadow: 0 1px 2px rgba(37, 57, 31, 0.06);
+  --shadow-lg: 0 12px 32px -12px rgba(37, 57, 31, 0.18);
+  --shadow-accent: 0 3px 10px rgba(37, 57, 31, 0.2);
+  color-scheme: light;
+}
+
+:root[data-theme="sepia"] .topbar {
+  background: rgba(199, 237, 204, 0.85);
+}
+
+:root[data-theme="sepia"] .bottom-tabs {
+  background: rgba(199, 237, 204, 0.92);
+}
+
+:root[data-theme="sepia"] .heatmap-cell.level-1 { background: rgba(51, 122, 61, 0.25); }
+:root[data-theme="sepia"] .heatmap-cell.level-2 { background: rgba(51, 122, 61, 0.45); }
+:root[data-theme="sepia"] .heatmap-cell.level-3 { background: rgba(51, 122, 61, 0.7); }
+:root[data-theme="sepia"] .heatmap-cell.level-4 { background: #337a3d; }
 
 /* ========== 全站字号自由调节体系 (Font Sizing Scale) ========== */
 :root,
