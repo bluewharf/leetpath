@@ -34,8 +34,9 @@
       </div>
 
       <div class="hero-actions">
-        <RouterLink class="btn btn-primary" to="/problems">进入题库 →</RouterLink>
-        <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷一题</button>
+        <RouterLink class="btn btn-primary" to="/problems">代码题库 →</RouterLink>
+        <RouterLink class="btn btn-primary" style="background:var(--card);border-color:var(--accent);color:var(--accent)" to="/quiz">📝 八股自测 (726题) →</RouterLink>
+        <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷算法</button>
         <RouterLink class="btn" to="/review">背题模式</RouterLink>
         <RouterLink class="btn" to="/handbook">新手手册</RouterLink>
       </div>
