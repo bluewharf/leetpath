@@ -195,3 +195,13 @@ class QuizRecord(Base):
     user: Mapped[User] = relationship()
     question: Mapped[QuizQuestion] = relationship(back_populates="records")
 
+
+class SystemSetting(Base):
+    """系统全局配置（管理员在 Web 后台动态配置，如共享 AI 密钥等）"""
+    __tablename__ = "system_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+

@@ -56,6 +56,7 @@
 
     <RouterView />
     <Toast />
+    <FloatingAiAssistant />
     <AiSettingsModal v-if="showAiSettings" @close="showAiSettings = false" />
 
     <nav class="bottom-tabs" v-if="auth.me">
@@ -91,6 +92,7 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AiSettingsModal from './components/AiSettingsModal.vue'
+import FloatingAiAssistant from './components/FloatingAiAssistant.vue'
 import Toast from './components/Toast.vue'
 import { useAiStore } from './stores/ai'
 import { useAuthStore } from './stores/auth'

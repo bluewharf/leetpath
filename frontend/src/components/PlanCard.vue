@@ -7,12 +7,14 @@
         <div class="plan-info">
           <div class="plan-badge-line">
             <span class="badge badge-source">{{ activePlan.badge }}</span>
-            <span class="plan-day-tag mono">
-              第 {{ currentDayIndex }} / {{ activePlan.totalDays }} 天
-            </span>
+            <span class="plan-day-tag mono">{{ phaseLabel }}</span>
           </div>
           <h2 class="plan-title">{{ activePlan.title }}</h2>
           <p class="plan-tagline">{{ activePlan.tagline }}</p>
+          <p class="plan-date-range mono">
+            {{ formatZhDate(activePlan.startDate) }} — {{ formatZhDate(planEndDate) }}
+            · 每日 {{ activePlan.dailyGoal }} 题
+          </p>
         </div>
 
         <div class="plan-actions-top">
@@ -43,18 +45,11 @@
             v-for="d in activePlan.totalDays"
             :key="d"
             class="matrix-day-box"
-            :class="{
-              'is-completed': isDayCompleted(d),
-              'is-today': d === currentDayIndex,
-              'is-past': d < currentDayIndex && !isDayCompleted(d),
-              'is-future': d > currentDayIndex,
-            }"
+            :class="dayBoxClass(d)"
             :title="planDayTitle(d)"
           >
+            <span class="day-date">{{ formatMdSlash(addDays(activePlan.startDate, d - 1)) }}</span>
             <span class="day-num">D{{ d }}</span>
-            <span class="day-status-icon">
-              {{ isDayCompleted(d) ? '✓' : d === currentDayIndex ? '●' : '○' }}
-            </span>
           </div>
         </div>
       </div>
@@ -63,24 +58,29 @@
       <div class="today-mission-box">
         <div class="today-mission-head">
           <div class="today-target-line">
-            <span class="today-tag">🎯 今日目标 · {{ formatZhMd(todayStr) }}</span>
-            <span class="today-count mono">
-              已完成 <strong>{{ todayProgress.count }}</strong> / {{ activePlan.dailyGoal }} 题
-            </span>
-            <span
-              v-if="todayProgress.completed"
-              class="today-badge-ok"
-            >
-              ✨ 今日打卡已达标！
-            </span>
-            <span v-else class="today-badge-pending">
-              ⏳ 还差 {{ Math.max(0, activePlan.dailyGoal - todayProgress.count) }} 题达标
-            </span>
+            <span class="today-tag">🎯 {{ todayHeadline }}</span>
+            <template v-if="planPhase === 'active'">
+              <span class="today-count mono">
+                已完成 <strong>{{ todayProgress.count }}</strong> / {{ todayQuota }} 题
+              </span>
+              <span v-if="todayProgress.completed" class="today-badge-ok">✨ 今日打卡已达标！</span>
+              <span v-else class="today-badge-pending">
+                ⏳ 还差 {{ Math.max(0, todayQuota - todayProgress.count) }} 题达标
+              </span>
+            </template>
           </div>
         </div>
 
-        <!-- 今日精选题目列表 -->
-        <div class="today-problems-list" v-if="todayProblems.length > 0">
+        <div v-if="planPhase === 'upcoming'" class="empty" style="padding:12px 0">
+          计划将于 {{ formatZhDate(activePlan.startDate) }} 开始，今天暂无打卡任务。
+        </div>
+        <div v-else-if="planPhase === 'ended'" class="empty" style="padding:12px 0">
+          计划已于 {{ formatZhDate(planEndDate) }} 结束。可点右上角切换或重置后再开新计划。
+        </div>
+        <div v-else-if="todayProblems.length === 0" class="empty" style="padding:12px 0">
+          今日没有编排题目（当天题量为 0）。
+        </div>
+        <div class="today-problems-list" v-else>
           <div
             v-for="p in todayProblems"
             :key="p.slug"
@@ -125,7 +125,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { addDays, formatZhDate, formatZhMd, todayLocalDate } from '../dates'
+import { addDays, formatMdSlash, formatZhDate, formatZhMd, todayLocalDate } from '../dates'
 import { useStudyPlan } from '../stores/plan'
 import { useToast } from '../stores/toast'
 import { problemHeading, type ProblemListItem } from '../types'
@@ -142,6 +142,8 @@ const toast = useToast()
 const {
   activePlan,
   currentDayIndex,
+  planPhase,
+  planEndDate,
   todayTargetSlugs,
   todayProgress,
   completedDaysCount,
@@ -149,30 +151,62 @@ const {
   resetPlan,
 } = useStudyPlan()
 
-// 获取今日分配的真实题目对象
 const todayStr = todayLocalDate()
 
 const todayProblems = computed(() => {
   if (!todayTargetSlugs.value.length) return []
-  return props.problems.filter((p) => todayTargetSlugs.value.includes(p.slug))
+  const order = new Map(todayTargetSlugs.value.map((slug, i) => [slug, i]))
+  return props.problems
+    .filter((p) => order.has(p.slug))
+    .sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0))
+})
+
+const todayQuota = computed(() => {
+  if (todayTargetSlugs.value.length > 0) return todayTargetSlugs.value.length
+  return activePlan.value?.dailyGoal ?? 0
+})
+
+const phaseLabel = computed(() => {
+  if (!activePlan.value) return ''
+  if (planPhase.value === 'upcoming') return `未开始 · ${activePlan.value.totalDays} 天`
+  if (planPhase.value === 'ended') return `已结束 · ${activePlan.value.totalDays} 天`
+  return `第 ${currentDayIndex.value} / ${activePlan.value.totalDays} 天`
+})
+
+const todayHeadline = computed(() => {
+  if (planPhase.value === 'upcoming') return `尚未开营 · ${formatZhMd(todayStr)}`
+  if (planPhase.value === 'ended') return `计划已结束 · ${formatZhMd(todayStr)}`
+  return `今日目标 · ${formatZhMd(todayStr)}`
 })
 
 function planDayTitle(day: number): string {
   if (!activePlan.value) return `第 ${day} 天`
   const iso = addDays(activePlan.value.startDate, day - 1)
-  return `${formatZhDate(iso)} · 第 ${day} 天`
+  const n = activePlan.value.schedule[day]?.length ?? 0
+  return `${formatZhDate(iso)} · 第 ${day} 天 · ${n} 题`
 }
 
-// 判断某一特定天数是否达标
 function isDayCompleted(day: number): boolean {
   if (!activePlan.value) return false
-  const start = new Date(activePlan.value.startDate)
-  const targetDate = new Date(start)
-  targetDate.setDate(start.getDate() + (day - 1))
-  const dateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`
+  const iso = addDays(activePlan.value.startDate, day - 1)
+  return !!activePlan.value.punchRecords[iso]?.completed
+}
 
-  const rec = activePlan.value.punchRecords[dateStr]
-  return !!rec?.completed
+function dayBoxClass(day: number) {
+  const today = currentDayIndex.value
+  const completed = isDayCompleted(day)
+  if (planPhase.value === 'upcoming') {
+    return { 'is-future': true }
+  }
+  if (planPhase.value === 'ended') {
+    return { 'is-completed': completed, 'is-past': !completed }
+  }
+  return {
+    'is-completed': completed,
+    'is-today': today === day,
+    'is-past': today != null && day < today && !completed,
+    'is-future': today != null && day > today,
+  }
 }
 
 function handleReset() {

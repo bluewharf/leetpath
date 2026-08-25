@@ -35,7 +35,7 @@
 
       <div class="hero-actions">
         <RouterLink class="btn btn-primary" to="/problems">代码题库 →</RouterLink>
-        <RouterLink class="btn btn-primary" style="background:var(--card);border-color:var(--accent);color:var(--accent)" to="/quiz">📝 八股自测 (726题) →</RouterLink>
+        <RouterLink class="btn btn-primary" style="background:var(--card);border-color:var(--accent);color:var(--accent)" to="/quiz">📝 八股自测{{ quizTotal ? ` (${quizTotal}题)` : '' }} →</RouterLink>
         <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷算法</button>
         <RouterLink class="btn" to="/review">背题模式</RouterLink>
         <RouterLink class="btn" to="/handbook">新手手册</RouterLink>
@@ -145,7 +145,7 @@ import JobBoard from '../components/JobBoard.vue'
 import PlanCard from '../components/PlanCard.vue'
 import PlanModal from '../components/PlanModal.vue'
 import { addDays, formatZhDate, todayLocalDate } from '../dates'
-import type { Job, ProblemListItem, Submission } from '../types'
+import type { Job, ProblemListItem, QuizStats, Submission } from '../types'
 
 const router = useRouter()
 
@@ -154,6 +154,7 @@ const problemCount = ref(0)
 const solvedCount = ref(0)
 const rememberedCount = ref(0)
 const openJobCount = ref(0)
+const quizTotal = ref(0)
 const problems = ref<ProblemListItem[]>([])
 const showPlanModal = ref(false)
 
@@ -269,16 +270,18 @@ function generateHeatmap(submissions: Submission[]) {
 
 async function loadHome() {
   try {
-    const [pList, jobs, subs] = await Promise.all([
+    const [pList, jobs, subs, quiz] = await Promise.all([
       api.get<ProblemListItem[]>('/api/problems'),
       api.get<Job[]>('/api/jobs'),
       api.get<Submission[]>('/api/submissions?limit=100').catch(() => [] as Submission[]),
+      api.get<QuizStats>('/api/quiz/stats').catch(() => null),
     ])
     problems.value = pList
     problemCount.value = pList.length
     solvedCount.value = pList.filter((p) => p.my_status === 'solved').length
     rememberedCount.value = pList.filter((p) => p.memory === 'remembered').length
     openJobCount.value = jobs.filter((j) => j.status !== 'closed' && (j.days_left === null || j.days_left >= 0)).length
+    quizTotal.value = quiz?.total_questions ?? 0
 
     generateHeatmap(subs)
     error.value = ''

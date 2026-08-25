@@ -17,11 +17,6 @@ export const AI_PRESETS: AiPreset[] = [
     name: 'Antithor 专属中转站 (默认)',
     url: 'https://api.antithor.asia/v1',
   },
-  {
-    name: 'DeepSeek 官方',
-    url: 'https://api.deepseek.com/v1',
-    defaultModel: 'deepseek-chat',
-  },
 ]
 
 const STORAGE_KEY = 'leetpath_ai_config'
@@ -33,7 +28,9 @@ interface AiConfig {
   model: string
   modelsList: string[]
   temperature: number
-  maxContextTurns: number // 上下文轮数约束，默认 2~3 轮以极大节省 Token
+  maxContextTurns: number // 对话轮数约束（1~10 轮）
+  maxContextTokens: number // 最大上下文 Token 预算（4k~128k）
+  maxResponseTokens: number // 单次回复最大 Token 上限（1k~8k）
   enableLocalCache: boolean // 是否开启响应本地缓存
 }
 
@@ -43,7 +40,16 @@ interface CacheItem {
   timestamp: number
 }
 
-// 读取配置
+// 快速估算文本 Token 数（中文约 1.5 token/字，英文代码约 0.5~1 token/词）
+export function estimateTokens(text: string): number {
+  if (!text) return 0
+  const cjkMatches = text.match(/[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/g) || []
+  const cjkCount = cjkMatches.length
+  const nonCjkCount = text.length - cjkCount
+  return Math.ceil(cjkCount * 1.5 + nonCjkCount * 0.45)
+}
+
+// 读取持久化配置
 const savedConfig: Partial<AiConfig> = (() => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -55,18 +61,31 @@ const savedConfig: Partial<AiConfig> = (() => {
 
 const baseUrl = ref<string>(savedConfig.baseUrl || 'https://api.antithor.asia/v1')
 const apiKey = ref<string>(savedConfig.apiKey || '')
-const selectedModel = ref<string>(savedConfig.model || 'claude-3-5-sonnet-20241022')
-const modelsList = ref<string[]>(savedConfig.modelsList || [
-  'claude-3-5-sonnet-20241022',
-  'deepseek-chat',
-  'deepseek-reasoner',
-  'gpt-4o',
-  'gpt-4o-mini',
-  'qwen-2.5-coder-32b',
-])
+const selectedModel = ref<string>(savedConfig.model || 'grok-4.6-xhigh')
+const modelsList = ref<string[]>(savedConfig.modelsList || [])
 const temperature = ref<number>(savedConfig.temperature ?? 0.7)
-const maxContextTurns = ref<number>(savedConfig.maxContextTurns ?? 2)
+const maxContextTurns = ref<number>(savedConfig.maxContextTurns ?? 5)
+const maxContextTokens = ref<number>(savedConfig.maxContextTokens ?? 131072)
+const maxResponseTokens = ref<number>(savedConfig.maxResponseTokens ?? 4096)
 const enableLocalCache = ref<boolean>(savedConfig.enableLocalCache ?? true)
+const hasSystemKey = ref<boolean>(false)
+
+// 异步探测服务端内置 Key 状态
+async function checkSystemStatus() {
+  try {
+    const res = await fetch('/api/ai/status')
+    if (res.ok) {
+      const data = await res.json()
+      hasSystemKey.value = Boolean(data.has_system_key)
+      if (!selectedModel.value && data.default_model) {
+        selectedModel.value = data.default_model
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+checkSystemStatus()
 
 // 读取本地问答响应缓存
 function getCacheMap(): Record<string, CacheItem> {
@@ -96,7 +115,9 @@ function saveCacheMap(map: Record<string, CacheItem>) {
 }
 
 const isConfigured = computed(() => {
-  return baseUrl.value.trim().length > 0 && apiKey.value.trim().length > 0 && selectedModel.value.trim().length > 0
+  const hasKey = apiKey.value.trim().length > 0 || hasSystemKey.value
+  const hasModel = selectedModel.value.trim().length > 0 || hasSystemKey.value
+  return baseUrl.value.trim().length > 0 && hasKey && hasModel
 })
 
 function saveConfig() {
@@ -107,6 +128,8 @@ function saveConfig() {
     modelsList: modelsList.value,
     temperature: temperature.value,
     maxContextTurns: maxContextTurns.value,
+    maxContextTokens: maxContextTokens.value,
+    maxResponseTokens: maxResponseTokens.value,
     enableLocalCache: enableLocalCache.value,
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg))
@@ -189,7 +212,7 @@ export function useAiStore() {
     list.sort((a, b) => a.localeCompare(b))
     modelsList.value = list
     if (!list.includes(selectedModel.value)) {
-      selectedModel.value = list[0] || 'claude-3-5-sonnet-20241022'
+      selectedModel.value = list[0] || ''
     }
     saveConfig()
     return list
@@ -239,7 +262,7 @@ export function useAiStore() {
   }
 
   /**
-   * 发起流式对话（通过透明代理 + 严格上下文约束 + 前缀缓存优化）
+   * 发起流式对话（包含严格 Token 预算裁剪 + 轮数约束 + 前缀保护）
    */
   async function streamChat(
     messages: AiMessage[],
@@ -250,15 +273,37 @@ export function useAiStore() {
       throw new Error('请先在顶部「🤖 AI 设置」中配置 API Key 与模型')
     }
 
-    // 上下文约束：保留 system 提示词 + 最近 maxContextTurns 轮（1轮=1user+1assistant），防止无限膨胀 Token
+    // 1. 分离系统核心提示词（锚定保护，永不截断）与历史会话
     const systemMsg = messages.find((m) => m.role === 'system')
     const historyMsgs = messages.filter((m) => m.role !== 'system')
+
+    // 2. 第一重防线：最大轮数裁剪（保留最近 maxContextTurns 轮对话）
     const maxHistoryCount = Math.max(1, maxContextTurns.value * 2)
-    const trimmedHistory = historyMsgs.slice(-maxHistoryCount)
+    const recentHistory = historyMsgs.slice(-maxHistoryCount)
+
+    // 3. 第二重防线：Token 预算滑动裁剪（从旧到新丢弃，直至总 Token <= maxContextTokens）
+    const budget = maxContextTokens.value
+    let sysTokens = systemMsg ? estimateTokens(systemMsg.content) : 0
+    let remainingBudget = budget - sysTokens
+
+    const selectedHistory: AiMessage[] = []
+    // 从最新的消息往旧遍历反向装载
+    for (let i = recentHistory.length - 1; i >= 0; i--) {
+      const msg = recentHistory[i]
+      if (!msg) continue
+      const msgTokens = estimateTokens(msg.content)
+      if (remainingBudget >= msgTokens || selectedHistory.length === 0) {
+        selectedHistory.unshift(msg)
+        remainingBudget -= msgTokens
+      } else {
+        // 超过 Token 预算，丢弃更早的历史
+        break
+      }
+    }
 
     const finalMessages: AiMessage[] = []
     if (systemMsg) finalMessages.push(systemMsg)
-    finalMessages.push(...trimmedHistory)
+    finalMessages.push(...selectedHistory)
 
     const res = await fetch('/api/ai/chat', {
       method: 'POST',
@@ -271,6 +316,7 @@ export function useAiStore() {
         model: selectedModel.value.trim(),
         messages: finalMessages,
         temperature: temperature.value,
+        max_tokens: maxResponseTokens.value,
       }),
       signal,
     })
@@ -307,14 +353,28 @@ export function useAiStore() {
             const jsonStr = trimmed.slice(5).trim()
             try {
               const parsed = JSON.parse(jsonStr)
-              const delta = parsed.choices?.[0]?.delta
-              const content = delta?.content || delta?.reasoning_content || ''
+              if (parsed.error) {
+                throw new Error(parsed.error)
+              }
+              const choice = parsed.choices?.[0]
+              const delta = choice?.delta
+              const content =
+                delta?.content ||
+                delta?.reasoning_content ||
+                delta?.text ||
+                choice?.text ||
+                choice?.message?.content ||
+                parsed.response ||
+                parsed.message?.content ||
+                ''
               if (content) {
                 fullText += content
                 onChunk(content)
               }
-            } catch {
-              // 容错
+            } catch (err: any) {
+              if (err.message && !err.message.includes('JSON')) {
+                throw err
+              }
             }
           }
         }
@@ -333,6 +393,8 @@ export function useAiStore() {
     modelsList,
     temperature,
     maxContextTurns,
+    maxContextTokens,
+    maxResponseTokens,
     enableLocalCache,
     isConfigured,
     saveConfig,

@@ -15,6 +15,7 @@
       <button :class="{ active: tab === 'problems' }" @click="tab = 'problems'">题目管理</button>
       <button :class="{ active: tab === 'jobs' }" @click="tab = 'jobs'">看板管理</button>
       <button :class="{ active: tab === 'invites' }" @click="tab = 'invites'">邀请码</button>
+      <button :class="{ active: tab === 'ai' }" @click="tab = 'ai'">🤖 AI 内测配置</button>
     </div>
 
     <!-- 题目管理 -->
@@ -127,6 +128,76 @@
         </div>
       </div>
     </div>
+
+    <!-- AI 内测配置 -->
+    <div v-show="tab === 'ai'">
+      <div class="card" style="padding:20px 24px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h3 style="margin:0 0 4px 0">🤖 系统内置共享 AI 助教配置（内测免 Key 模式）</h3>
+            <p class="muted" style="margin:0;font-size:13px">
+              在此配置由你（管理员）统一提供的 API Key。配置后，<strong>所有内测用户登录后无需输入任何 Key 即可直接与 Grok 提问对话</strong>。
+            </p>
+          </div>
+          <span
+            class="badge"
+            :class="aiConfig.has_key ? 'badge-easy' : 'badge-hard'"
+            style="font-size:12px;padding:4px 10px"
+          >
+            {{ aiConfig.has_key ? `✓ 已启用内置 Key (${aiConfig.masked_key})` : '✕ 尚未配置内置 Key' }}
+          </span>
+        </div>
+
+        <div v-if="aiMsg" :class="aiMsgType === 'error' ? 'form-err' : 'form-success'" style="margin-bottom:14px">
+          {{ aiMsg }}
+        </div>
+
+        <form @submit.prevent="saveAiConfig">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+            <div class="field">
+              <label>Antithor / OpenAI 接口地址 (Base URL) *</label>
+              <input
+                v-model="aiForm.base_url"
+                class="input mono"
+                required
+                placeholder="https://api.antithor.asia/v1"
+              />
+            </div>
+            <div class="field">
+              <label>默认 AI 模型 (Model) *</label>
+              <input
+                v-model="aiForm.model"
+                class="input mono"
+                required
+                placeholder="grok-4.6-xhigh"
+              />
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>系统内置 API Key (支持 Antithor 密钥) *</label>
+              <input
+                v-model="aiForm.api_key"
+                type="password"
+                class="input mono"
+                :placeholder="aiConfig.has_key ? `留空保持当前密钥 (${aiConfig.masked_key})，输入新密钥覆盖` : 'sk-xxxxxxxxxxxxxxxxxxxxxxxx'"
+              />
+              <small style="color:var(--text-faint);display:block;margin-top:6px;font-size:12px">
+                🔒 安全承诺：此 Key 仅保存在服务器数据库 WAL 中，绝不下发给普通用户的前端 JS 或网络抓包，普通用户只能通过服务器代理进行安全问答。
+              </small>
+            </div>
+          </div>
+
+          <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary" :disabled="savingAi" type="submit">
+              {{ savingAi ? '保存中…' : '💾 保存并应用全局内置 Key' }}
+            </button>
+            <button class="btn btn-outline" :disabled="testingAi" type="button" @click="testAiConnection">
+              {{ testingAi ? '测试中…' : '🔄 测试中转站连接与拉取模型' }}
+            </button>
+            <span v-if="aiTestResult" style="font-size:13px;color:var(--green)">{{ aiTestResult }}</span>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -139,7 +210,15 @@ interface AdminProblem extends ProblemListItem {
   is_published: boolean
 }
 
-const tab = ref<'problems' | 'jobs' | 'invites'>('problems')
+interface SystemAiConfig {
+  has_key: boolean
+  masked_key: string
+  base_url: string
+  model: string
+  updated_at: string | null
+}
+
+const tab = ref<'problems' | 'jobs' | 'invites' | 'ai'>('problems')
 const error = ref('')
 
 // 题目管理
@@ -298,9 +377,79 @@ function inviteState(invite: InviteSummary) {
   return { text: '可使用', className: 'badge-source' }
 }
 
+// AI 内测配置管理
+const aiConfig = ref<SystemAiConfig>({
+  has_key: false,
+  masked_key: '',
+  base_url: 'https://api.antithor.asia/v1',
+  model: 'grok-4.6-xhigh',
+  updated_at: null,
+})
+const aiForm = reactive({
+  base_url: 'https://api.antithor.asia/v1',
+  model: 'grok-4.6-xhigh',
+  api_key: '',
+})
+const savingAi = ref(false)
+const testingAi = ref(false)
+const aiMsg = ref('')
+const aiMsgType = ref<'success' | 'error'>('success')
+const aiTestResult = ref('')
+
+async function loadAiConfig() {
+  try {
+    const res = await api.get<SystemAiConfig>('/api/admin/ai-config')
+    aiConfig.value = res
+    aiForm.base_url = res.base_url || 'https://api.antithor.asia/v1'
+    aiForm.model = res.model || 'grok-4.6-xhigh'
+  } catch {
+    // ignore
+  }
+}
+
+async function saveAiConfig() {
+  savingAi.value = true
+  aiMsg.value = ''
+  try {
+    const res = await api.put<SystemAiConfig>('/api/admin/ai-config', {
+      base_url: aiForm.base_url,
+      model: aiForm.model,
+      api_key: aiForm.api_key,
+    })
+    aiConfig.value = res
+    aiForm.api_key = ''
+    aiMsg.value = '✓ 系统内置 AI 配置保存成功！全体内测用户已无感生效。'
+    aiMsgType.value = 'success'
+  } catch (e) {
+    aiMsg.value = e instanceof Error ? e.message : '保存失败'
+    aiMsgType.value = 'error'
+  } finally {
+    savingAi.value = false
+  }
+}
+
+async function testAiConnection() {
+  testingAi.value = true
+  aiTestResult.value = ''
+  aiMsg.value = ''
+  try {
+    const res = await api.post<any>('/api/ai/models', {
+      base_url: aiForm.base_url,
+      api_key: aiForm.api_key,
+    })
+    const count = res?.data?.length || 0
+    aiTestResult.value = `✓ 连接成功！从中转站成功识别到 ${count} 个可用模型`
+  } catch (e) {
+    aiMsg.value = `测试失败: ${e instanceof Error ? e.message : '无法连接中转站'}`
+    aiMsgType.value = 'error'
+  } finally {
+    testingAi.value = false
+  }
+}
+
 async function loadAll() {
   try {
-    await Promise.all([loadProblems(), loadJobs(), loadInvites()])
+    await Promise.all([loadProblems(), loadJobs(), loadInvites(), loadAiConfig()])
     error.value = ''
   } catch {
     error.value = '加载失败，请检查网络后重试'

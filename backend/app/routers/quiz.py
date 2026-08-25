@@ -96,7 +96,7 @@ def list_banks(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> list[BankItem]:
-    """获取所有 34 个专题列表与当前用户的学习进度"""
+    """获取全部专题列表与当前用户的学习进度"""
     # 统计所有题目的 bank 与 category
     questions = db.scalars(select(QuizQuestion).order_by(QuizQuestion.id)).all()
     user_records = {

@@ -225,16 +225,6 @@
       </div>
     </template>
 
-    <!-- AI 助教抽屉 -->
-    <AiTutorDrawer
-      v-if="problem"
-      :visible="aiDrawerVisible"
-      :title="`🤖 AI 助教 · ${problemHeading(problem)} 代码找茬与提示`"
-      :context-key="`problem:${problem.slug}`"
-      :context-text="problemAiContext"
-      :preset-prompts="problemPresetPrompts"
-      @close="aiDrawerVisible = false"
-    />
   </div>
 </template>
 
@@ -242,7 +232,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
-import AiTutorDrawer, { type PromptPreset } from '../components/AiTutorDrawer.vue'
 import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -276,15 +265,19 @@ const tab = ref<'statement' | 'solution' | 'code' | 'result'>('statement')
 const leftPaneTab = ref<'statement' | 'solution'>('statement')
 const isDesktop = ref(window.innerWidth >= 1024)
 const isZen = ref(false)
-const aiDrawerVisible = ref(false)
+
+import { useAiAssistant } from '../stores/aiAssistant'
+
+const assistant = useAiAssistant()
 
 function openAiDrawer() {
-  aiDrawerVisible.value = true
+  updateAiContext()
+  assistant.openWithContext(assistant.currentContext.value)
 }
 
-const problemAiContext = computed(() => {
+function updateAiContext() {
   const p = problem.value
-  if (!p) return ''
+  if (!p) return
   const sub = submission.value
   let subInfo = '当前尚未提交或评测。'
   if (sub) {
@@ -293,7 +286,38 @@ const problemAiContext = computed(() => {
       subInfo += `\n编译/错误输出：\n${sub.compile_output}`
     }
   }
-  return `【题目】：${problemHeading(p)} (${p.difficulty} · ${p.tags.join(', ')})
+
+  const prompts = []
+  if (sub && sub.status !== 'AC') {
+    prompts.push({
+      label: `🐞 帮我找当前 [${sub.status}] 的 Bug`,
+      prompt: `我的代码提交评测结果为 [${sub.status}]。请检查我的代码中可能遗漏的极端边界条件、越界、死循环或逻辑错误。请给出思考方向和引导，不要直接给我完整代码。`,
+    })
+  }
+  prompts.push(
+    {
+      label: '💡 还有更多解法吗？（多种流派对比）',
+      prompt: `对于这道《${problemHeading(p)}》，除了我当前的写法外，还有哪些其他经典、进阶或不同流派的解法？（例如动态规划、单调栈、双指针、哈希等，请对比各解法的时空复杂度与优劣）`,
+    },
+    {
+      label: '🚀 怎么优化到最优时空复杂度？',
+      prompt: `请分析当前这道题的理论最优时空复杂度是多少？有哪些技巧可以将当前写法进一步降阶优化？`,
+    },
+    {
+      label: '💡 递进式解题思路提示 (Hint)',
+      prompt: '请像技术面试官一样，给我一个层层递进的思路提示（Hint 1 ➔ Hint 2 ➔ 伪代码核心思想），不要直接剧透完整实现。',
+    },
+    {
+      label: '⏱️ 时空复杂度分析与瓶颈诊断',
+      prompt: '请分析我当前代码的时间复杂度和空间复杂度分别是多少？是否存在性能瓶颈或可以优化的空间？',
+    },
+  )
+
+  assistant.setContext({
+    source: 'problem',
+    title: `力扣 · ${problemHeading(p)}`,
+    contextKey: `problem:${p.slug}`,
+    contextText: `【题目】：${problemHeading(p)} (${p.difficulty} · ${p.tags.join(', ')})
 【语言】：${language.value === 'cpp' ? 'C++ (C++20)' : 'Python 3'} (ACM 模式输入输出)
 【评测状态】：${subInfo}
 
@@ -303,33 +327,13 @@ ${code.value}
 \`\`\`
 
 【题目描述】：
-${p.statement_md}`
-})
+${p.statement_md}`,
+    presetPrompts: prompts,
+  })
+}
 
-const problemPresetPrompts = computed<PromptPreset[]>(() => {
-  const sub = submission.value
-  const list: PromptPreset[] = []
-  if (sub && sub.status !== 'AC') {
-    list.push({
-      label: `🐞 帮我找当前 [${sub.status}] 的 Bug`,
-      prompt: `我的代码提交评测结果为 [${sub.status}]。请检查我的代码中可能遗漏的极端边界条件、越界、死循环或逻辑错误。请给出思考方向和引导，不要直接给我完整代码。`,
-    })
-  }
-  list.push(
-    {
-      label: '💡 递进式解题思路提示 (Hint)',
-      prompt: '请像技术面试官一样，给我一个层层递进的思路提示（Hint 1 ➔ Hint 2 ➔ 伪代码核心思想），不要直接剧透完整实现。',
-    },
-    {
-      label: '⏱️ 时空复杂度分析与瓶颈诊断',
-      prompt: '请分析我当前代码的时间复杂度和空间复杂度分别是多少？是否存在性能瓶颈或可以降阶优化的空间？',
-    },
-    {
-      label: '📝 ACM 输入输出规范排错',
-      prompt: '在当前这道题的 ACM 模式下，对于 Python / C++ 读入和打印格式有什么特别需要注意的避坑点吗？',
-    },
-  )
-  return list
+watch([problem, code, language, submission], () => {
+  updateAiContext()
 })
 
 // 分栏拖拽

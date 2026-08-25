@@ -256,25 +256,79 @@
   {
     "category": "大模型面试",
     "title": "Agent 面试题",
-    "url": "https://xiaolincoding.com",
-    "note": "Agent面试题"
+    "url": "https://xiaolincoding.com/other/ai.html",
+    "note": "小林大模型栏目，页内看 Agent 相关"
   },
   {
     "category": "大模型面试",
     "title": "RAG 面试题",
-    "url": "https://xiaolincoding.com",
-    "note": "RAG面试题"
+    "url": "https://xiaolincoding.com/other/ai.html",
+    "note": "小林大模型栏目，页内看 RAG 相关"
   },
   {
     "category": "大模型面试",
     "title": "LLM 工具调用面试题",
-    "url": "https://xiaolincoding.com",
-    "note": "LLM工具调用面试题"
+    "url": "https://xiaolincoding.com/other/ai.html",
+    "note": "小林大模型栏目，页内看工具调用"
   },
   {
     "category": "大模型面试",
     "title": "大模型工程面试题",
-    "url": "https://xiaolincoding.com",
-    "note": "大模型工程面试题"
+    "url": "https://xiaolincoding.com/other/ai.html",
+    "note": "小林大模型栏目，页内看工程向"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "什么是 Agent Harness（八根支柱）",
+    "url": "https://nimbalyst.com/blog/agent-harness-above-claude-code-codex/",
+    "note": "Harness = 模型外面的指令/工具/权限/验证层；Claude Code 与 Codex 本身就是套件"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "OpenAI：Harness engineering",
+    "url": "https://openai.com/index/harness-engineering/",
+    "note": "Codex 如何用 Skills、MCP、自审循环把 PR 闭环"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "Claude Code：Skills / CLAUDE.md / Subagent / MCP",
+    "url": "https://code.claude.com/docs/en/features-overview",
+    "note": "官方对照表：什么自动加载、什么按需、什么隔离上下文"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "Claude Code Skills 文档",
+    "url": "https://code.claude.com/docs/en/skills",
+    "note": "Skill vs 命令 vs MCP vs Subagent"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "Model Context Protocol（MCP）",
+    "url": "https://modelcontextprotocol.io/introduction",
+    "note": "AI 应用的 USB-C：标准协议连接外部工具和数据"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "Awesome Harness Engineering",
+    "url": "https://github.com/ai-boost/awesome-harness-engineering",
+    "note": "工具、Skills、MCP、权限、评测与编排的精选清单"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "2026 编码 Agent Harness 对比",
+    "url": "https://winder.ai/ai-agent-harness-comparison/",
+    "note": "Claude Code / Codex / OpenCode 等套件对照"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "EleutherAI lm-evaluation-harness",
+    "url": "https://github.com/EleutherAI/lm-evaluation-harness",
+    "note": "评测套件（Eval Harness），和 Agent 运行时不是同一回事"
+  },
+  {
+    "category": "Agent Harness 前沿",
+    "title": "JavaGuide：2026 大模型 / Agent / RAG 面试入口",
+    "url": "https://javaguide.cn/ai/interview-questions/ai-interview-guide.html",
+    "note": "含 Harness Engineering、MCP、Agent Skills 的面试题目录"
   }
 ]
