@@ -204,7 +204,7 @@ async function onSubmit() {
 .glow-2 {
   bottom: -100px;
   right: 10%;
-  background: #3b82f6;
+  background: var(--accent-2);
 }
 
 .auth-container {
@@ -245,9 +245,9 @@ async function onSubmit() {
   font-size: 12px;
   padding: 3px 8px;
   border-radius: 12px;
-  background: rgba(var(--accent-rgb, 99, 102, 241), 0.12);
+  background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(var(--accent-rgb, 99, 102, 241), 0.3);
+  border: 1px solid var(--accent-border);
 }
 
 .auth-hero-title {
@@ -259,7 +259,7 @@ async function onSubmit() {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, var(--accent) 0%, #38bdf8 100%);
+  background: var(--grad-text);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -283,7 +283,7 @@ async function onSubmit() {
   display: flex;
   gap: 12px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
   backdrop-filter: blur(8px);
@@ -319,18 +319,18 @@ async function onSubmit() {
 }
 
 .auth-glass-card {
-  background: var(--bg-card, rgba(23, 23, 27, 0.7));
+  background: var(--surface);
   border: 1px solid var(--border);
   backdrop-filter: blur(16px);
   border-radius: 16px;
   padding: 36px 32px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
 }
 
 /* 顶部 Tab 切换 */
 .auth-tab-switch {
   display: flex;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-2);
   border-radius: 8px;
   padding: 4px;
   margin-bottom: 24px;
@@ -351,8 +351,8 @@ async function onSubmit() {
 
 .tab-item.active {
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(var(--accent-rgb, 99, 102, 241), 0.3);
+  color: var(--bg);
+  box-shadow: var(--shadow-accent);
 }
 
 .auth-card-header {
@@ -379,8 +379,8 @@ async function onSubmit() {
   gap: 8px;
   padding: 10px 14px;
   border-radius: 8px;
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--red-soft);
+  border: 1px solid var(--red);
   color: var(--red);
   font-size: 13px;
   margin-bottom: 18px;
@@ -417,7 +417,7 @@ async function onSubmit() {
 .modern-input {
   width: 100%;
   padding: 10px 12px 10px 36px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
@@ -428,8 +428,8 @@ async function onSubmit() {
 
 .modern-input:focus {
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .pwd-toggle-btn {
@@ -454,8 +454,8 @@ async function onSubmit() {
   margin-top: 10px;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
-  color: #fff;
+  background: var(--grad);
+  color: var(--bg);
   font-size: 14px;
   font-weight: 650;
   cursor: pointer;
@@ -464,12 +464,12 @@ async function onSubmit() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(var(--accent-rgb, 99, 102, 241), 0.35);
+  box-shadow: 0 4px 14px var(--accent-soft);
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(var(--accent-rgb, 99, 102, 241), 0.45);
+  box-shadow: 0 6px 20px var(--accent-border);
 }
 
 .submit-btn:disabled {
