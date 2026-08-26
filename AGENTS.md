@@ -42,7 +42,7 @@ cd frontend && npm install && npm run dev   # /api 代理到 8000
 npm run build
 
 # 发版（本地）：更新 VERSION 单源并打 git tag
-scripts/release.sh 0.3.0 && git push && git push origin v0.3.0
+scripts/release.sh 0.3.1 && git push && git push origin v0.3.1
 
 # 升级（服务器）：拉代码、按 VERSION 构建带标签镜像、滚动重启并健康检查
 scripts/upgrade.sh

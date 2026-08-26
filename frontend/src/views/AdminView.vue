@@ -22,7 +22,7 @@
     <div v-show="tab === 'problems'" class="card">
       <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center">
         <button class="btn btn-sm btn-primary" :disabled="seeding" @click="reloadSeed">
-          {{ seeding ? '导入中…' : '重新导入种子题库' }}
+          {{ seeding ? '导入中…' : '重新导入题库与八股' }}
         </button>
         <span v-if="seedMsg" style="font-size:13px;color:var(--text-dim)">{{ seedMsg }}</span>
       </div>
@@ -239,8 +239,8 @@ async function reloadSeed() {
   seeding.value = true
   seedMsg.value = ''
   try {
-    const res = await api.post<{ imported: number }>('/api/admin/seed/reload')
-    seedMsg.value = `已导入 ${res.imported} 道题`
+    const res = await api.post<{ imported: number; quiz_imported?: number }>('/api/admin/seed/reload')
+    seedMsg.value = `已导入 ${res.imported} 道算法题、${res.quiz_imported ?? 0} 道八股`
     await loadProblems()
   } catch (e) {
     seedMsg.value = e instanceof Error ? e.message : '导入失败'

@@ -141,16 +141,15 @@ from app.backup import backup_once
 print(backup_once(Path('/app/data/leetpath.db'), Path('/app/backups')))
 "
 
-# 2. 拉代码并按 VERSION 构建、滚动重启、健康检查
+# 2. 拉代码、按 VERSION 构建并滚动重启；脚本末尾会导入八股
+#    （按选项原文重映射作答字母，对错/收藏/斩题保留，不清 quiz_records）
 git pull --ff-only
 scripts/upgrade.sh
-
-# 3. 八股题面若有更新（例如打乱选项），把 JSON 导入已有库。
-#    loader 按选项原文把用户作答字母映射到新位置，对错、收藏、斩题都保留，不用重做。
-docker compose exec backend python -m app.seed.quiz_loader
 ```
 
-`upgrade.sh` 成功后 `/api/health` 的 `version` 应等于仓库里的 `VERSION`。账号、提交记录、草稿都还在。步骤 3 只更新题面和作答字母，不会清空 `quiz_records`。
+`upgrade.sh` 成功后 `/api/health` 的 `version` 应等于仓库里的 `VERSION`。账号、提交记录、草稿都还在。八股导入也可在管理页点「重新导入题库与八股」。
+
+若 `git pull --ff-only` 因历史改写失败，在确认没有未提交的服务器改动后：`git fetch origin && git reset --hard origin/main`（`.env` 不在 git 里，不会被删）。
 
 回滚到上一版（同样不碰数据库）：
 

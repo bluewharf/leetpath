@@ -17,13 +17,21 @@ docker compose build backend frontend
 docker compose --profile production up -d --remove-orphans
 
 echo "==> 等待 backend 健康检查..."
+healthy=0
 for _ in $(seq 1 30); do
   if docker compose exec -T backend curl -fsS http://localhost:8000/api/health 2>/dev/null; then
     echo
-    echo "==> v$LEETPATH_VERSION 升级完成"
-    exit 0
+    healthy=1
+    break
   fi
   sleep 2
 done
-echo "健康检查超时，请查看: docker compose logs backend" >&2
-exit 1
+if [[ "$healthy" -ne 1 ]]; then
+  echo "健康检查超时，请查看: docker compose logs backend" >&2
+  exit 1
+fi
+
+echo "==> 导入八股题库（按选项原文重映射作答字母，不清 quiz_records）..."
+docker compose exec -T backend python -m app.seed.quiz_loader
+
+echo "==> v$LEETPATH_VERSION 升级完成"

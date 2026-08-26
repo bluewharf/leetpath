@@ -16,9 +16,11 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("PUBLIC_ORIGIN", "http://testserver")
 
     from app.seed import loader as seed_loader
+    from app.seed import quiz_loader as quiz_seed_loader
 
-    # 测试一律走 fixtures，禁止读写 app/seed/problems/
+    # 测试一律走 fixtures，禁止读写 app/seed/problems/ 与正式八股 JSON
     monkeypatch.setattr(seed_loader, "DEFAULT_PROBLEMS_DIR", FIXTURES_DIR)
+    monkeypatch.setattr(quiz_seed_loader, "DEFAULT_JSON_PATH", FIXTURES_DIR / "quiz_questions.json")
 
     from app.main import app
 

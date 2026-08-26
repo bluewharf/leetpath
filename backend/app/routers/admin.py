@@ -9,12 +9,14 @@ from app.db import get_db
 from app.deps import require_admin
 from app.models import Problem, User
 from app.seed.loader import load_problems
+from app.seed.quiz_loader import load_quiz_questions
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 class SeedReloadOut(BaseModel):
     imported: int
+    quiz_imported: int = 0
 
 
 class PublishIn(BaseModel):
@@ -41,8 +43,9 @@ def reload_seed(
     _admin: User = Depends(require_admin),
 ) -> SeedReloadOut:
     imported = load_problems(session=db)
+    quiz_imported = load_quiz_questions(session=db)
     db.commit()
-    return SeedReloadOut(imported=imported)
+    return SeedReloadOut(imported=imported, quiz_imported=quiz_imported)
 
 
 @router.get("/problems")

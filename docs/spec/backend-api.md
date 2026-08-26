@@ -73,7 +73,7 @@
 
 ### 管理员题目维护（`app/routers/admin.py`，全部要求 is_admin，否则 403）
 
-- `POST /api/admin/seed/reload` → 同步执行 seed loader，返回 `{imported: n}`。
+- `POST /api/admin/seed/reload` → 同步导入算法题库与八股 JSON，返回 `{imported, quiz_imported}`。八股导入按选项原文重映射已有作答字母，不清 `quiz_records`。
 - `PUT /api/admin/problems/{id}` body `{is_published}` → 上下架。
 - `GET /api/admin/problems` → 含未发布的完整列表。
 - `POST /api/admin/invites` body `{expires_in_days: 1..30}` → 创建并仅本次返回原始邀请码；`GET /api/admin/invites` → 列表（不含原始码）；`DELETE /api/admin/invites/{id}` → 撤销尚未使用的邀请码。

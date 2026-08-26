@@ -9,7 +9,7 @@ def test_admin_seed_reload(admin_client, monkeypatch):
     monkeypatch.setattr(loader, "DEFAULT_PROBLEMS_DIR", FIXTURES_DIR)
     r = admin_client.post("/api/admin/seed/reload")
     assert r.status_code == 200
-    assert r.json() == {"imported": 1}
+    assert r.json() == {"imported": 1, "quiz_imported": 0}
 
 
 def test_non_admin_cannot_access_admin(user_client):
