@@ -116,7 +116,20 @@ python -m judge.worker
 
 6. 打开 `https://learn.example.com`，用管理员账号登录，在「管理 → 邀请码」生成邀请码并发给好友。邀请码只显示一次、只能使用一次，可设置 1-30 天有效期或在使用前撤销。
 
-常用命令：`docker compose --profile production logs -f`、`docker compose --profile production down`。主数据库在 `leetpath-data`，每日在线快照在 `leetpath-backups`，默认保留 7 份。两者仍在同一台 VPS，需定期将 `/app/backups/leetpath-*.db` 导出到异机或对象存储，并实际演练恢复。
+常用命令：`docker compose --profile production logs -f`、`docker compose --profile production down`。
+
+### AI 助教出网
+
+填了中转站 key 之后，如果 `/api/ai/models` 返回 502，是因为 backend 当时只挂在 `internal` 的 `app` 网上，容器访问不了公网。`docker-compose.yml` 里 backend 需要再挂一条非 internal 的 `egress` 网；judge / backup 仍只留在 `app`。改完执行 `docker compose --profile production up -d` 即可，**不要** `down -v`（会删数据库卷）。
+
+中转站域名还要写进 `.env` 的 `AI_ALLOWED_HOSTS`（逗号分隔）。现有示例：
+
+```
+AI_ALLOWED_HOSTS=api.antithor.asia,api.deepseek.com
+```
+
+换站或加域名就在后面追加，例如 `,your-relay.example.com`，然后只重启 backend，不动数据库。
+主数据库在 `leetpath-data`，每日在线快照在 `leetpath-backups`，默认保留 7 份。两者仍在同一台 VPS，需定期将 `/app/backups/leetpath-*.db` 导出到异机或对象存储，并实际演练恢复。
 
 ### 升级版本（不丢用户数据）
 
