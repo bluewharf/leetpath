@@ -340,7 +340,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import AiSettingsModal from './AiSettingsModal.vue'
 import { renderMarkdown } from '../markdown'
-import { estimateTokens, useAiStore, type AiMessage } from '../stores/ai'
+import { estimateTokens, messagePlainText, useAiStore, type AiMessage } from '../stores/ai'
 import { useAiAssistant } from '../stores/aiAssistant'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../stores/toast'
@@ -693,7 +693,7 @@ const currentTotalTokens = computed(() => {
   const ctx = assistant.currentContext.value
   let total = estimateTokens(ctx.contextText || '') + 200
   for (const m of messages.value) {
-    total += estimateTokens(m.content)
+    total += estimateTokens(messagePlainText(m.content))
   }
   if (streamBuffer.value) {
     total += estimateTokens(streamBuffer.value)
