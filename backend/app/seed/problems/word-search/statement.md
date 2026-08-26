@@ -17,8 +17,11 @@
 输出一行：若存在路径构成该单词则输出 `true`，否则输出 `false`（小写）。
 
 ## 样例
+
 ### 样例 1
+
 输入：
+
 ```text
 3 4
 A B C E
@@ -26,13 +29,17 @@ S F C S
 A D E E
 ABCCED
 ```
+
 输出：
+
 ```text
 true
 ```
 
 ### 样例 2
+
 输入：
+
 ```text
 3 4
 A B C E
@@ -40,10 +47,31 @@ S F C S
 A D E E
 SEE
 ```
+
 输出：
+
 ```text
 true
 ```
+
+### 样例 3
+
+输入：
+
+```text
+3 4
+A B C E
+S F C S
+A D E E
+ABCB
+```
+
+输出：
+
+```text
+false
+```
+
 
 ## 提示（数据范围）
 

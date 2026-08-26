@@ -4,4 +4,4 @@ title = "相交链表"
 difficulty = "easy"
 source = "hot100"
 tags = ["哈希表", "链表", "双指针"]
-samples = [1, 2]
+samples = [1, 2, 3]

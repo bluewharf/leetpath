@@ -4,6 +4,6 @@ title = "两数相加"
 difficulty = "medium"
 source = "hot100"
 tags = ["递归", "链表", "数学"]
-samples = [1, 2]
+samples = [1, 2, 3]
 time_limit_ms = 5000
 memory_limit_mb = 256

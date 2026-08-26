@@ -20,6 +20,10 @@ SOURCES = {"hot100", "mianjing"}
 
 PY_BLOCK = re.compile(r"###\s*Python3.*?```python\s*\n(.*?)```", re.S)
 CPP_BLOCK = re.compile(r"###\s*C\+\+.*?```cpp\s*\n(.*?)```", re.S)
+SAMPLE_BLOCK = re.compile(
+    r"###\s*样例\s*\d+\s*\n输入：\s*\n```(?:text)?\n(.*?)```\s*\n输出：\s*\n```(?:text)?\n(.*?)```",
+    re.S,
+)
 
 
 def extract_solution(md: str) -> tuple[str | None, str | None]:
@@ -74,6 +78,38 @@ def check(slug: str) -> list[str]:
     if sorted(samples) and (not all(isinstance(o, int) for o in ordinals)
                             or max(samples) > len(tests)):
         errs.append(f"{slug}: samples={samples} 超出用例数量 {len(tests)}")
+    if len(set(samples)) != len(samples):
+        errs.append(f"{slug}: samples 有重复编号: {samples}")
+
+    seen_in: dict[str, str] = {}
+    for inp in tests:
+        key = norm(inp.read_text(encoding="utf-8"))
+        prev = seen_in.get(key)
+        if prev is not None:
+            errs.append(f"{slug}: {inp.name} 与 {prev} 输入重复")
+        else:
+            seen_in[key] = inp.name
+
+    stmt_path = d / "statement.md"
+    if stmt_path.exists() and samples:
+        blocks = SAMPLE_BLOCK.findall(stmt_path.read_text(encoding="utf-8"))
+        if len(blocks) != len(samples):
+            errs.append(
+                f"{slug}: 题面样例 {len(blocks)} 组，meta.samples 有 {len(samples)} 组"
+            )
+        else:
+            by_ord = {int(p.stem): p for p in tests if p.stem.isdigit()}
+            for i, sidx in enumerate(samples):
+                t = by_ord.get(int(sidx))
+                if t is None:
+                    continue
+                stmt_in, stmt_out = blocks[i]
+                test_in = t.read_text(encoding="utf-8")
+                test_out = t.with_suffix(".out").read_text(encoding="utf-8")
+                if norm(stmt_in) != norm(test_in):
+                    errs.append(f"{slug}: 题面样例 {i + 1} 输入与 tests/{t.name} 不一致")
+                if norm(stmt_out) != norm(test_out):
+                    errs.append(f"{slug}: 题面样例 {i + 1} 输出与 tests/{t.stem}.out 不一致")
 
     def run_case(program: Path, inp: Path, label: str) -> None:
         outp = inp.with_suffix(".out")

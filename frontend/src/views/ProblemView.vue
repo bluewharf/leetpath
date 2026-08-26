@@ -79,20 +79,6 @@
 
             <div class="markdown-body" v-html="statementHtml"></div>
 
-            <div v-for="s in problem.samples" :key="s.ordinal" class="sample-block">
-              <h3>样例 {{ s.ordinal }}</h3>
-              <div class="tc-detail" style="padding-left:0">
-                <div class="io-block">
-                  <div class="io-label">输入</div>
-                  <pre>{{ s.input }}</pre>
-                </div>
-                <div class="io-block">
-                  <div class="io-label">输出</div>
-                  <pre>{{ s.expected_output }}</pre>
-                </div>
-              </div>
-            </div>
-
             <!-- 历史提交记录 -->
             <div class="sub-history" v-if="history.length > 0">
               <h3>我的提交 ({{ history.length }})</h3>
