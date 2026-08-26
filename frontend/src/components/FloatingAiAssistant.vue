@@ -45,6 +45,7 @@
         class="floating-window"
         :class="{ 'is-max': assistant.isMaximized.value, 'is-dragging': isDraggingWindow }"
         :style="windowStyle"
+        @paste="onWindowPaste"
       >
         <!-- 窗口顶栏（极简高端拖拽条） -->
         <div
@@ -210,14 +211,17 @@
                   <button
                     v-if="msg.content"
                     class="btn-text-action"
-                    @click="copyText(msg.content)"
+                    @click="copyText(typeof msg.content === 'string' ? msg.content : '')"
                   >
                     复制
                   </button>
                 </div>
               </div>
 
-              <div class="msg-markdown statement" v-html="renderMd(msg.content)"></div>
+              <div v-if="msg.images?.length" class="msg-images">
+                <img v-for="(src, imgIdx) in msg.images" :key="imgIdx" :src="src" alt="粘贴的截图" />
+              </div>
+              <div class="msg-markdown statement" v-html="renderMd(typeof msg.content === 'string' ? msg.content : '')"></div>
             </div>
           </div>
 
@@ -245,14 +249,22 @@
 
         <!-- 底部输入框区域 -->
         <div class="f-bottom-composer">
-          <div class="composer-box">
+          <div class="composer-box" @mousedown.stop @paste="onComposerPaste">
+            <div v-if="pendingImages.length" class="composer-previews">
+              <div v-for="(src, idx) in pendingImages" :key="idx" class="composer-preview">
+                <img :src="src" alt="待发送截图" />
+                <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)">×</button>
+              </div>
+            </div>
             <textarea
+              ref="composerEl"
               v-model="inputQuestion"
               class="composer-textarea"
-              placeholder="输入你的技术疑问、更多解法追问或时空复杂度诊断... (Enter 发送)"
+              placeholder="输入疑问，可粘贴文字或截图... (Enter 发送)"
               rows="2"
               :disabled="generating"
               @keydown.enter.exact.prevent="onEnterSend"
+              @paste="onComposerPaste"
             ></textarea>
             
             <div class="composer-toolbar">
@@ -263,6 +275,27 @@
               </div>
               
               <div class="composer-actions">
+                <input
+                  ref="fileEl"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  @change="onPickFiles"
+                />
+                <button
+                  type="button"
+                  class="btn-attach"
+                  title="添加截图"
+                  :disabled="generating"
+                  @click="fileEl?.click()"
+                >
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </button>
                 <button
                   v-if="generating"
                   class="btn-stop"
@@ -273,7 +306,7 @@
                 <button
                   v-else
                   class="btn-send"
-                  :disabled="!inputQuestion.trim() || !ai.isConfigured.value"
+                  :disabled="(!inputQuestion.trim() && !pendingImages.length) || !ai.isConfigured.value"
                   @click="onSendPrompt(inputQuestion)"
                   title="发送提问 (Enter)"
                 >
@@ -311,10 +344,12 @@ import { estimateTokens, useAiStore, type AiMessage } from '../stores/ai'
 import { useAiAssistant } from '../stores/aiAssistant'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../stores/toast'
+import { compressPickedFiles, insertAtCursor, readClipboard, toApiContent } from '../aiPaste'
 
 interface ChatMessage extends AiMessage {
   isCached?: boolean
   originalPrompt?: string
+  images?: string[]
 }
 
 const auth = useAuthStore()
@@ -325,9 +360,12 @@ const toast = useToast()
 const showSettings = ref(false)
 const generating = ref(false)
 const inputQuestion = ref('')
+const pendingImages = ref<string[]>([])
 const streamBuffer = ref('')
 const messages = ref<ChatMessage[]>([])
 const msgContainer = ref<HTMLElement | null>(null)
+const composerEl = ref<HTMLTextAreaElement | null>(null)
+const fileEl = ref<HTMLInputElement | null>(null)
 let abortController: AbortController | null = null
 
 // --- 窗口自由拖拽与尺寸管理 ---
@@ -486,8 +524,61 @@ function scrollToBottom() {
 }
 
 function onEnterSend() {
-  if (!inputQuestion.value.trim() || generating.value) return
+  if (generating.value) return
+  if (!inputQuestion.value.trim() && !pendingImages.value.length) return
   onSendPrompt(inputQuestion.value)
+}
+
+function applyInsertedText(text: string) {
+  const { next, caret } = insertAtCursor(composerEl.value, inputQuestion.value, text)
+  inputQuestion.value = next
+  nextTick(() => {
+    const el = composerEl.value
+    if (!el) return
+    el.focus()
+    el.selectionStart = el.selectionEnd = caret
+  })
+}
+
+function addPendingImages(urls: string[]) {
+  if (!urls.length) return
+  const room = Math.max(0, 4 - pendingImages.value.length)
+  pendingImages.value.push(...urls.slice(0, room))
+  if (urls.length > room) toast.info('一次最多 4 张图')
+}
+
+async function handlePasteData(dt: DataTransfer | null) {
+  const { text, images } = await readClipboard(dt)
+  if (images.length) addPendingImages(images)
+  if (text) applyInsertedText(text)
+  return Boolean(text || images.length)
+}
+
+async function onComposerPaste(e: ClipboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  const ok = await handlePasteData(e.clipboardData)
+  if (!ok) toast.info('剪贴板里没有文字或图片')
+}
+
+async function onWindowPaste(e: ClipboardEvent) {
+  const target = e.target as HTMLElement | null
+  if (target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.isContentEditable)) {
+    return
+  }
+  e.preventDefault()
+  const ok = await handlePasteData(e.clipboardData)
+  if (ok) composerEl.value?.focus()
+}
+
+async function onPickFiles(e: Event) {
+  const input = e.target as HTMLInputElement
+  try {
+    const urls = await compressPickedFiles(input.files)
+    addPendingImages(urls)
+  } finally {
+    input.value = ''
+  }
 }
 
 function abort() {
@@ -499,14 +590,16 @@ function abort() {
 }
 
 async function onSendPrompt(userPrompt: string, forceRefresh = false) {
-  if (!userPrompt.trim()) return
+  const attached = pendingImages.value.slice()
+  if (!userPrompt.trim() && !attached.length) return
   if (!ai.isConfigured.value) {
     showSettings.value = true
     return
   }
 
-  const promptText = userPrompt.trim()
+  const promptText = userPrompt.trim() || (attached.length ? '（见附图）' : '')
   inputQuestion.value = ''
+  pendingImages.value = []
 
   const ctx = assistant.currentContext.value
   const cKey = ctx.contextKey || 'general'
@@ -515,7 +608,7 @@ async function onSendPrompt(userPrompt: string, forceRefresh = false) {
   if (!forceRefresh && ai.enableLocalCache.value) {
     const cached = ai.getCachedAnswer(cKey, promptText)
     if (cached) {
-      messages.value.push({ role: 'user', content: promptText })
+      messages.value.push({ role: 'user', content: promptText, images: attached })
       messages.value.push({
         role: 'assistant',
         content: cached,
@@ -529,7 +622,7 @@ async function onSendPrompt(userPrompt: string, forceRefresh = false) {
   }
 
   // 2. 发起真实流式请求
-  messages.value.push({ role: 'user', content: promptText })
+  messages.value.push({ role: 'user', content: promptText, images: attached })
   scrollToBottom()
 
   generating.value = true
@@ -548,7 +641,10 @@ ${ctx.contextText || '无特定上下文'}`
 
   const apiMessages: AiMessage[] = [
     { role: 'system', content: sysContent },
-    ...messages.value.map((m) => ({ role: m.role, content: m.content })),
+    ...messages.value.map((m) => ({
+      role: m.role,
+      content: m.images?.length ? toApiContent(typeof m.content === 'string' ? m.content : '', m.images) : m.content,
+    })),
   ]
 
   try {
@@ -1236,11 +1332,81 @@ onMounted(() => {
   border: none;
   background: transparent;
   color: var(--text);
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.5;
   resize: none;
   outline: none;
   padding: 2px;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+
+.composer-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.composer-preview {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.composer-preview img,
+.msg-images img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.msg-images img {
+  width: 96px;
+  height: 96px;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--red, #c44);
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.btn-attach {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-attach:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .composer-toolbar {
