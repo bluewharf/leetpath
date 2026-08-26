@@ -67,13 +67,16 @@
                 <button
                   v-if="msg.content"
                   class="btn btn-xs btn-ghost bubble-copy"
-                  @click="copyText(msg.content)"
+                  @click="copyText(typeof msg.content === 'string' ? msg.content : '')"
                 >
                   复制
                 </button>
               </div>
             </div>
-            <div class="statement bubble-markdown" v-html="renderMd(msg.content)"></div>
+            <div v-if="msg.images?.length" class="msg-images">
+              <img v-for="(src, imgIdx) in msg.images" :key="imgIdx" :src="src" alt="粘贴的截图" />
+            </div>
+            <div class="statement bubble-markdown" v-html="renderMd(typeof msg.content === 'string' ? msg.content : '')"></div>
           </div>
         </div>
 
@@ -91,28 +94,53 @@
       </div>
 
       <!-- 底部输入框 -->
-      <div class="drawer-input-bar">
+      <div class="drawer-input-bar" @paste="onComposerPaste">
+        <div v-if="pendingImages.length" class="composer-previews">
+          <div v-for="(src, idx) in pendingImages" :key="idx" class="composer-preview">
+            <img :src="src" alt="待发送截图" />
+            <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)">×</button>
+          </div>
+        </div>
         <textarea
+          ref="composerEl"
           v-model="inputQuestion"
           class="input drawer-textarea"
-          placeholder="深入追问这道题或考点... (按 Enter 发送，Shift+Enter 换行)"
+          placeholder="可粘贴文字或截图... (Enter 发送，Shift+Enter 换行)"
           rows="2"
           :disabled="generating"
           @keydown.enter.exact.prevent="onEnterSend"
+          @paste="onComposerPaste"
         ></textarea>
         <div class="input-bottom-row">
           <span class="drawer-hint">已开启上下文约束 (保留近 {{ ai.maxContextTurns.value }} 轮) 与本地缓存</span>
-          <button v-if="generating" class="btn btn-sm btn-outline" @click="abort">
-            ⏹ 停止生成
-          </button>
-          <button
-            v-else
-            class="btn btn-sm btn-primary"
-            :disabled="!inputQuestion.trim() || !ai.isConfigured.value"
-            @click="onPromptClick(inputQuestion)"
-          >
-            发送 (Enter)
-          </button>
+          <div class="drawer-send-row">
+            <input
+              ref="fileEl"
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              @change="onPickFiles"
+            />
+            <button
+              type="button"
+              class="btn btn-sm btn-ghost"
+              title="添加截图"
+              :disabled="generating"
+              @click="fileEl?.click()"
+            >📎 截图</button>
+            <button v-if="generating" class="btn btn-sm btn-outline" @click="abort">
+              ⏹ 停止生成
+            </button>
+            <button
+              v-else
+              class="btn btn-sm btn-primary"
+              :disabled="(!inputQuestion.trim() && !pendingImages.length) || !ai.isConfigured.value"
+              @click="onPromptClick(inputQuestion)"
+            >
+              发送 (Enter)
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -128,6 +156,7 @@ import AiSettingsModal from './AiSettingsModal.vue'
 import { renderMarkdown } from '../markdown'
 import { useAiStore, type AiMessage } from '../stores/ai'
 import { useToast } from '../stores/toast'
+import { compressPickedFiles, insertAtCursor, readClipboard, toApiContent } from '../aiPaste'
 
 export interface PromptPreset {
   label: string
@@ -137,6 +166,7 @@ export interface PromptPreset {
 interface DrawerMessage extends AiMessage {
   isCached?: boolean
   originalPrompt?: string
+  images?: string[]
 }
 
 const props = defineProps<{
@@ -157,9 +187,12 @@ const ai = useAiStore()
 const showSettings = ref(false)
 const generating = ref(false)
 const inputQuestion = ref('')
+const pendingImages = ref<string[]>([])
 const streamBuffer = ref('')
 const messages = ref<DrawerMessage[]>([])
 const msgContainer = ref<HTMLElement | null>(null)
+const composerEl = ref<HTMLTextAreaElement | null>(null)
+const fileEl = ref<HTMLInputElement | null>(null)
 let abortController: AbortController | null = null
 
 function renderMd(text: string) {
@@ -181,8 +214,51 @@ function scrollToBottom() {
 }
 
 function onEnterSend() {
-  if (!inputQuestion.value.trim() || generating.value) return
+  if (generating.value) return
+  if (!inputQuestion.value.trim() && !pendingImages.value.length) return
   onPromptClick(inputQuestion.value)
+}
+
+function applyInsertedText(text: string) {
+  const { next, caret } = insertAtCursor(composerEl.value, inputQuestion.value, text)
+  inputQuestion.value = next
+  nextTick(() => {
+    const el = composerEl.value
+    if (!el) return
+    el.focus()
+    el.selectionStart = el.selectionEnd = caret
+  })
+}
+
+function addPendingImages(urls: string[]) {
+  if (!urls.length) return
+  const room = Math.max(0, 4 - pendingImages.value.length)
+  pendingImages.value.push(...urls.slice(0, room))
+  if (urls.length > room) toast.info('一次最多 4 张图')
+}
+
+async function handlePasteData(dt: DataTransfer | null) {
+  const { text, images } = await readClipboard(dt)
+  if (images.length) addPendingImages(images)
+  if (text) applyInsertedText(text)
+  return Boolean(text || images.length)
+}
+
+async function onComposerPaste(e: ClipboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  const ok = await handlePasteData(e.clipboardData)
+  if (!ok) toast.info('剪贴板里没有文字或图片')
+}
+
+async function onPickFiles(e: Event) {
+  const input = e.target as HTMLInputElement
+  try {
+    const urls = await compressPickedFiles(input.files)
+    addPendingImages(urls)
+  } finally {
+    input.value = ''
+  }
 }
 
 function abort() {
@@ -195,14 +271,16 @@ function abort() {
 
 // 检查本地缓存或发起请求
 async function onPromptClick(userPrompt: string, forceRefresh = false) {
-  if (!userPrompt.trim()) return
+  const attached = pendingImages.value.slice()
+  if (!userPrompt.trim() && !attached.length) return
   if (!ai.isConfigured.value) {
     showSettings.value = true
     return
   }
 
-  const promptText = userPrompt.trim()
+  const promptText = userPrompt.trim() || (attached.length ? '（见附图）' : '')
   inputQuestion.value = ''
+  pendingImages.value = []
 
   const cKey = props.contextKey || props.title || 'default'
 
@@ -213,6 +291,7 @@ async function onPromptClick(userPrompt: string, forceRefresh = false) {
       messages.value.push({
         role: 'user',
         content: promptText,
+        images: attached,
       })
       messages.value.push({
         role: 'assistant',
@@ -230,6 +309,7 @@ async function onPromptClick(userPrompt: string, forceRefresh = false) {
   messages.value.push({
     role: 'user',
     content: promptText,
+    images: attached,
   })
   scrollToBottom()
 
@@ -250,7 +330,10 @@ ${props.contextText || '无指定上下文'}`
 
   const apiMessages: AiMessage[] = [
     { role: 'system', content: sysContent },
-    ...messages.value.map((m) => ({ role: m.role, content: m.content })),
+    ...messages.value.map((m) => ({
+      role: m.role,
+      content: m.images?.length ? toApiContent(typeof m.content === 'string' ? m.content : '', m.images) : m.content,
+    })),
   ]
 
   try {
@@ -510,8 +593,66 @@ watch(
 .drawer-textarea {
   width: 100%;
   resize: none;
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 8px;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+
+.drawer-send-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.composer-preview {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.composer-preview img,
+.msg-images img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.msg-images img {
+  width: 96px;
+  height: 96px;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--red, #c44);
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
 }
 
 .input-bottom-row {
