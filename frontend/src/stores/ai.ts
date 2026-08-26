@@ -9,7 +9,7 @@ export interface AiMessage {
   content: string | AiContentPart[]
 }
 
-function messagePlainText(content: AiMessage['content']): string {
+export function messagePlainText(content: AiMessage['content']): string {
   if (typeof content === 'string') return content
   return content
     .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
