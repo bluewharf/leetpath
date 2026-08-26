@@ -23,6 +23,7 @@ services:
       - "8000"
     networks:
       - app
+      - egress
     read_only: true
     tmpfs:
       - /tmp:size=64m
@@ -164,5 +165,6 @@ volumes:
 
 networks:
   edge:
+  egress:
   app:
     internal: true
