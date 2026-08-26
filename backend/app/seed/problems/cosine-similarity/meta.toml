@@ -1,0 +1,8 @@
+slug = "cosine-similarity"
+title = "余弦相似度"
+difficulty = "easy"
+source = "mianjing"
+tags = ["数学", "数组", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

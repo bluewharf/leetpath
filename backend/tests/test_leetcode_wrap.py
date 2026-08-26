@@ -400,6 +400,41 @@ class Solution:
     )
 
 
+def test_wrap_same_tree_two_trees():
+    _assert_seed(
+        "same-tree",
+        """
+class Solution:
+    def isSameTree(self, p, q):
+        if not p or not q:
+            return p is q
+        return p.val == q.val and self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)
+""",
+    )
+
+
+def test_wrap_image_diff_two_matrices():
+    _assert_seed(
+        "image-diff-min-bounding-rectangle",
+        """
+class Solution:
+    def minBoundingRect(self, a, b):
+        min_r = min_c = 10**9
+        max_r = max_c = -1
+        for i in range(len(a)):
+            for j in range(len(a[0])):
+                if a[i][j] != b[i][j]:
+                    min_r = min(min_r, i)
+                    max_r = max(max_r, i)
+                    min_c = min(min_c, j)
+                    max_c = max(max_c, j)
+        if max_r < 0:
+            return [-1]
+        return [min_r, min_c, max_r, max_c]
+""",
+    )
+
+
 def test_wrap_number_of_islands_grid01():
     _assert_seed(
         "number-of-islands",

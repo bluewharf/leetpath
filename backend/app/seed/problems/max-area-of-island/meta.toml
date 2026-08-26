@@ -1,0 +1,9 @@
+slug = "max-area-of-island"
+leetcode_id = 695
+title = "岛屿的最大面积"
+difficulty = "medium"
+source = "mianjing"
+tags = ["DFS", "BFS", "矩阵", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

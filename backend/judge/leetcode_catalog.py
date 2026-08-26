@@ -193,6 +193,25 @@ SPECS: dict[str, Spec] = {
     "top-k-frequent-elements": fn(
         "topKFrequent", ["vec", "int"], "vec", ["nums", "k"], rank="freq"
     ),
+    "binary-tree-zigzag-level-order-traversal": fn(
+        "zigzagLevelOrder", ["tree"], "levels", ["root"]
+    ),
+    "max-area-of-island": fn("maxAreaOfIsland", ["vec2"], "int", ["grid"]),
+    "same-tree": fn("isSameTree", ["tree", "tree"], "bool", ["p", "q"]),
+    "binary-tree-preorder-traversal": fn(
+        "preorderTraversal", ["tree"], "vec", ["root"]
+    ),
+    "add-strings": fn("addStrings", ["str", "str"], "str", ["num1", "num2"]),
+    "multiply-strings": fn("multiply", ["str", "str"], "str", ["num1", "num2"]),
+    "meeting-rooms": fn("canAttendMeetings", ["intervals"], "bool", ["intervals"]),
+    "meeting-rooms-ii": fn("minMeetingRooms", ["intervals"], "int", ["intervals"]),
+    "maximal-rectangle": fn("maximalRectangle", ["grid01"], "int", ["matrix"]),
+    "merge-sorted-array": fn("mergeSorted", ["vec", "vec"], "vec", ["nums1", "nums2"]),
+    "cosine-similarity": fn("cosineSimilarity", ["vec", "vec"], "float", ["a", "b"]),
+    "image-diff-min-bounding-rectangle": fn(
+        "minBoundingRect", ["vec2", "vec2"], "vec", ["a", "b"]
+    ),
+    "course-schedule-ii": fn("findOrder", ["edges"], "vec", ["numCourses", "prerequisites"]),
 }
 
 

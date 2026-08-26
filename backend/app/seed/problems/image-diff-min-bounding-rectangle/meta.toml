@@ -1,0 +1,8 @@
+slug = "image-diff-min-bounding-rectangle"
+title = "图像差异最小包围矩形"
+difficulty = "medium"
+source = "mianjing"
+tags = ["数组", "矩阵", "模拟", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

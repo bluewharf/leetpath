@@ -1,0 +1,9 @@
+slug = "same-tree"
+leetcode_id = 100
+title = "相同的树"
+difficulty = "easy"
+source = "mianjing"
+tags = ["树", "DFS", "BFS", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

@@ -1,0 +1,9 @@
+slug = "binary-tree-zigzag-level-order-traversal"
+leetcode_id = 103
+title = "二叉树的锯齿形层序遍历"
+difficulty = "medium"
+source = "mianjing"
+tags = ["树", "BFS", "队列", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

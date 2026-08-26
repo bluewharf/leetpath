@@ -1,0 +1,9 @@
+slug = "add-strings"
+leetcode_id = 415
+title = "字符串相加"
+difficulty = "easy"
+source = "mianjing"
+tags = ["数学", "字符串", "模拟", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

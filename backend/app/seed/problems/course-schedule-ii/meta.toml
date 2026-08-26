@@ -1,0 +1,9 @@
+slug = "course-schedule-ii"
+leetcode_id = 210
+title = "拓扑排序并判环"
+difficulty = "medium"
+source = "mianjing"
+tags = ["DFS", "BFS", "图", "拓扑排序", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]
