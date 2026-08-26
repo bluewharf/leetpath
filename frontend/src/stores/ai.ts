@@ -1,8 +1,20 @@
 import { computed, ref } from 'vue'
 
+export type AiContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } }
+
 export interface AiMessage {
   role: 'system' | 'user' | 'assistant'
-  content: string
+  content: string | AiContentPart[]
+}
+
+function messagePlainText(content: AiMessage['content']): string {
+  if (typeof content === 'string') return content
+  return content
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+    .map((part) => part.text)
+    .join('\n')
 }
 
 export interface AiPreset {
@@ -316,7 +328,7 @@ export function useAiStore() {
 
     // 3. 第二重防线：Token 预算滑动裁剪（从旧到新丢弃，直至总 Token <= maxContextTokens）
     const budget = maxContextTokens.value
-    let sysTokens = systemMsg ? estimateTokens(systemMsg.content) : 0
+    let sysTokens = systemMsg ? estimateTokens(messagePlainText(systemMsg.content)) : 0
     let remainingBudget = budget - sysTokens
 
     const selectedHistory: AiMessage[] = []
@@ -324,7 +336,7 @@ export function useAiStore() {
     for (let i = recentHistory.length - 1; i >= 0; i--) {
       const msg = recentHistory[i]
       if (!msg) continue
-      const msgTokens = estimateTokens(msg.content)
+      const msgTokens = estimateTokens(messagePlainText(msg.content))
       if (remainingBudget >= msgTokens || selectedHistory.length === 0) {
         selectedHistory.unshift(msg)
         remainingBudget -= msgTokens
