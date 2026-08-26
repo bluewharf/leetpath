@@ -6,7 +6,9 @@
       class="floating-capsule"
       :class="{ 'has-context': isContextual, 'is-dragging': isDraggingCapsule }"
       :style="capsuleStyle"
-      @mousedown="startDragCapsule"
+      @pointerdown="onCapsulePointerDown"
+      @touchstart="onCapsuleTouchStart"
+      @click.capture="onCapsuleClickCapture"
       @click="onCapsuleClick"
       title="按住拖拽位置 · 点击唤起 AI 导师"
     >
@@ -49,7 +51,8 @@
         <!-- 窗口顶栏（极简高端拖拽条） -->
         <div
           class="f-window-head"
-          @mousedown="startDragWindow"
+          @pointerdown="onWindowPointerDown"
+          @touchstart="onWindowTouchStart"
           title="按住顶部可自由拖动位置"
         >
           <div class="f-head-info">
@@ -63,7 +66,7 @@
             </h3>
           </div>
 
-          <div class="f-head-actions" @mousedown.stop>
+          <div class="f-head-actions" @mousedown.stop @pointerdown.stop @touchstart.stop>
             <!-- 新建会话 / 清空记忆 -->
             <button class="win-btn" title="新建会话 / 清空历史记忆 (0 Token 重置)" @click="onNewChat">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
@@ -304,8 +307,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AiSettingsModal from './AiSettingsModal.vue'
+import {
+  CAPSULE_FALLBACK_SIZE,
+  WINDOW_FALLBACK_SIZE,
+  bottomClearancePx,
+  clampPoint,
+  createDragSession,
+  dragSessionMove,
+  isFloatingSheet,
+  loadLauncherChrome,
+  parseCssPx,
+  rectSize,
+  saveLauncherChrome,
+  type DragSession,
+  type Point,
+  type Size,
+} from '../aiLauncherChrome'
 import { renderMarkdown } from '../markdown'
 import { estimateTokens, useAiStore, type AiMessage } from '../stores/ai'
 import { useAiAssistant } from '../stores/aiAssistant'
@@ -334,15 +353,39 @@ let abortController: AbortController | null = null
 const isDraggingWindow = ref(false)
 const isDraggingCapsule = ref(false)
 let hasMovedCapsule = false
+let suppressCapsuleClick = false
+let ignoreCapsuleClickUntil = 0
+let capsuleDragKind: 'pointer' | 'touch' | null = null
+let windowDragKind: 'pointer' | 'touch' | null = null
+let capsuleDrag: DragSession | null = null
+let windowDrag: DragSession | null = null
+let capsuleDragSize: Size = CAPSULE_FALLBACK_SIZE
+let windowDragSize: Size = WINDOW_FALLBACK_SIZE
+let stopActiveDrag: (() => void) | null = null
+
+function browserStorage(): Storage | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
+const savedChrome = typeof window !== 'undefined' ? loadLauncherChrome(browserStorage()) : {}
 
 // 悬浮窗口坐标与初始宽高（大幅加大默认尺寸：宽 580px，高 740px）
-const windowPos = ref({
-  x: typeof window !== 'undefined' ? Math.max(20, window.innerWidth - 620) : 100,
-  y: typeof window !== 'undefined' ? Math.max(20, window.innerHeight - 780) : 40,
-})
+const windowPos = ref<Point>(
+  savedChrome.window
+    ?? {
+      x: typeof window !== 'undefined' ? Math.max(20, window.innerWidth - 620) : 100,
+      y: typeof window !== 'undefined' ? Math.max(20, window.innerHeight - 780) : 40,
+    },
+)
 
-// 悬浮球坐标
-const capsulePos = ref<{ x: number | null; y: number | null }>({ x: null, y: null })
+// 悬浮球坐标；null 时走 CSS 默认（移动端停在底栏上方，不盖题面）
+const capsulePos = ref<{ x: number | null; y: number | null }>(
+  savedChrome.capsule ? savedChrome.capsule : { x: null, y: null },
+)
 
 const isContextual = computed(() => assistant.currentContext.value.source !== 'general')
 
@@ -382,82 +425,253 @@ const capsuleStyle = computed(() => {
   }
 })
 
+function viewportSize() {
+  return { width: window.innerWidth, height: window.innerHeight }
+}
+
+function readBottomNavHeight(): number {
+  return parseCssPx(getComputedStyle(document.documentElement).getPropertyValue('--bottom-nav-h'))
+}
+
+function capsuleBottomReserve(): number {
+  return bottomClearancePx({
+    viewportWidth: window.innerWidth,
+    navHeight: readBottomNavHeight(),
+  })
+}
+
+function clampCapsule(point: Point, size: Size = CAPSULE_FALLBACK_SIZE): Point {
+  return clampPoint(point, viewportSize(), size, {
+    bottomReserve: capsuleBottomReserve(),
+    rightReserve: 8,
+  })
+}
+
+function clampWindow(point: Point, size: Size = WINDOW_FALLBACK_SIZE): Point {
+  return clampPoint(point, viewportSize(), size, {
+    minLeft: 0,
+    minTop: 0,
+    bottomReserve: 24,
+    rightReserve: 24,
+  })
+}
+
+function persistCapsule() {
+  if (capsulePos.value.x === null || capsulePos.value.y === null) return
+  saveLauncherChrome(browserStorage(), { capsule: { x: capsulePos.value.x, y: capsulePos.value.y } })
+}
+
+function persistWindow() {
+  saveLauncherChrome(browserStorage(), { window: { ...windowPos.value } })
+}
+
 function resetWindowPos() {
   windowPos.value = {
     x: Math.max(20, window.innerWidth - 620),
     y: Math.max(20, window.innerHeight - 780),
   }
+  persistWindow()
   toast.info('已复位悬浮窗位置')
 }
 
-// 1. 拖拽悬浮窗
-function startDragWindow(e: MouseEvent) {
-  if (assistant.isMaximized.value) return
-  if ((e.target as HTMLElement).closest('.f-head-actions')) return
-
-  isDraggingWindow.value = true
-  const startX = e.clientX
-  const startY = e.clientY
-  const initX = windowPos.value.x
-  const initY = windowPos.value.y
-
-  function onMouseMove(moveEvent: MouseEvent) {
-    const dx = moveEvent.clientX - startX
-    const dy = moveEvent.clientY - startY
-    const maxX = Math.max(0, window.innerWidth - 200)
-    const maxY = Math.max(0, window.innerHeight - 80)
-
-    windowPos.value = {
-      x: Math.min(maxX, Math.max(0, initX + dx)),
-      y: Math.min(maxY, Math.max(0, initY + dy)),
-    }
-  }
-
-  function onMouseUp() {
-    isDraggingWindow.value = false
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', onMouseUp)
-  }
-
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', onMouseUp)
+function preventTouchScroll(e: TouchEvent) {
+  if (e.cancelable) e.preventDefault()
 }
 
-// 2. 拖拽胶囊球
-function startDragCapsule(e: MouseEvent) {
-  isDraggingCapsule.value = true
+function bindDragListeners(kind: 'pointer' | 'touch', onMove: (e: Event) => void, onUp: () => void) {
+  stopActiveDrag?.()
+  if (kind === 'pointer') {
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+  } else {
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onUp)
+    window.addEventListener('touchcancel', onUp)
+  }
+  window.addEventListener('touchmove', preventTouchScroll, { passive: false })
+  stopActiveDrag = () => {
+    unbindDragListeners(kind, onMove, onUp)
+    stopActiveDrag = null
+  }
+}
+
+function unbindDragListeners(kind: 'pointer' | 'touch', onMove: (e: Event) => void, onUp: () => void) {
+  if (kind === 'pointer') {
+    window.removeEventListener('pointermove', onMove)
+    window.removeEventListener('pointerup', onUp)
+    window.removeEventListener('pointercancel', onUp)
+  } else {
+    window.removeEventListener('touchmove', onMove)
+    window.removeEventListener('touchend', onUp)
+    window.removeEventListener('touchcancel', onUp)
+  }
+  window.removeEventListener('touchmove', preventTouchScroll)
+}
+
+function clientPoint(e: Event, pointerId?: number): Point | null {
+  if ('clientX' in e && typeof (e as PointerEvent).clientX === 'number' && !('touches' in e)) {
+    return { x: (e as PointerEvent).clientX, y: (e as PointerEvent).clientY }
+  }
+  const te = e as TouchEvent
+  const list = te.touches?.length ? te.touches : te.changedTouches
+  if (!list?.length) return null
+  if (pointerId != null) {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].identifier === pointerId) return { x: list[i].clientX, y: list[i].clientY }
+    }
+  }
+  return { x: list[0].clientX, y: list[0].clientY }
+}
+
+function beginCapsuleDrag(clientX: number, clientY: number, el: HTMLElement, kind: 'pointer' | 'touch') {
+  capsuleDragKind = kind
   hasMovedCapsule = false
-  const startX = e.clientX
-  const startY = e.clientY
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const initX = rect.left
-  const initY = rect.top
+  isDraggingCapsule.value = false
+  const rect = el.getBoundingClientRect()
+  capsuleDragSize = rectSize(rect, CAPSULE_FALLBACK_SIZE)
+  capsuleDrag = createDragSession(clientX, clientY, { x: rect.left, y: rect.top })
 
-  function onMouseMove(moveEvent: MouseEvent) {
-    const dx = moveEvent.clientX - startX
-    const dy = moveEvent.clientY - startY
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-      hasMovedCapsule = true
-    }
-    capsulePos.value = {
-      x: Math.min(window.innerWidth - 100, Math.max(10, initX + dx)),
-      y: Math.min(window.innerHeight - 50, Math.max(10, initY + dy)),
-    }
+  const onMove = (ev: Event) => {
+    if (!capsuleDrag) return
+    if (kind === 'touch' && ev.cancelable) (ev as TouchEvent).preventDefault()
+    const pt = clientPoint(ev)
+    if (!pt) return
+    const next = dragSessionMove(capsuleDrag, pt.x, pt.y)
+    if (!capsuleDrag.moved) return
+    hasMovedCapsule = true
+    suppressCapsuleClick = true
+    isDraggingCapsule.value = true
+    capsulePos.value = clampCapsule(next, capsuleDragSize)
   }
 
-  function onMouseUp() {
+  const onUp = () => {
+    stopActiveDrag?.()
+    const moved = capsuleDrag?.moved
+    capsuleDrag = null
+    capsuleDragKind = null
     isDraggingCapsule.value = false
-    window.removeEventListener('mousemove', onMouseMove)
-    window.removeEventListener('mouseup', onMouseUp)
+    if (moved) {
+      suppressCapsuleClick = true
+      ignoreCapsuleClickUntil = Date.now() + 500
+      persistCapsule()
+    }
   }
 
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', onMouseUp)
+  bindDragListeners(kind, onMove, onUp)
+}
+
+function onCapsulePointerDown(e: PointerEvent) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  if (capsuleDragKind) return
+  if (e.pointerType === 'touch') {
+    // iOS also sends touch events; handle those so we can preventDefault on touchmove.
+    return
+  }
+  const el = e.currentTarget as HTMLElement
+  try {
+    el.setPointerCapture(e.pointerId)
+  } catch {
+    /* capture is optional */
+  }
+  beginCapsuleDrag(e.clientX, e.clientY, el, 'pointer')
+}
+
+function onCapsuleTouchStart(e: TouchEvent) {
+  if (capsuleDragKind) return
+  if (e.touches.length !== 1) return
+  const t = e.touches[0]
+  beginCapsuleDrag(t.clientX, t.clientY, e.currentTarget as HTMLElement, 'touch')
+}
+
+function shouldIgnoreCapsuleClick() {
+  return hasMovedCapsule || suppressCapsuleClick || Date.now() < ignoreCapsuleClickUntil
+}
+
+function onCapsuleClickCapture(e: MouseEvent) {
+  if (shouldIgnoreCapsuleClick()) {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+  }
 }
 
 function onCapsuleClick() {
-  if (!hasMovedCapsule) {
-    assistant.toggle()
+  if (shouldIgnoreCapsuleClick()) return
+  assistant.toggle()
+}
+
+function eventElement(target: EventTarget | null): Element | null {
+  if (!target) return null
+  if (target instanceof Element) return target
+  return (target as Node).parentElement
+}
+
+function canDragFloatingWindow(target: EventTarget | null): boolean {
+  if (assistant.isMaximized.value) return false
+  if (isFloatingSheet(window.innerWidth)) return false
+  if (eventElement(target)?.closest('.f-head-actions')) return false
+  return true
+}
+
+function beginWindowDrag(clientX: number, clientY: number, el: HTMLElement, kind: 'pointer' | 'touch') {
+  windowDragKind = kind
+  isDraggingWindow.value = false
+  const rect = el.closest('.floating-window')?.getBoundingClientRect()
+  windowDragSize = rectSize(rect, WINDOW_FALLBACK_SIZE)
+  windowDrag = createDragSession(clientX, clientY, { ...windowPos.value })
+
+  const onMove = (ev: Event) => {
+    if (!windowDrag) return
+    if (kind === 'touch' && ev.cancelable) (ev as TouchEvent).preventDefault()
+    const pt = clientPoint(ev)
+    if (!pt) return
+    const next = dragSessionMove(windowDrag, pt.x, pt.y)
+    if (!windowDrag.moved) return
+    isDraggingWindow.value = true
+    windowPos.value = clampWindow(next, windowDragSize)
+  }
+
+  const onUp = () => {
+    stopActiveDrag?.()
+    const moved = windowDrag?.moved
+    windowDrag = null
+    windowDragKind = null
+    isDraggingWindow.value = false
+    if (moved) persistWindow()
+  }
+
+  bindDragListeners(kind, onMove, onUp)
+}
+
+function onWindowPointerDown(e: PointerEvent) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return
+  if (windowDragKind) return
+  if (e.pointerType === 'touch') return
+  if (!canDragFloatingWindow(e.target)) return
+  const el = e.currentTarget as HTMLElement
+  try {
+    el.setPointerCapture(e.pointerId)
+  } catch {
+    /* capture is optional */
+  }
+  beginWindowDrag(e.clientX, e.clientY, el, 'pointer')
+}
+
+function onWindowTouchStart(e: TouchEvent) {
+  if (windowDragKind) return
+  if (e.touches.length !== 1) return
+  if (!canDragFloatingWindow(e.target)) return
+  const t = e.touches[0]
+  beginWindowDrag(t.clientX, t.clientY, e.currentTarget as HTMLElement, 'touch')
+}
+
+function onViewportChange() {
+  const size = viewportSize()
+  if (capsulePos.value.x !== null && capsulePos.value.y !== null) {
+    capsulePos.value = clampCapsule({ x: capsulePos.value.x, y: capsulePos.value.y })
+  }
+  if (!isFloatingSheet(size.width) && !assistant.isMaximized.value) {
+    windowPos.value = clampWindow(windowPos.value)
   }
 }
 
@@ -676,12 +890,27 @@ watch(
 )
 
 onMounted(() => {
-  if (typeof window !== 'undefined') {
+  if (typeof window === 'undefined') return
+  const saved = loadLauncherChrome(browserStorage())
+  if (saved.capsule) {
+    capsulePos.value = clampCapsule(saved.capsule)
+  }
+  if (saved.window) {
+    windowPos.value = clampWindow(saved.window)
+  } else {
     windowPos.value = {
       x: Math.max(20, window.innerWidth - 620),
       y: Math.max(20, window.innerHeight - 780),
     }
   }
+  window.addEventListener('resize', onViewportChange)
+  window.visualViewport?.addEventListener('resize', onViewportChange)
+})
+
+onBeforeUnmount(() => {
+  stopActiveDrag?.()
+  window.removeEventListener('resize', onViewportChange)
+  window.visualViewport?.removeEventListener('resize', onViewportChange)
 })
 </script>
 
@@ -699,18 +928,28 @@ onMounted(() => {
   box-shadow: 0 8px 24px var(--shadow-lg, rgba(0, 0, 0, 0.4));
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
   user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 
-.floating-capsule.is-dragging {
-  cursor: grabbing;
-  transform: scale(1.04);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+.floating-capsule * {
+  touch-action: none;
+  pointer-events: none;
 }
 
 .floating-capsule:hover {
   transform: translateY(-2px) scale(1.02);
   border-color: var(--accent);
   box-shadow: 0 12px 32px var(--shadow-accent, rgba(0, 0, 0, 0.5));
+}
+
+.floating-capsule.is-dragging,
+.floating-capsule.is-dragging:hover {
+  cursor: grabbing;
+  transform: scale(1.04);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  transition: none;
 }
 
 .capsule-inner {
@@ -851,6 +1090,7 @@ onMounted(() => {
   background: var(--surface-2, #282b31);
   cursor: grab;
   user-select: none;
+  touch-action: none;
 }
 
 .f-window-head:active {
@@ -1342,11 +1582,15 @@ onMounted(() => {
   50% { opacity: 0; }
 }
 
-@media (max-width: 768px) {
+/* 底栏在 ≤1023px 出现：默认停在 tab 栏 + safe-area 上方，不挡 背题/手册，也不压题面 */
+@media (max-width: 1023px) {
   .floating-capsule {
-    bottom: 16px;
-    right: 16px;
+    bottom: calc(var(--bottom-nav-h, 56px) + 12px);
+    right: 12px;
   }
+}
+
+@media (max-width: 768px) {
   .floating-window {
     left: 0 !important;
     top: auto !important;
