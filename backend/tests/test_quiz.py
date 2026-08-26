@@ -118,3 +118,100 @@ def test_quiz_seed_includes_agent_harness_bank():
         assert kw in stems
     answers = {q["answer"] for q in harness}
     assert "B" in answers
+
+
+def test_quiz_loader_remaps_user_letters_without_resetting_records(admin_client, tmp_path):
+    import json
+
+    from app import db as dbmod
+    from app.models import QuizQuestion, QuizRecord, User
+    from app.seed.quiz_loader import load_quiz_questions
+
+    with dbmod.SessionLocal() as db:
+        from sqlalchemy import select
+
+        admin = db.scalar(select(User).where(User.username == "admin"))
+        assert admin is not None
+        q = QuizQuestion(
+            bank="remap-bank",
+            category="t",
+            type="single",
+            ordinal=1,
+            stem="大脑？",
+            options={"A": "数据库", "B": "大语言模型（LLM）", "C": "操作系统", "D": "向量库"},
+            answer="B",
+            analysis="【正确项】B",
+        )
+        db.add(q)
+        db.flush()
+        db.add(
+            QuizRecord(
+                user_id=admin.id,
+                question_id=q.id,
+                is_correct=True,
+                user_answer="B",
+                attempts_count=1,
+                wrong_count=0,
+            )
+        )
+        db.commit()
+        qid, uid = q.id, admin.id
+
+    payload = [
+        {
+            "bank": "remap-bank",
+            "category": "t",
+            "type": "single",
+            "ordinal": 1,
+            "stem": "大脑？",
+            "options": {
+                "A": "大语言模型（LLM）",
+                "B": "数据库",
+                "C": "操作系统",
+                "D": "向量库",
+            },
+            "answer": "A",
+            "analysis": "【正确项】A",
+        }
+    ]
+    path = tmp_path / "quiz.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    assert load_quiz_questions(path) == 1
+
+    with dbmod.SessionLocal() as db:
+        rec = db.get(QuizRecord, (uid, qid))
+        q = db.get(QuizQuestion, qid)
+        assert rec is not None and q is not None
+        assert q.answer == "A"
+        assert rec.user_answer == "A"
+        assert rec.is_correct is True
+        assert rec.attempts_count == 1
+        assert rec.wrong_count == 0
+
+
+def test_judge_grades_by_option_text_after_ab_swap(admin_client):
+    from app import db as dbmod
+    from app.models import QuizQuestion
+
+    with dbmod.SessionLocal() as db:
+        q = QuizQuestion(
+            bank="judge-swap",
+            category="t",
+            type="judge",
+            ordinal=1,
+            stem="Chatbot 就是 Agent。",
+            options={"A": "错误", "B": "正确"},
+            answer="错误",
+            analysis="【正确项】错误",
+        )
+        db.add(q)
+        db.commit()
+        qid = q.id
+
+    listed = admin_client.get("/api/quiz/questions?bank=judge-swap").json()["items"]
+    assert listed[0]["id"] == qid
+    # 点 A（文案是「错误」）应判对，不能再写死 A=正确
+    ok = admin_client.post(f"/api/quiz/questions/{qid}/answer", json={"user_answer": "A"})
+    assert ok.status_code == 200
+    assert ok.json()["is_correct"] is True
+    assert ok.json()["correct_answer"] == "错误"

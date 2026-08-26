@@ -16,17 +16,39 @@ from app.models import QuizQuestion, QuizRecord, QuizSolveEvent, User, utcnow
 router = APIRouter(prefix="/quiz", tags=["quiz"])
 
 
-def _normalize_answer(ans: str) -> str:
-    """标准化答案字符串以进行健壮比对"""
-    ans = ans.strip().upper()
-    if ans in ("正确", "对", "T", "TRUE", "A"):
+def _normalize_answer(
+    ans: str,
+    *,
+    q_type: str | None = None,
+    options: dict[str, str] | None = None,
+) -> str:
+    """标准化答案字符串以进行健壮比对。判断题按选项原文解释 A/B，不写死 A=正确。"""
+    raw = ans.strip()
+    folded = raw.upper()
+    opts = options or {}
+    is_judge = q_type == "judge" or (
+        opts and set(opts.values()) <= {"正确", "错误"} and set(opts) <= {"A", "B"}
+    )
+    if is_judge:
+        if folded in opts:
+            text = str(opts[folded]).strip()
+            if text in ("正确", "对"):
+                return "正确"
+            if text in ("错误", "错"):
+                return "错误"
+            return text
+        if raw in ("正确", "对") or folded in ("T", "TRUE"):
+            return "正确"
+        if raw in ("错误", "错") or folded in ("F", "FALSE"):
+            return "错误"
+        return raw
+    if folded in ("正确", "对", "T", "TRUE"):
         return "正确"
-    if ans in ("错误", "错", "F", "FALSE", "B"):
+    if folded in ("错误", "错", "F", "FALSE"):
         return "错误"
-    # 如果是多选（如 "CAD" -> "ACD"）
-    if len(ans) > 1 and all(c in "ABCD" for c in ans):
-        return "".join(sorted(ans))
-    return ans
+    if len(folded) > 1 and all(c in "ABCD" for c in folded):
+        return "".join(sorted(folded))
+    return folded
 
 
 class BankItem(BaseModel):
@@ -274,8 +296,9 @@ def submit_answer(
     if q_obj is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="题目不存在")
 
-    norm_user = _normalize_answer(body.user_answer)
-    norm_correct = _normalize_answer(q_obj.answer)
+    opts = q_obj.options or {}
+    norm_user = _normalize_answer(body.user_answer, q_type=q_obj.type, options=opts)
+    norm_correct = _normalize_answer(q_obj.answer, q_type=q_obj.type, options=opts)
     is_correct = norm_user == norm_correct
 
     rec = db.get(QuizRecord, (user.id, question_id))

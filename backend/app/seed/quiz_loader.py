@@ -9,9 +9,41 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import QuizQuestion
+from app.models import QuizQuestion, QuizRecord
 
 DEFAULT_JSON_PATH = Path(__file__).resolve().parent / "quiz_questions.json"
+
+
+def _option_letter_map(old: dict, new: dict) -> dict[str, str] | None:
+    """选项文案集合不变、只换字母时，返回旧字母 → 新字母。"""
+    if not isinstance(old, dict) or not isinstance(new, dict) or not old or not new:
+        return None
+    if old == new:
+        return None
+    if set(old.values()) != set(new.values()):
+        return None
+    text_to_new = {v: k for k, v in new.items()}
+    mapped: dict[str, str] = {}
+    for letter, text in old.items():
+        if text not in text_to_new:
+            return None
+        mapped[str(letter).upper()] = str(text_to_new[text]).upper()
+    if all(mapped[k] == k for k in mapped):
+        return None
+    return mapped
+
+
+def _remap_choice_answer(user_answer: str, letter_map: dict[str, str]) -> str:
+    raw = (user_answer or "").strip()
+    if not raw:
+        return raw
+    upper = raw.upper()
+    if not all(c in "ABCD" for c in upper):
+        return raw
+    mapped = "".join(letter_map.get(c, c) for c in upper)
+    if len(mapped) > 1:
+        return "".join(sorted(mapped))
+    return mapped
 
 
 def assign_category(bank: str) -> str:
@@ -221,6 +253,23 @@ def load_quiz_questions(
                 )
                 session.add(q_obj)
             else:
+                letter_map = _option_letter_map(q_obj.options or {}, item["options"])
+                if letter_map is not None:
+                    from app.routers.quiz import _normalize_answer
+
+                    records = session.scalars(
+                        select(QuizRecord).where(QuizRecord.question_id == q_obj.id)
+                    ).all()
+                    new_opts = item["options"]
+                    new_type = item["type"]
+                    new_answer = item["answer"]
+                    for rec in records:
+                        rec.user_answer = _remap_choice_answer(rec.user_answer, letter_map)
+                        rec.is_correct = _normalize_answer(
+                            rec.user_answer, q_type=new_type, options=new_opts
+                        ) == _normalize_answer(
+                            new_answer, q_type=new_type, options=new_opts
+                        )
                 q_obj.category = item.get("category") or assign_category(item["bank"])
                 q_obj.type = item["type"]
                 q_obj.stem = item["stem"]

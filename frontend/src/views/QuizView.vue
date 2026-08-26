@@ -605,8 +605,8 @@ function getOptionClass(key: string) {
   const userAns = currentResult.value?.user_answer || q.user_answer || ''
 
   if (answered && correctAns) {
-    const isCorrectKey = correctAns.includes(key)
-    const isUserKey = userAns.includes(key)
+    const isCorrectKey = optionMatchesAnswer(q, key, correctAns)
+    const isUserKey = optionMatchesAnswer(q, key, userAns)
 
     if (isCorrectKey) {
       return { 'opt-correct': true }
@@ -623,12 +623,21 @@ function getOptionClass(key: string) {
   return {}
 }
 
+function optionMatchesAnswer(q: QuizQuestionItem, key: string, ans: string): boolean {
+  if (!ans) return false
+  const text = q.options?.[key] ?? ''
+  if (q.type === 'judge') {
+    return ans === key || ans === text
+  }
+  return ans.includes(key)
+}
+
 function isOptionCorrect(key: string) {
   const q = currentQ.value
   if (!q) return false
   const answered = currentResult.value !== null || q.is_answered
   const correctAns = currentResult.value?.correct_answer || q.answer || ''
-  return answered && correctAns.includes(key)
+  return answered && optionMatchesAnswer(q, key, correctAns)
 }
 
 function isOptionUserWrong(key: string) {
@@ -637,7 +646,11 @@ function isOptionUserWrong(key: string) {
   const answered = currentResult.value !== null || q.is_answered
   const correctAns = currentResult.value?.correct_answer || q.answer || ''
   const userAns = currentResult.value?.user_answer || q.user_answer || ''
-  return answered && userAns.includes(key) && !correctAns.includes(key)
+  return (
+    answered &&
+    optionMatchesAnswer(q, key, userAns) &&
+    !optionMatchesAnswer(q, key, correctAns)
+  )
 }
 
 // 点击选项

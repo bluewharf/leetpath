@@ -10774,7 +10774,7 @@
       "D": "Restraint（权限、批准、审计）"
     },
     "answer": "B",
-    "analysis": "本题考点:harness 八支柱.\n【正确项】B（应选）:从零预训练不是套件层的事。八根大致是：Context、Provenance、Capability、Workflow、Restraint、Verification、Visual interface、Coordination。对应「不知道项目 / 不知来龙去脉 / 不能动手 / 每次重发明 / 乱来 / 嘴上说修好了 / 结果看不清 / 多 Agent 失控」。\n【A/B/D】都是支柱。"
+    "analysis": "本题考点:harness 八支柱.\n【正确项】B（应选）:从零预训练不是套件层的事。八根大致是：Context、Provenance、Capability、Workflow、Restraint、Verification、Visual interface、Coordination。对应「不知道项目 / 不知来龙去脉 / 不能动手 / 每次重发明 / 乱来 / 嘴上说修好了 / 结果看不清 / 多 Agent 失控」。\n【A/C/D】都是支柱。"
   },
   {
     "bank": "Agent Harness 与编码智能体",
