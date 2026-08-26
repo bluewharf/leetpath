@@ -51,6 +51,8 @@
   --shadow-lg: 0 12px 32px -12px rgba(0, 0, 0, 0.14);
   --shadow-accent: 0 3px 10px rgba(0, 0, 0, 0.18);
   --topbar-h: 58px;
+  /* 0 on desktop; at ≤1023px becomes tab bar height + iOS home indicator. */
+  --bottom-nav-h: 0px;
   color-scheme: light;
 }
 
@@ -732,7 +734,7 @@ code, pre, .mono { font-family: var(--mono); }
   bottom: 0;
   left: 0;
   right: 0;
-  height: calc(56px + env(safe-area-inset-bottom));
+  height: var(--bottom-nav-h);
   background: rgba(247, 247, 248, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -2293,6 +2295,9 @@ code, pre, .mono { font-family: var(--mono); }
   .brand-version { display: none; }
   .ai-settings-btn { padding: 5px 8px; }
   .ai-settings-btn .lang-text { display: none; }
+  :root {
+    --bottom-nav-h: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
   /* 底部 tabs 项多时横向滑动，不再挤压变形 */
   .bottom-tabs {
     display: flex;
