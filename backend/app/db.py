@@ -68,6 +68,19 @@ def ensure_schema(bind: Engine | None = None) -> None:
         cols = {row[1] for row in rows}
         if "leetcode_id" not in cols:
             conn.execute(text("ALTER TABLE problems ADD COLUMN leetcode_id INTEGER"))
+        submission_rows = conn.execute(text("PRAGMA table_info(submissions)")).fetchall()
+        submission_cols = {row[1] for row in submission_rows}
+        if submission_rows and "judged_at" not in submission_cols:
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN judged_at DATETIME"))
+        user_rows = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+        user_cols = {row[1] for row in user_rows}
+        if user_rows:
+            if "avatar_path" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN avatar_path VARCHAR(255)"))
+            if "avatar_updated_at" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN avatar_updated_at DATETIME"))
+            if "token_version" not in user_cols:
+                conn.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 0"))
 
 
 def get_db() -> Generator[Session, None, None]:

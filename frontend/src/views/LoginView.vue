@@ -254,6 +254,7 @@ async function onSubmit() {
   font-size: 32px;
   line-height: 1.35;
   font-weight: 800;
+  font-family: var(--serif);
   margin-bottom: 16px;
   color: var(--text);
 }

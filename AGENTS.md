@@ -40,6 +40,13 @@ python -m judge.worker
 # 前端
 cd frontend && npm install && npm run dev   # /api 代理到 8000
 npm run build
+
+# 发版（本地）：更新 VERSION 单源并打 git tag
+scripts/release.sh 0.3.0 && git push && git push origin v0.3.0
+
+# 升级（服务器）：拉代码、按 VERSION 构建带标签镜像、滚动重启并健康检查
+scripts/upgrade.sh
+# 回滚：git checkout v<旧版本> && scripts/upgrade.sh
 ```
 
 ## 约定
@@ -48,4 +55,5 @@ npm run build
 - 提交状态：pending / judging / AC / WA / TLE / MLE / CE / RE / IE
 - 所有 API 在 `/api` 前缀下，除 `/api/auth/*` 外均需登录
 - 题面、注释、UI 文案用中文；代码标识符用英文
+- 版本号单源为根目录 `VERSION` 文件：后端经 compose 注入 `APP_VERSION`（`/api/health` 返回），前端构建时经 vite define 注入并显示在顶栏；docker 镜像按 `leetpath-backend/frontend:<版本>` 打标签
 - 不要提交 `.env`、`data/`、种子数据以外的产物

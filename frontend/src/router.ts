@@ -12,6 +12,8 @@ const LinksView = () => import('./views/LinksView.vue')
 const HandbookView = () => import('./views/HandbookView.vue')
 const QuizView = () => import('./views/QuizView.vue')
 const AdminView = () => import('./views/AdminView.vue')
+const LeaderboardView = () => import('./views/LeaderboardView.vue')
+const SettingsView = () => import('./views/SettingsView.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -26,7 +28,9 @@ export const router = createRouter({
     { path: '/handbook', component: HandbookView },
     { path: '/jobs', component: JobsView },
     { path: '/links', component: LinksView },
+    { path: '/leaderboard', component: LeaderboardView },
     { path: '/admin', component: AdminView, meta: { admin: true } },
+    { path: '/settings', component: SettingsView },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

@@ -33,6 +33,9 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(128))
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    avatar_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    avatar_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    token_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     submissions: Mapped[list["Submission"]] = relationship(back_populates="user")
@@ -100,6 +103,7 @@ class Submission(Base):
     detail: Mapped[list | dict | None] = mapped_column(JSON, nullable=True)
     compile_output: Mapped[str | None] = mapped_column(Text, nullable=True)
     runtime_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    judged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
     user: Mapped[User] = relationship(back_populates="submissions")
@@ -194,6 +198,31 @@ class QuizRecord(Base):
 
     user: Mapped[User] = relationship()
     question: Mapped[QuizQuestion] = relationship(back_populates="records")
+
+
+class QuizSolveEvent(Base):
+    """用户首次答对八股题的事实事件。"""
+
+    __tablename__ = "quiz_solve_events"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("quiz_questions.id"), primary_key=True)
+    solved_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class StudySession(Base):
+    """按用户、客户端会话和本地自然日累计的活跃时长。"""
+
+    __tablename__ = "study_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    session_id: Mapped[str] = mapped_column(String(64), index=True)
+    surface: Mapped[str] = mapped_column(String(16))
+    day: Mapped[date] = mapped_column(Date, index=True)
+    active_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    last_heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    __table_args__ = (UniqueConstraint("user_id", "session_id", "day"),)
 
 
 class SystemSetting(Base):

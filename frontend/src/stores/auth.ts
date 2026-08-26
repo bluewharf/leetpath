@@ -34,5 +34,19 @@ export const useAuthStore = defineStore('auth', {
       await api.post('/api/auth/logout')
       this.me = null
     },
+    async changePassword(oldPassword: string, newPassword: string) {
+      this.me = await api.post<User>('/api/auth/password', {
+        old_password: oldPassword,
+        new_password: newPassword,
+      })
+    },
+    async uploadAvatar(file: File) {
+      const body = new FormData()
+      body.append('file', file)
+      this.me = await api.upload<User>('/api/auth/avatar', body)
+    },
+    async deleteAvatar() {
+      this.me = await api.del<User>('/api/auth/avatar')
+    },
   },
 })

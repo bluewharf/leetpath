@@ -132,6 +132,102 @@ def test_protected_requires_login(client):
 
 def test_user_out_excludes_password():
     assert "password_hash" not in UserOut.model_fields
+    assert "avatar_url" in UserOut.model_fields
+
+
+_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+    b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def test_change_password_and_invalidate_old_session(admin_client):
+    code = _new_invite(admin_client)
+    admin_client.post("/api/auth/logout")
+    registered = admin_client.post(
+        "/api/auth/register",
+        json={"username": "alice", "password": "password123", "invite_code": code},
+    )
+    assert registered.status_code == 201
+
+    other = admin_client
+    assert other.get("/api/auth/me").status_code == 200
+
+    bad_old = other.post(
+        "/api/auth/password",
+        json={"old_password": "wrongpass1", "new_password": "newpass123"},
+    )
+    assert bad_old.status_code == 400
+    assert bad_old.json()["detail"] == "当前密码不正确"
+
+    same = other.post(
+        "/api/auth/password",
+        json={"old_password": "password123", "new_password": "password123"},
+    )
+    assert same.status_code == 400
+
+    cookie_name = get_settings().COOKIE_NAME
+    old_token = other.cookies.get(cookie_name)
+    ok = other.post(
+        "/api/auth/password",
+        json={"old_password": "password123", "new_password": "newpass123"},
+    )
+    assert ok.status_code == 200
+    assert other.get("/api/auth/me").status_code == 200
+    other.cookies.set(cookie_name, old_token)
+    assert other.get("/api/auth/me").status_code == 401
+
+    other.post("/api/auth/logout")
+    assert (
+        other.post("/api/auth/login", json={"username": "alice", "password": "password123"}).status_code
+        == 401
+    )
+    assert (
+        other.post("/api/auth/login", json={"username": "alice", "password": "newpass123"}).status_code
+        == 200
+    )
+
+
+def test_change_password_requires_login(client):
+    r = client.post(
+        "/api/auth/password",
+        json={"old_password": "password123", "new_password": "newpass123"},
+    )
+    assert r.status_code == 401
+
+
+def test_avatar_upload_get_and_delete(user_client):
+    me = user_client.get("/api/auth/me")
+    assert me.status_code == 200
+    assert me.json()["avatar_url"] is None
+
+    rejected = user_client.post(
+        "/api/auth/avatar",
+        files={"file": ("note.txt", b"not-an-image", "text/plain")},
+    )
+    assert rejected.status_code == 400
+
+    uploaded = user_client.post(
+        "/api/auth/avatar",
+        files={"file": ("face.png", _PNG, "image/png")},
+    )
+    assert uploaded.status_code == 200
+    url = uploaded.json()["avatar_url"]
+    assert url and url.startswith("/api/auth/avatar/")
+
+    fetched = user_client.get(url.split("?")[0])
+    assert fetched.status_code == 200
+    assert fetched.headers["content-type"].startswith("image/")
+    assert fetched.content[:4] == b"RIFF"
+
+    me2 = user_client.get("/api/auth/me")
+    assert me2.json()["avatar_url"] == url
+
+    removed = user_client.delete("/api/auth/avatar")
+    assert removed.status_code == 200
+    assert removed.json()["avatar_url"] is None
+    assert user_client.get(url.split("?")[0]).status_code == 404
 
 
 def test_production_settings_reject_insecure_defaults():

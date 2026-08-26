@@ -11,10 +11,11 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const isForm = typeof FormData !== 'undefined' && options.body instanceof FormData
   const res = await fetch(path, {
     credentials: 'include',
     ...options,
-    headers: options.body
+    headers: options.body && !isForm
       ? { 'Content-Type': 'application/json', ...options.headers }
       : options.headers,
   })
@@ -44,4 +45,5 @@ export const api = {
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, body: FormData) => request<T>(path, { method: 'POST', body }),
 }
