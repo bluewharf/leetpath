@@ -44,6 +44,35 @@ aaabcbc
 accaccacc
 ```
 
+### 样例 3
+
+输入：
+
+```text
+2[abc]3[cd]ef
+```
+
+输出：
+
+```text
+abcabccdcdcdef
+```
+
+### 样例 4
+
+输入：
+
+```text
+abc3[cd]xyz
+```
+
+输出：
+
+```text
+abccdcdcdxyz
+```
+
+
 ## 提示（数据范围）
 
 - `1 <= |s| <= 30`

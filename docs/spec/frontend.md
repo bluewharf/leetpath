@@ -30,7 +30,7 @@
 ## ProblemView（刷题页）
 
 - 布局：≥1024px 左右双栏（左题面可滚动，右编辑器+结果）；<1024px 顶部三个 tab：`题面 | 代码 | 结果`。
-- 题面：渲染 statement_md（含输入/输出格式、样例、提示）；样例展示 input/expected 代码块。
+- 题面：渲染 statement_md（含输入/输出格式、样例、提示）。样例只在题面 markdown 里展示一次，不要再用 `problem.samples` 在题面下方重复渲染。评测结果里的样例展开仍用 `is_sample`。
 - 编辑器 `Editor.vue`：CodeMirror，行号、4 空格缩进、语言随选择切换（python3/cpp）、主题跟随系统深浅色；字号移动端 ≥14px 防 iOS 缩放。
 - 语言切换下拉：`Python3` / `C++`。切换时保存当前草稿、加载目标语言草稿。
 - 评测模式切换：`ACM` / `力扣`。力扣模式编辑器只放 `class Solution`（或 LRU/Trie 等设计类），签名与力扣一致；两种模式草稿分开保存，偏好写入 localStorage。

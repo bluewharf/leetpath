@@ -6,4 +6,4 @@ source = "hot100"
 tags = ["数组", "二分", "DP"]
 time_limit_ms = 5000
 memory_limit_mb = 256
-samples = [1, 2]
+samples = [1, 2, 3]

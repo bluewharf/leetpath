@@ -61,6 +61,27 @@ true
 
 `s` 可以拆成 `"apple" + "pen" + "apple"`。同一个单词 `apple` 被使用了两次，这是允许的。
 
+### 样例 3
+
+输入：
+
+```text
+catsandog
+5
+cats
+dog
+sand
+and
+cat
+```
+
+输出：
+
+```text
+false
+```
+
+
 ## 提示（数据范围）
 
 - `1 <= |s| <= 300`
