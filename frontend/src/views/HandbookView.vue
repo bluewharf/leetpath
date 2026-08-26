@@ -59,9 +59,9 @@
 
       <!-- ACM 模式 vs 力扣模式扫盲 -->
       <div class="card rule-card" style="margin-top:16px">
-        <h2>ACM 模式 vs 力扣模式（本站采用 ACM 模式）</h2>
+        <h2>ACM 模式 vs 力扣模式（刷题页可切换）</h2>
         <p class="rule-intro">
-          力扣上你只需要写一个函数，平台帮你处理输入输出；而<strong>校招笔试（牛客、各厂自家 OJ）几乎全是 ACM 模式</strong>——自己从标准输入读数据、把答案打印到标准输出。本站刻意采用 ACM 模式，就是为了让你提前适应真实笔试环境。
+          力扣上你只需要写一个函数，平台帮你处理输入输出；而<strong>校招笔试（牛客、各厂自家 OJ）几乎全是 ACM 模式</strong>——自己从标准输入读数据、把答案打印到标准输出。本站两种模式都支持：编辑器工具栏可切换，草稿分开保存。建议笔试前用 ACM 模式练手。
         </p>
         <div class="table-wrap">
           <table class="handbook-table">
@@ -69,7 +69,7 @@
               <tr>
                 <th></th>
                 <th>力扣模式（函数式）</th>
-                <th>ACM 模式（本站 / 校招笔试）</th>
+                <th>ACM 模式（校招笔试）</th>
               </tr>
             </thead>
             <tbody>
@@ -108,14 +108,14 @@
           </div>
           <div class="io-temp-box">
             <div class="io-temp-head">
-              <span>ACM 模式（本站提交格式）</span>
+              <span>ACM 模式（笔试提交格式）</span>
               <button class="btn btn-xs" @click="copy(ACM_STYLE_CODE)">复制</button>
             </div>
             <pre class="mono io-pre">{{ ACM_STYLE_CODE }}</pre>
           </div>
         </div>
         <p class="rule-intro" style="margin:14px 0 0">
-          大数据量输入时记得用「语法对齐」页底部的极速 I/O 模板防 TLE；每道题的题面都写明了输入输出格式，照着读就行。
+          力扣模式下模板签名与力扣一致（<code>class Solution</code> / 设计类），评测仍用本题 ACM 用例，由平台代读入。ACM 模式大数据量输入请用「语法对齐」页底部的极速 I/O 模板防 TLE。
         </p>
       </div>
 

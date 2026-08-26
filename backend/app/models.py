@@ -17,6 +17,7 @@ from app.db import Base
 
 SUBMISSION_STATUSES = ("pending", "judging", "AC", "WA", "TLE", "MLE", "CE", "RE", "IE")
 LANGUAGES = ("python3", "cpp")
+IO_MODES = ("acm", "leetcode")
 DIFFICULTIES = ("easy", "medium", "hard")
 SOURCES = ("hot100", "mianjing")
 
@@ -69,6 +70,7 @@ class Problem(Base):
     time_limit_ms: Mapped[int] = mapped_column(Integer, default=5000)
     memory_limit_mb: Mapped[int] = mapped_column(Integer, default=256)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True)
+    leetcode_spec: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     testcases: Mapped[list["Testcase"]] = relationship(
@@ -98,6 +100,7 @@ class Submission(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("problems.id"))
     language: Mapped[str] = mapped_column(String(16))
+    io_mode: Mapped[str] = mapped_column(String(16), default="acm", server_default="acm")
     code: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     detail: Mapped[list | dict | None] = mapped_column(JSON, nullable=True)

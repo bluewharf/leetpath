@@ -100,12 +100,13 @@
                 <div class="sub-line" @click="toggleHistory(s.id)">
                   <StatusBadge :status="s.status" />
                   <span class="mono" style="font-size:12px">{{ s.language === 'cpp' ? 'C++' : 'Python3' }}</span>
+                  <span class="mono" style="font-size:11px;color:var(--text-faint)">{{ s.io_mode === 'leetcode' ? '力扣' : 'ACM' }}</span>
                   <span v-if="s.runtime_ms !== null" style="color:var(--text-faint);font-size:12px">{{ s.runtime_ms }}ms</span>
                   <span class="sub-time">{{ formatTime(s.created_at) }}</span>
                 </div>
                 <div v-if="expandedHistory.has(s.id)" class="history-code-box">
                   <div class="history-code-actions">
-                    <button class="btn btn-xs" @click.stop="loadCodeIntoEditor(historyCode[s.id], s.language)">
+                    <button class="btn btn-xs" @click.stop="loadCodeIntoEditor(historyCode[s.id], s.language, s.io_mode || 'acm')">
                       载入编辑器
                     </button>
                     <button class="btn btn-xs" @click.stop="copyCode(historyCode[s.id])">
@@ -146,6 +147,21 @@
             <div class="editor-toolbar">
               <!-- 语言由顶栏全局偏好统一控制，此处只读展示 -->
               <span class="editor-lang-label mono" title="在页面右上角切换全局语言">{{ language === 'cpp' ? 'C++ (C++20)' : 'Python3' }}</span>
+              <div class="mode-switch" role="group" aria-label="评测模式">
+                <button
+                  type="button"
+                  :class="{ active: ioMode === 'acm' }"
+                  title="ACM 模式：自己读 stdin、写 stdout"
+                  @click="setMode('acm')"
+                >ACM</button>
+                <button
+                  type="button"
+                  :class="{ active: ioMode === 'leetcode' }"
+                  :disabled="!problem.leetcode_available"
+                  :title="problem.leetcode_available ? '力扣模式：只写 class Solution / 设计类，签名与力扣一致' : '本题暂不支持力扣函数模式'"
+                  @click="setMode('leetcode')"
+                >力扣</button>
+              </div>
 
               <button class="btn btn-primary btn-sm" :disabled="submitting" @click="submit" title="快捷键: Ctrl + Enter">
                 {{ submitting ? '评测中…' : '提交评测' }}
@@ -168,7 +184,8 @@
               <span class="shortcut-tip" v-if="isDesktop">Ctrl+Enter 提交 · Ctrl+S 保存</span>
             </div>
             <div class="acm-hint">
-              <span>ACM 模式：提交完整程序，自己读 stdin / 打印 stdout，格式以题面「输入 / 输出格式」为准</span>
+              <span v-if="ioMode === 'leetcode'">力扣模式：只实现下方函数 / 设计类，签名与力扣一致。评测仍用本题用例，不必自己处理输入输出。</span>
+              <span v-else>ACM 模式：提交完整程序，自己读 stdin / 打印 stdout，格式以题面「输入 / 输出格式」为准</span>
               <RouterLink to="/handbook" class="acm-hint-link">写法对比 · 极速 I/O 模板 →</RouterLink>
             </div>
             <Editor v-model="code" :language="language" />
@@ -179,7 +196,7 @@
             <div class="result-body">
               <div v-if="!submission" class="empty" style="padding:24px 0">
                 <p>提交后在这里查看实时评测结果</p>
-                <span style="font-size:12px;color:var(--text-faint)">支持 Python 3 & C++ ACM 模式标准输入输出</span>
+                <span style="font-size:12px;color:var(--text-faint)">支持 Python 3 / C++，可切换 ACM 标准输入输出或力扣函数模式</span>
               </div>
               <template v-else>
                 <div class="result-head">
@@ -236,13 +253,14 @@ import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { useToast } from '../stores/toast'
-import { useLangPref } from '../stores/pref'
+import { useIoModePref, useLangPref } from '../stores/pref'
 import { useStudyPlan } from '../stores/plan'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import {
   isFinal,
   problemHeading,
   type Draft,
+  type IoMode,
   type Language,
   type ProblemDetail,
   type Submission,
@@ -252,10 +270,12 @@ const route = useRoute()
 const slug = computed(() => route.params.slug as string)
 const toast = useToast()
 const { langPref, setLang } = useLangPref()
+const { ioModePref, setIoMode } = useIoModePref()
 
 const loading = ref(true)
 const problem = ref<ProblemDetail | null>(null)
 const language = ref<Language>(langPref.value)
+const ioMode = ref<IoMode>(ioModePref.value)
 const code = ref('')
 const submission = ref<Submission | null>(null)
 const submitting = ref(false)
@@ -318,7 +338,7 @@ function updateAiContext() {
     title: `力扣 · ${problemHeading(p)}`,
     contextKey: `problem:${p.slug}`,
     contextText: `【题目】：${problemHeading(p)} (${p.difficulty} · ${p.tags.join(', ')})
-【语言】：${language.value === 'cpp' ? 'C++ (C++20)' : 'Python 3'} (ACM 模式输入输出)
+【语言】：${language.value === 'cpp' ? 'C++ (C++20)' : 'Python 3'}（${ioMode.value === 'leetcode' ? '力扣函数模式，只写 Solution / 设计类' : 'ACM 模式，自己处理 stdin/stdout'}）
 【评测状态】：${subInfo}
 
 【用户当前代码】：
@@ -332,7 +352,7 @@ ${p.statement_md}`,
   })
 }
 
-watch([problem, code, language, submission], () => {
+watch([problem, code, language, ioMode, submission], () => {
   updateAiContext()
 })
 
@@ -496,10 +516,12 @@ async function toggleHistory(id: number) {
   expandedHistory.value = s
 }
 
-function loadCodeIntoEditor(historySnippet: string, lang: Language) {
+function loadCodeIntoEditor(historySnippet: string, lang: Language, mode: IoMode = 'acm') {
   if (!historySnippet) return
   if (confirm('确认将此历史提交代码载入到编辑器中吗？当前未保存的修改将被覆盖。')) {
     if (language.value !== lang) setLang(lang)
+    if (ioMode.value !== mode) setIoMode(mode)
+    ioMode.value = mode
     code.value = historySnippet
     dirty = true
     saveDraftNow()
@@ -513,12 +535,19 @@ function copyCode(content: string) {
   toast.success('代码已复制到剪贴板')
 }
 
+function defaultCodeFor(lang: Language, mode: IoMode): string {
+  if (mode === 'leetcode') {
+    return problem.value?.leetcode_starters?.[lang] || ''
+  }
+  return DEFAULT_TEMPLATES[lang] || ''
+}
+
 function confirmResetCode() {
   if (confirm('确定要重置当前代码吗？将恢复为初始默认模板。')) {
-    code.value = DEFAULT_TEMPLATES[language.value] || ''
+    code.value = defaultCodeFor(language.value, ioMode.value)
     dirty = true
     saveDraftNow()
-    toast.info('代码已重置为初始模板')
+    toast.info(ioMode.value === 'leetcode' ? '已重置为力扣函数模板' : '代码已重置为初始模板')
   }
 }
 
@@ -542,7 +571,11 @@ async function saveDraftNow() {
   dirty = false
   saveHint.value = '保存中…'
   try {
-    await api.put(`/api/drafts/${slug.value}`, { language: language.value, code: code.value })
+    await api.put(`/api/drafts/${slug.value}`, {
+      language: language.value,
+      io_mode: ioMode.value,
+      code: code.value,
+    })
     const d = new Date()
     saveHint.value = `已保存 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   } catch {
@@ -557,14 +590,29 @@ watch(code, () => {
 })
 
 async function loadDraft() {
-  const draft = await api.get<Draft>(`/api/drafts/${slug.value}?language=${language.value}`)
+  const draft = await api.get<Draft>(
+    `/api/drafts/${slug.value}?language=${language.value}&io_mode=${ioMode.value}`,
+  )
   if (draft.code && draft.code.trim().length > 0) {
     code.value = draft.code
   } else {
-    code.value = DEFAULT_TEMPLATES[language.value] || ''
+    code.value = defaultCodeFor(language.value, ioMode.value)
   }
   dirty = false
   saveHint.value = draft.is_default ? '' : '草稿已恢复'
+}
+
+async function setMode(mode: IoMode) {
+  if (ioMode.value === mode) return
+  if (mode === 'leetcode' && !problem.value?.leetcode_available) {
+    toast.info('本题暂不支持力扣函数模式')
+    return
+  }
+  if (saveTimer) clearTimeout(saveTimer)
+  await saveDraftNow()
+  ioMode.value = mode
+  setIoMode(mode)
+  await loadDraft()
 }
 
 async function onLanguageChange() {
@@ -590,6 +638,7 @@ async function submit() {
     const res = await api.post<{ id: number; status: string }>('/api/submissions', {
       problem_slug: slug.value,
       language: language.value,
+      io_mode: ioMode.value,
       code: code.value,
     })
     submission.value = null
@@ -642,6 +691,9 @@ async function loadAll() {
   tab.value = window.innerWidth >= 1024 ? 'code' : 'statement'
   try {
     problem.value = await api.get<ProblemDetail>(`/api/problems/${slug.value}`)
+    const preferred: IoMode =
+      problem.value.leetcode_available && ioModePref.value === 'leetcode' ? 'leetcode' : 'acm'
+    ioMode.value = preferred
     await Promise.all([loadDraft(), loadHistory(), loadSolution()])
   } catch {
     problem.value = null

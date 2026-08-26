@@ -1,3 +1,23 @@
+def test_create_leetcode_submission_stores_io_mode(admin_client):
+    r = admin_client.post(
+        "/api/submissions",
+        json={
+            "problem_slug": "two-sum",
+            "language": "python3",
+            "io_mode": "leetcode",
+            "code": "class Solution:\n    def twoSum(self, nums, target):\n        return [0, 1]\n",
+        },
+    )
+    assert r.status_code == 202
+    detail = admin_client.get(f"/api/submissions/{r.json()['id']}")
+    assert detail.status_code == 200
+    body = detail.json()
+    assert body["io_mode"] == "leetcode"
+    assert "class Solution" in body["code"]
+    listed = admin_client.get("/api/submissions?problem_slug=two-sum").json()
+    assert listed[0]["io_mode"] == "leetcode"
+
+
 def test_create_submission_pending(admin_client):
     r = admin_client.post(
         "/api/submissions",
@@ -14,6 +34,7 @@ def test_create_submission_pending(admin_client):
     assert d["problem_slug"] == "two-sum"
     assert d["problem_title"] == "两数之和"
     assert d["language"] == "python3"
+    assert d["io_mode"] == "acm"
     assert d["code"] == "print(0, 1)\n"
     assert d["status"] == "pending"
     assert d["runtime_ms"] is None

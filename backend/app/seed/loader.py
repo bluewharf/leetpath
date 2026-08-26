@@ -51,6 +51,8 @@ def _upsert_problem(session: Session, directory: Path) -> bool:
     solution_path = directory / "solution.md"
     raw_lc = meta.get("leetcode_id")
     leetcode_id = int(raw_lc) if raw_lc is not None else None
+    from judge.leetcode_catalog import spec_for
+
     fields = {
         "slug": slug,
         "leetcode_id": leetcode_id,
@@ -64,6 +66,7 @@ def _upsert_problem(session: Session, directory: Path) -> bool:
         ),
         "time_limit_ms": int(meta.get("time_limit_ms", 5000)),
         "memory_limit_mb": int(meta.get("memory_limit_mb", 256)),
+        "leetcode_spec": spec_for(slug),
     }
     problem = session.scalar(select(Problem).where(Problem.slug == slug))
     if problem is None:

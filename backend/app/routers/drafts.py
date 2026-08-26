@@ -49,8 +49,15 @@ class DraftOut(BaseModel):
     is_default: bool
 
 
+def _storage_language(language: str, io_mode: str) -> str:
+    if io_mode == "leetcode":
+        return f"{language}_lc"
+    return language
+
+
 class DraftPut(BaseModel):
     language: Literal["python3", "cpp"]
+    io_mode: Literal["acm", "leetcode"] = "acm"
     code: str
 
     @field_validator("code")
@@ -78,12 +85,29 @@ def _published_problem(db: Session, slug: str) -> Problem:
 def get_draft(
     slug: str,
     language: Literal["python3", "cpp"] = Query(default="python3"),
+    io_mode: Literal["acm", "leetcode"] = Query(default="acm"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> DraftOut:
     problem = _published_problem(db, slug)
-    draft = db.get(Draft, (user.id, problem.id, language))
+    stored = _storage_language(language, io_mode)
+    draft = db.get(Draft, (user.id, problem.id, stored))
     if draft is None:
+        if io_mode == "leetcode":
+            from judge.leetcode_catalog import spec_for_problem
+            from judge.leetcode_wrap import generate_starter
+
+            spec = spec_for_problem(problem)
+            if spec is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="本题暂不支持力扣函数模式",
+                )
+            return DraftOut(
+                code=generate_starter(spec, language),
+                updated_at=None,
+                is_default=True,
+            )
         return DraftOut(code=TEMPLATES[language], updated_at=None, is_default=True)
     return DraftOut(code=draft.code, updated_at=draft.updated_at, is_default=False)
 
@@ -96,13 +120,22 @@ def put_draft(
     user: User = Depends(get_current_user),
 ) -> DraftUpdated:
     problem = _published_problem(db, slug)
+    if body.io_mode == "leetcode":
+        from judge.leetcode_catalog import spec_for_problem
+
+        if spec_for_problem(problem) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="本题暂不支持力扣函数模式",
+            )
     now = utcnow()
-    draft = db.get(Draft, (user.id, problem.id, body.language))
+    stored = _storage_language(body.language, body.io_mode)
+    draft = db.get(Draft, (user.id, problem.id, stored))
     if draft is None:
         draft = Draft(
             user_id=user.id,
             problem_id=problem.id,
-            language=body.language,
+            language=stored,
             code=body.code,
             updated_at=now,
         )

@@ -68,10 +68,14 @@ def ensure_schema(bind: Engine | None = None) -> None:
         cols = {row[1] for row in rows}
         if "leetcode_id" not in cols:
             conn.execute(text("ALTER TABLE problems ADD COLUMN leetcode_id INTEGER"))
+        if "leetcode_spec" not in cols:
+            conn.execute(text("ALTER TABLE problems ADD COLUMN leetcode_spec JSON"))
         submission_rows = conn.execute(text("PRAGMA table_info(submissions)")).fetchall()
         submission_cols = {row[1] for row in submission_rows}
         if submission_rows and "judged_at" not in submission_cols:
             conn.execute(text("ALTER TABLE submissions ADD COLUMN judged_at DATETIME"))
+        if submission_rows and "io_mode" not in submission_cols:
+            conn.execute(text("ALTER TABLE submissions ADD COLUMN io_mode VARCHAR(16) DEFAULT 'acm'"))
         user_rows = conn.execute(text("PRAGMA table_info(users)")).fetchall()
         user_cols = {row[1] for row in user_rows}
         if user_rows:

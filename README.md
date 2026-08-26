@@ -2,12 +2,12 @@
 
 响应式个人刷题站：力扣热题 100 + 面经高频手撕题库，Python3 / C++ 在线评测（Docker 沙箱），草稿入库多端同步，首页校招看板，大模型八股外链小林笔记。
 
-题面与评测为 ACM 模式（stdin / stdout）。本仓库仅供个人学习使用。
+题面用例为 ACM 模式（stdin / stdout）；刷题页可切换力扣函数模式（`class Solution`），由评测套上读入 harness。本仓库仅供个人学习使用。
 
 ## 功能
 
 - 热题 100 与面经手撕：题面 Markdown、样例与隐藏用例、按难度 / 来源 / 标签筛选
-- 在线评测：Python3 与 C++，状态 `pending / judging / AC / WA / TLE / MLE / CE / RE / IE`
+- 在线评测：Python3 与 C++，ACM 标准输入输出或力扣函数模式可切换；状态 `pending / judging / AC / WA / TLE / MLE / CE / RE / IE`
 - 代码草稿入库，登录后多端同步
 - 校招看板：岗位、批次、截止日、投递链接（管理员 CRUD）
 - 八股外链：小林笔记（含大模型面试栏目）

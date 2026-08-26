@@ -36,6 +36,10 @@ def test_problem_list_and_detail(admin_client):
     assert [s["ordinal"] for s in body["samples"]] == [1, 2]
     assert "2 7 11 15" in body["samples"][0]["input"]
     assert body["samples"][0]["expected_output"].strip() == "0 1"
+    assert body["leetcode_available"] is True
+    assert "class Solution:" in body["leetcode_starters"]["python3"]
+    assert "def twoSum" in body["leetcode_starters"]["python3"]
+    assert "vector<int> twoSum" in body["leetcode_starters"]["cpp"]
 
 
 def test_problem_filters(admin_client):

@@ -1,6 +1,7 @@
 // 与后端契约对齐的类型定义
 
 export type Language = 'python3' | 'cpp'
+export type IoMode = 'acm' | 'leetcode'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type SubmissionStatus =
   | 'pending'
@@ -61,6 +62,8 @@ export interface ProblemDetail extends Omit<ProblemListItem, 'my_status'> {
   time_limit_ms: number
   memory_limit_mb: number
   samples: SampleTest[]
+  leetcode_available: boolean
+  leetcode_starters?: Record<Language, string> | null
 }
 
 export interface TestResult {
@@ -79,6 +82,7 @@ export interface Submission {
   problem_slug: string
   problem_title?: string
   language: Language
+  io_mode?: IoMode
   code?: string
   status: SubmissionStatus
   runtime_ms: number | null

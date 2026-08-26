@@ -27,7 +27,7 @@
             <div class="feat-icon">🎯</div>
             <div class="feat-info">
               <h4>热题 100 + 面经手撕</h4>
-              <p>Python 3 / C++ ACM 模式沙箱秒级评测</p>
+              <p>Python 3 / C++，ACM 与力扣函数双模式沙箱评测</p>
             </div>
           </div>
 

@@ -21,6 +21,7 @@ MAX_SUBMISSIONS_PER_MINUTE = 10
 class SubmissionCreate(BaseModel):
     problem_slug: str
     language: Literal["python3", "cpp"]
+    io_mode: Literal["acm", "leetcode"] = "acm"
     code: str
 
     @field_validator("code")
@@ -41,6 +42,7 @@ class SubmissionDetail(BaseModel):
     problem_slug: str
     problem_title: str
     language: str
+    io_mode: str
     code: str
     status: str
     runtime_ms: int | None
@@ -54,6 +56,7 @@ class SubmissionListItem(BaseModel):
     problem_slug: str
     problem_title: str
     language: str
+    io_mode: str
     status: str
     runtime_ms: int | None
     created_at: datetime
@@ -103,10 +106,19 @@ def create_submission(
     )
     if (in_flight or 0) >= MAX_IN_FLIGHT:
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="待评测提交过多")
+    if body.io_mode == "leetcode":
+        from judge.leetcode_catalog import spec_for_problem
+
+        if spec_for_problem(problem) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="本题暂不支持力扣函数模式，请切换到 ACM 模式",
+            )
     sub = Submission(
         user_id=user.id,
         problem_id=problem.id,
         language=body.language,
+        io_mode=body.io_mode,
         code=body.code,
         status="pending",
     )
@@ -139,6 +151,7 @@ def list_submissions(
             problem_slug=problem.slug,
             problem_title=problem.title,
             language=sub.language,
+            io_mode=getattr(sub, "io_mode", None) or "acm",
             status=sub.status,
             runtime_ms=sub.runtime_ms,
             created_at=sub.created_at,
@@ -168,6 +181,7 @@ def get_submission(
         problem_slug=problem.slug,
         problem_title=problem.title,
         language=sub.language,
+        io_mode=getattr(sub, "io_mode", None) or "acm",
         code=sub.code,
         status=sub.status,
         runtime_ms=sub.runtime_ms,

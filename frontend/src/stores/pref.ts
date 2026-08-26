@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { Language } from '../types'
+import type { IoMode, Language } from '../types'
 
 export type FontSize = 'sm' | 'md' | 'lg'
 
@@ -21,6 +21,22 @@ export function useLangPref() {
     langPref,
     setLang,
     toggleLang,
+  }
+}
+
+const IO_KEY = 'leetpath_io_mode'
+const savedIo = localStorage.getItem(IO_KEY) as IoMode | null
+const ioModePref = ref<IoMode>(savedIo === 'leetcode' ? 'leetcode' : 'acm')
+
+export function useIoModePref() {
+  function setIoMode(mode: IoMode) {
+    ioModePref.value = mode
+    localStorage.setItem(IO_KEY, mode)
+  }
+
+  return {
+    ioModePref,
+    setIoMode,
   }
 }
 

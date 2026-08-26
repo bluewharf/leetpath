@@ -868,6 +868,7 @@ code, pre, .mono { font-family: var(--mono); }
 .editor-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
@@ -876,6 +877,35 @@ code, pre, .mono { font-family: var(--mono); }
 }
 .editor-toolbar .select { width: auto; padding: 4px 26px 4px 10px; font-size: 12.5px; }
 .editor-lang-label { font-size: 13px; font-weight: 650; color: var(--text-dim); padding: 4px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.mode-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  flex: none;
+}
+.mode-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.mode-switch button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.mode-switch button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .save-hint { font-size: 11.5px; color: var(--text-faint); font-family: var(--mono); margin-left: auto; }
 
 .acm-hint {

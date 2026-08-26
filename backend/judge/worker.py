@@ -72,6 +72,9 @@ class JobData:
     time_limit_ms: int
     memory_limit_mb: int
     cases: tuple[CaseData, ...]
+    io_mode: str
+    problem_slug: str
+    leetcode_spec: dict | None
 
 
 def normalize(s: str) -> str:
@@ -287,6 +290,14 @@ def _load_job(session: Any, submission: Any, Problem: Any, Testcase: Any) -> Job
         time_limit_ms = 5000
     if memory_limit_mb <= 0:
         memory_limit_mb = 256
+    spec = getattr(problem, "leetcode_spec", None)
+    if not isinstance(spec, dict):
+        try:
+            from judge.leetcode_catalog import spec_for_problem
+
+            spec = spec_for_problem(problem)
+        except Exception:
+            spec = None
     return JobData(
         submission_id=int(submission.id),
         language=str(submission.language or ""),
@@ -294,6 +305,9 @@ def _load_job(session: Any, submission: Any, Problem: Any, Testcase: Any) -> Job
         time_limit_ms=time_limit_ms,
         memory_limit_mb=memory_limit_mb,
         cases=cases,
+        io_mode=str(getattr(submission, "io_mode", None) or "acm"),
+        problem_slug=str(getattr(problem, "slug", "") or ""),
+        leetcode_spec=spec if isinstance(spec, dict) else None,
     )
 
 
@@ -343,7 +357,12 @@ def _prepare_workdir(job: JobData) -> Path:
     tests_dir = root / "tests"
     tests_dir.mkdir(parents=True)
     filename = "main.py" if job.language == "python3" else "main.cpp"
-    (root / filename).write_text(job.code.replace("\r\n", "\n"), encoding="utf-8", newline="\n")
+    source = job.code.replace("\r\n", "\n")
+    if job.io_mode == "leetcode":
+        from judge.leetcode_wrap import wrap_user_code
+
+        source = wrap_user_code(job.language, source, job.leetcode_spec)
+    (root / filename).write_text(source, encoding="utf-8", newline="\n")
     for case in job.cases:
         (tests_dir / f"{case.ordinal:03d}.in").write_text(
             case.input_text.replace("\r\n", "\n"),
@@ -501,7 +520,10 @@ def evaluate(job: JobData) -> tuple[str, int | None, list[dict[str, Any]], str |
     if not job.cases:
         raise JudgeInfraError(f"题目没有测试用例 (submission {job.submission_id})")
 
-    work_dir = _prepare_workdir(job)
+    try:
+        work_dir = _prepare_workdir(job)
+    except ValueError as exc:
+        return STATUS_CE, None, [], str(exc)
     try:
         if job.language == "cpp":
             compile_output = _compile_cpp(work_dir)

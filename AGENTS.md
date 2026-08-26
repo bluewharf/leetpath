@@ -51,7 +51,7 @@ scripts/upgrade.sh
 
 ## 约定
 
-- 判题协议为 ACM 模式（stdin/stdout），测试用例比对忽略行尾空白与末尾空行
+- 判题协议为 ACM 模式（stdin/stdout），测试用例比对忽略行尾空白与末尾空行；刷题页可切换力扣函数模式，由 worker 套读入 harness 后仍按 ACM 用例评测
 - 提交状态：pending / judging / AC / WA / TLE / MLE / CE / RE / IE
 - 所有 API 在 `/api` 前缀下，除 `/api/auth/*` 外均需登录
 - 题面、注释、UI 文案用中文；代码标识符用英文

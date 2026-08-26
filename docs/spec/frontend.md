@@ -33,6 +33,7 @@
 - 题面：渲染 statement_md（含输入/输出格式、样例、提示）；样例展示 input/expected 代码块。
 - 编辑器 `Editor.vue`：CodeMirror，行号、4 空格缩进、语言随选择切换（python3/cpp）、主题跟随系统深浅色；字号移动端 ≥14px 防 iOS 缩放。
 - 语言切换下拉：`Python3` / `C++`。切换时保存当前草稿、加载目标语言草稿。
+- 评测模式切换：`ACM` / `力扣`。力扣模式编辑器只放 `class Solution`（或 LRU/Trie 等设计类），签名与力扣一致；两种模式草稿分开保存，偏好写入 localStorage。
 - **草稿**：编辑器内容变化防抖 1000ms → `PUT /api/drafts/{slug}`；状态栏显示`已保存 HH:mm:ss`或`保存中…`。进入页面 `GET /api/drafts/{slug}?language=` 恢复。
 - **提交**：按钮`提交评测`→ `POST /api/submissions`；之后按钮禁用并每 800ms 轮询 `GET /api/submissions/{id}`（终态或 90s 超时停止）。
 - **结果面板**：状态大徽章 + 总耗时；逐用例列表（`#1 样例 AC 12ms`）；样例用例可展开看 输入/期望/你的输出；CE 展示 compile_output 代码块。隐藏用例只显示状态。

@@ -22,9 +22,9 @@
 
 - `User`: id, username(唯一索引, 3-32), email(可空), password_hash, is_admin(bool, 默认 False), avatar_path(可空), avatar_updated_at(可空), token_version(int, 默认 0), created_at
 - `Invite`: id, code_hash(SHA-256, 唯一), expires_at, used_at(可空), revoked_at(可空), created_by_id, used_by_id(可空), created_at
-- `Problem`: id, slug(唯一索引), leetcode_id(可空, 力扣原题号), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), created_at
+- `Problem`: id, slug(唯一索引), leetcode_id(可空, 力扣原题号), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), leetcode_spec(JSON, 可空, 力扣函数签名), created_at
 - `Testcase`: id, problem_id(FK, 索引), ordinal(int), input(Text), expected_output(Text), is_sample(bool)；UniqueConstraint(problem_id, ordinal)
-- `Submission`: id, user_id(FK, 索引), problem_id(FK), language(`python3|cpp`), code(Text), status(默认 `pending`, 索引), detail(JSON, 可空), compile_output(Text, 可空), runtime_ms(int, 可空), created_at(索引)
+- `Submission`: id, user_id(FK, 索引), problem_id(FK), language(`python3|cpp`), io_mode(`acm|leetcode`, 默认 `acm`), code(Text), status(默认 `pending`, 索引), detail(JSON, 可空), compile_output(Text, 可空), runtime_ms(int, 可空), created_at(索引)
 - `Draft`: 联合主键(user_id, problem_id, language)；code(Text), updated_at
 - `Job`: id, company, position, batch(可空, 如 `2026秋招`), open_at(Date, 可空), deadline_at(Date, 可空, 索引), jd_text(Text, 可空), apply_url(可空), status(默认 `open`, 另有 `closed`), created_at
 
@@ -49,20 +49,18 @@
 ### `app/routers/problems.py`
 
 - `GET /api/problems?difficulty=&source=&tag=&q=` → `[{id, slug, leetcode_id, title, difficulty, source, tags, my_status}]`，只含 `is_published=True`。`my_status`：`solved`（有 AC 提交）/ `attempted`（有提交无 AC）/ `null`。q 匹配 title/slug 子串（大小写不敏感）；纯数字时同时匹配 `leetcode_id`。
-- `GET /api/problems/{slug}` → 详情：`{id, slug, leetcode_id, title, difficulty, source, tags, statement_md, time_limit_ms, memory_limit_mb, samples: [{ordinal, input, expected_output}]}`（samples 只含 is_sample=True，按 ordinal 排序）。404 不存在或未发布。
+- `GET /api/problems/{slug}` → 详情：`{id, slug, leetcode_id, title, difficulty, source, tags, statement_md, time_limit_ms, memory_limit_mb, samples, leetcode_available, leetcode_starters?}`。`leetcode_starters` 为 `{python3, cpp}` 力扣官方风格模板（仅当本题有函数签名时）。404 不存在或未发布。
 
 ### `app/routers/submissions.py`
 
-- `POST /api/submissions` body `{problem_slug, language, code}`：language ∈ {python3, cpp}，code ≤ 64KB。全局 pending/judging ≥ 10、该用户最近一分钟提交 ≥ 10，或该用户 pending/judging ≥ 2 时返回 429。成功 202 → `{id, status: "pending"}`。
-- `GET /api/submissions/{id}` → 仅本人或管理员：`{id, problem_slug, problem_title, language, code, status, runtime_ms, compile_output, detail, created_at}`。detail 结构见 `judge.md`。
-- `GET /api/submissions?problem_slug=&limit=50` → 我的提交列表（不含 code，新→旧）。
+- `POST /api/submissions` body `{problem_slug, language, io_mode?, code}`：language ∈ {python3, cpp}，io_mode ∈ {acm, leetcode}（默认 acm），code ≤ 64KB。`leetcode` 且本题无函数签名 → 400。全局 pending/judging ≥ 10、该用户最近一分钟提交 ≥ 10，或该用户 pending/judging ≥ 2 时返回 429。成功 202 → `{id, status: "pending"}`。
+- `GET /api/submissions/{id}` → 仅本人或管理员：`{id, problem_slug, problem_title, language, io_mode, code, status, runtime_ms, compile_output, detail, created_at}`。detail 结构见 `judge.md`。
+- `GET /api/submissions?problem_slug=&limit=50` → 我的提交列表（不含 code，含 io_mode，新→旧）。
 
 ### `app/routers/drafts.py`
 
-- `GET /api/drafts/{slug}?language=python3` → `{code, updated_at, is_default}`；无草稿时返回该语言默认模板（is_default=true）。模板：
-  - python3: `import sys\n\n\ndef main():\n    data = sys.stdin.read().split()\n    # TODO: 解析输入并求解\n    ...\n\n\nif __name__ == "__main__":\n    main()\n`
-  - cpp: `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios::sync_with_stdio(false);\n    cin.tie(nullptr);\n    // TODO\n    return 0;\n}\n`
-- `PUT /api/drafts/{slug}` body `{language, code}` → upsert，返回 `{updated_at}`。code ≤ 64KB。
+- `GET /api/drafts/{slug}?language=python3&io_mode=acm` → `{code, updated_at, is_default}`；无草稿时返回该语言+模式默认模板（is_default=true）。ACM 模板为完整 `main`；力扣模板为 `class Solution` / 设计类（签名与力扣一致）。力扣草稿存在 `python3_lc` / `cpp_lc` 语言键下，与 ACM 草稿隔离。本题无函数签名且 `io_mode=leetcode` → 400。
+- `PUT /api/drafts/{slug}` body `{language, io_mode?, code}` → upsert，返回 `{updated_at}`。code ≤ 64KB。
 
 ### `app/routers/jobs.py`
 

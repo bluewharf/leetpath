@@ -41,6 +41,8 @@ class ProblemDetail(BaseModel):
     time_limit_ms: int
     memory_limit_mb: int
     samples: list[SampleOut]
+    leetcode_available: bool
+    leetcode_starters: dict[str, str] | None = None
 
 
 def _my_status_map(db: Session, user_id: int) -> dict[int, str]:
@@ -125,6 +127,16 @@ def get_problem(
             .order_by(Testcase.ordinal)
         ).all()
     )
+    from judge.leetcode_catalog import spec_for_problem
+    from judge.leetcode_wrap import generate_starter
+
+    spec = spec_for_problem(problem)
+    starters = None
+    if spec is not None:
+        starters = {
+            "python3": generate_starter(spec, "python3"),
+            "cpp": generate_starter(spec, "cpp"),
+        }
     return ProblemDetail(
         id=problem.id,
         slug=problem.slug,
@@ -140,6 +152,8 @@ def get_problem(
             SampleOut(ordinal=s.ordinal, input=s.input, expected_output=s.expected_output)
             for s in samples
         ],
+        leetcode_available=spec is not None,
+        leetcode_starters=starters,
     )
 
 

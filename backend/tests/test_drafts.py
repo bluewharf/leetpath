@@ -42,3 +42,24 @@ def test_draft_code_too_large(admin_client):
     huge = "x" * (64 * 1024 + 1)
     r = admin_client.put("/api/drafts/two-sum", json={"language": "python3", "code": huge})
     assert r.status_code == 422
+
+
+def test_leetcode_default_starter_and_isolated_from_acm(admin_client):
+    lc = admin_client.get("/api/drafts/two-sum?language=python3&io_mode=leetcode")
+    assert lc.status_code == 200
+    body = lc.json()
+    assert body["is_default"] is True
+    assert "class Solution:" in body["code"]
+    assert "def twoSum" in body["code"]
+    assert "stdin" not in body["code"]
+
+    admin_client.put(
+        "/api/drafts/two-sum",
+        json={"language": "python3", "io_mode": "leetcode", "code": "class Solution:\n    pass\n"},
+    )
+    acm = admin_client.get("/api/drafts/two-sum?language=python3")
+    assert acm.json()["is_default"] is True
+    assert acm.json()["code"] == PYTHON3_TEMPLATE
+    saved = admin_client.get("/api/drafts/two-sum?language=python3&io_mode=leetcode")
+    assert saved.json()["is_default"] is False
+    assert saved.json()["code"] == "class Solution:\n    pass\n"

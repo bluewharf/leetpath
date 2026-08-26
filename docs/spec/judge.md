@@ -23,7 +23,7 @@ UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
 
 ## 评测流程（一次提交）
 
-1. 建临时目录 `<tmp>/<submission_id>/`：`main.py` 或 `main.cpp`（用户代码），`tests/NNN.in`（全部用例，含样例与隐藏）。
+1. 建临时目录 `<tmp>/<submission_id>/`：`main.py` 或 `main.cpp`（用户代码），`tests/NNN.in`（全部用例，含样例与隐藏）。若提交 `io_mode=leetcode`，worker 把用户的 `class Solution` / 设计类套上读入 harness 再写入源文件；用例与比对规则仍是 ACM stdin/stdout。无 `leetcode_spec` 时记 `CE`。
 2. **cpp 先编译**（独立容器，输出到该目录）：
 
    ```
