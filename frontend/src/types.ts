@@ -18,6 +18,7 @@ export interface User {
   username: string
   email: string | null
   is_admin: boolean
+  avatar_url: string | null
 }
 
 export interface InviteSummary {
@@ -170,5 +171,36 @@ export interface QuizStats {
   favorite_count: number
   accuracy_rate: number
   today_count: number
+}
+
+export type LeaderboardBoard = 'problems' | 'quiz' | 'duration'
+export type LeaderboardPeriod = 'today' | 'week' | 'all'
+
+export interface LeaderboardEntry {
+  rank: number
+  username: string
+  avatar_url?: string | null
+  value: number
+  is_me: boolean
+}
+
+export interface LeaderboardResponse {
+  board: LeaderboardBoard
+  period: LeaderboardPeriod
+  timezone: string
+  metric: 'solved_count' | 'quiz_solved_count' | 'active_seconds'
+  me: { rank: number | null; username: string; avatar_url?: string | null; value: number }
+  entries: LeaderboardEntry[]
+}
+
+export interface ActivityHeartbeatRequest {
+  session_id: string
+  surface: 'problem' | 'quiz' | 'review' | 'handbook' | 'jobs'
+  elapsed_seconds: number
+}
+
+export interface ActivityHeartbeatResponse {
+  accepted_seconds: number
+  daily_seconds: number
 }
 

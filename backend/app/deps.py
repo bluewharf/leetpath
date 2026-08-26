@@ -14,11 +14,13 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录")
     try:
-        user_id = decode_access_token(token)
+        user_id, token_version = decode_access_token(token)
     except (InvalidTokenError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录")
     user = db.get(User, user_id)
     if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录")
+    if int(user.token_version or 0) != token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="未登录")
     return user
 

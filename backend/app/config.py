@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     APP_ENV: Literal["development", "test", "production"] = "development"
+    # 部署版本号，由根目录 VERSION 文件经 compose 环境变量注入
+    APP_VERSION: str = "dev"
     SECRET_KEY: str = "dev-secret-change-me"
     DATABASE_URL: str = "sqlite:///data/leetpath.db"
     TOKEN_TTL_DAYS: int = 7

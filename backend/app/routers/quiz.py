@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user
-from app.models import QuizQuestion, QuizRecord, User, utcnow
+from app.models import QuizQuestion, QuizRecord, QuizSolveEvent, User, utcnow
 
 router = APIRouter(prefix="/quiz", tags=["quiz"])
 
@@ -300,6 +300,9 @@ def submit_answer(
             rec.wrong_count += 1
             rec.is_slashed = False  # 再次做错重新回到错题本
         rec.updated_at = utcnow()
+
+    if is_correct and db.get(QuizSolveEvent, (user.id, question_id)) is None:
+        db.add(QuizSolveEvent(user_id=user.id, question_id=question_id, solved_at=utcnow()))
 
     db.commit()
     db.refresh(rec)

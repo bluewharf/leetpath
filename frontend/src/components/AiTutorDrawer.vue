@@ -383,7 +383,7 @@ watch(
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-2);
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
@@ -439,7 +439,7 @@ watch(
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -460,7 +460,7 @@ watch(
 }
 
 .bubble-assistant .bubble-body {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   padding: 12px 16px;
   border-radius: 10px;

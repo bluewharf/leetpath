@@ -22,16 +22,44 @@ export const AI_PRESETS: AiPreset[] = [
 const STORAGE_KEY = 'leetpath_ai_config'
 const CACHE_STORAGE_KEY = 'leetpath_ai_response_cache_v1'
 
+export type ReasoningEffort = 'off' | 'low' | 'medium' | 'high' | 'xhigh'
+
 interface AiConfig {
   baseUrl: string
   apiKey: string
   model: string
   modelsList: string[]
   temperature: number
-  maxContextTurns: number // 对话轮数约束（1~10 轮）
-  maxContextTokens: number // 最大上下文 Token 预算（4k~128k）
-  maxResponseTokens: number // 单次回复最大 Token 上限（1k~8k）
-  enableLocalCache: boolean // 是否开启响应本地缓存
+  reasoningEffort: ReasoningEffort
+  maxContextTurns: number
+  maxContextTokens: number
+  maxResponseTokens: number
+  enableLocalCache: boolean
+}
+
+export const REASONING_EFFORT_OPTIONS: { value: ReasoningEffort; label: string; hint: string }[] = [
+  { value: 'off', label: '关闭', hint: '不传该字段，适合不支持推理参数的型号' },
+  { value: 'low', label: '低', hint: '快，适合简单问答和工具调用' },
+  { value: 'medium', label: '中', hint: '更稳，适合长上下文分析' },
+  { value: 'high', label: '高', hint: '默认深度思考，适合难题与代码' },
+  { value: 'xhigh', label: '极高', hint: '最深，延迟更高（grok-4.6+）' },
+]
+
+function defaultReasoningEffort(model: string): ReasoningEffort {
+  const name = model.toLowerCase()
+  if (!name) return 'off'
+  if (name.includes('non-reasoning') || name.includes('nonreasoning')) return 'off'
+  if (name.includes('grok') || name.includes('gpt-5') || /(^|[-_/])o[1-9]/.test(name) || name.includes('reason')) {
+    return 'high'
+  }
+  return 'off'
+}
+
+function parseEffort(value: unknown): ReasoningEffort | undefined {
+  if (value === 'off' || value === 'low' || value === 'medium' || value === 'high' || value === 'xhigh') {
+    return value
+  }
+  return undefined
 }
 
 interface CacheItem {
@@ -64,6 +92,10 @@ const apiKey = ref<string>(savedConfig.apiKey || '')
 const selectedModel = ref<string>(savedConfig.model || 'grok-4.6-xhigh')
 const modelsList = ref<string[]>(savedConfig.modelsList || [])
 const temperature = ref<number>(savedConfig.temperature ?? 0.7)
+const reasoningEffort = ref<ReasoningEffort>(
+  parseEffort(savedConfig.reasoningEffort)
+    ?? defaultReasoningEffort(savedConfig.model || 'grok-4.6-xhigh'),
+)
 const maxContextTurns = ref<number>(savedConfig.maxContextTurns ?? 5)
 const maxContextTokens = ref<number>(savedConfig.maxContextTokens ?? 131072)
 const maxResponseTokens = ref<number>(savedConfig.maxResponseTokens ?? 4096)
@@ -127,6 +159,7 @@ function saveConfig() {
     model: selectedModel.value.trim(),
     modelsList: modelsList.value,
     temperature: temperature.value,
+    reasoningEffort: reasoningEffort.value,
     maxContextTurns: maxContextTurns.value,
     maxContextTokens: maxContextTokens.value,
     maxResponseTokens: maxResponseTokens.value,
@@ -225,7 +258,7 @@ export function useAiStore() {
     if (!enableLocalCache.value) return null
     const map = getCacheMap()
     const targetModel = model || selectedModel.value
-    const key = `${contextKey}:::${prompt.trim()}:::${targetModel}`
+    const key = `${contextKey}:::${prompt.trim()}:::${targetModel}:::${reasoningEffort.value}`
     const item = map[key]
     return item ? item.content : null
   }
@@ -237,7 +270,7 @@ export function useAiStore() {
     if (!enableLocalCache.value || !content.trim()) return
     const map = getCacheMap()
     const targetModel = model || selectedModel.value
-    const key = `${contextKey}:::${prompt.trim()}:::${targetModel}`
+    const key = `${contextKey}:::${prompt.trim()}:::${targetModel}:::${reasoningEffort.value}`
     map[key] = {
       content,
       model: targetModel,
@@ -316,7 +349,8 @@ export function useAiStore() {
         model: selectedModel.value.trim(),
         messages: finalMessages,
         temperature: temperature.value,
-        max_tokens: maxResponseTokens.value,
+        max_tokens: Math.min(Math.max(16, maxResponseTokens.value || 4096), 8192),
+        reasoning_effort: reasoningEffort.value === 'off' ? null : reasoningEffort.value,
       }),
       signal,
     })
@@ -392,6 +426,7 @@ export function useAiStore() {
     selectedModel,
     modelsList,
     temperature,
+    reasoningEffort,
     maxContextTurns,
     maxContextTokens,
     maxResponseTokens,

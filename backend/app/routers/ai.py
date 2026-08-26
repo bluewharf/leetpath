@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -69,6 +69,33 @@ class FetchModelsRequest(BaseModel):
     api_key: str = ""
 
 
+REASONING_EFFORTS = ("low", "medium", "high", "xhigh")
+DEFAULT_MAX_OUTPUT_TOKENS = 4096
+# Grok 4.6 等常见窗口；输出必须留出输入余量，否则 128 + 256000 会 400
+MODEL_CONTEXT_LIMIT = 256000
+
+
+def _estimate_message_tokens(messages: list[dict[str, Any]]) -> int:
+    text_parts: list[str] = []
+    for message in messages:
+        content = message.get("content")
+        if isinstance(content, str):
+            text_parts.append(content)
+        elif isinstance(content, list):
+            for part in content:
+                if isinstance(part, dict) and isinstance(part.get("text"), str):
+                    text_parts.append(part["text"])
+    text = "".join(text_parts)
+    cjk = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff")
+    return max(1, int(cjk * 1.5 + (len(text) - cjk) * 0.45) + 32)
+
+
+def _capped_output_tokens(requested: int | None, input_tokens: int) -> int:
+    want = requested if requested and requested > 0 else DEFAULT_MAX_OUTPUT_TOKENS
+    room = max(16, MODEL_CONTEXT_LIMIT - input_tokens - 64)
+    return min(int(want), room)
+
+
 class ChatStreamRequest(BaseModel):
     base_url: str = ""
     api_key: str = ""
@@ -76,6 +103,40 @@ class ChatStreamRequest(BaseModel):
     messages: list[dict[str, Any]]
     temperature: float = 0.7
     max_tokens: int | None = None
+    reasoning_effort: str | None = None
+
+    @field_validator("reasoning_effort")
+    @classmethod
+    def normalize_reasoning_effort(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip().lower()
+        if cleaned in ("", "off", "none", "false", "0"):
+            return None
+        if cleaned not in REASONING_EFFORTS:
+            raise ValueError("reasoning_effort 须为 low / medium / high / xhigh，或不传")
+        return cleaned
+
+
+def chat_upstream_body(payload: ChatStreamRequest, model: str) -> dict[str, Any]:
+    """组装转发给中转站的 chat/completions JSON。
+
+    推理模型（Grok / o 系列）认 max_completion_tokens；若不传，中转站会默认成
+    整段上下文窗口（如 256000），再加输入就会超过上限。
+    """
+    input_tokens = _estimate_message_tokens(payload.messages)
+    output_tokens = _capped_output_tokens(payload.max_tokens, input_tokens)
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": payload.messages,
+        "temperature": payload.temperature,
+        "stream": True,
+        "max_tokens": output_tokens,
+        "max_completion_tokens": output_tokens,
+    }
+    if payload.reasoning_effort:
+        body["reasoning_effort"] = payload.reasoning_effort
+    return body
 
 
 def _build_url(base_url: str, endpoint: str) -> str:
@@ -163,18 +224,16 @@ async def chat_stream(payload: ChatStreamRequest, db: Session = Depends(get_db),
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     }
 
-    body: dict[str, Any] = {
-        "model": model,
-        "messages": payload.messages,
-        "temperature": payload.temperature,
-        "stream": True,
-    }
-    if payload.max_tokens and payload.max_tokens > 0:
-        body["max_tokens"] = payload.max_tokens
+    body = chat_upstream_body(payload, model)
+    timeout = 60.0
+    if payload.reasoning_effort in ("medium", "high"):
+        timeout = 180.0
+    elif payload.reasoning_effort == "xhigh":
+        timeout = 300.0
 
     async def event_generator():
         try:
-            async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
                 async with client.stream("POST", target_url, headers=headers, json=body) as resp:
                     if resp.status_code != 200:
                         err_bytes = await resp.aread()

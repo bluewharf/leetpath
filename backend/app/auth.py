@@ -21,23 +21,23 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def create_access_token(user_id: int) -> str:
+def create_access_token(user_id: int, token_version: int = 0) -> str:
     settings = get_settings()
     exp = datetime.now(timezone.utc) + timedelta(days=settings.TOKEN_TTL_DAYS)
     return jwt.encode(
-        {"sub": str(user_id), "exp": exp},
+        {"sub": str(user_id), "ver": int(token_version or 0), "exp": exp},
         settings.SECRET_KEY,
         algorithm=ALGORITHM,
     )
 
 
-def decode_access_token(token: str) -> int:
+def decode_access_token(token: str) -> tuple[int, int]:
     settings = get_settings()
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     sub = payload.get("sub")
     if sub is None:
         raise InvalidTokenError("missing sub")
-    return int(sub)
+    return int(sub), int(payload.get("ver") or 0)
 
 
 def set_auth_cookie(response: Response, token: str) -> None:

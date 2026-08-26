@@ -192,6 +192,31 @@
           />
           <small class="form-help">0.2~0.5 严谨准确（适合代码找茬），0.7 平衡适中（适合考点发散）</small>
         </div>
+
+        <div class="form-group">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+            <label class="form-label">推理强度 (reasoning_effort)</label>
+            <span class="mono" style="font-size:13px;color:var(--accent)">{{ effortLabel }}</span>
+          </div>
+          <div class="effort-pills">
+            <button
+              v-for="opt in REASONING_EFFORT_OPTIONS"
+              :key="opt.value"
+              type="button"
+              class="effort-pill"
+              :class="{ active: ai.reasoningEffort.value === opt.value }"
+              :title="opt.hint"
+              @click="ai.reasoningEffort.value = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+          <small class="form-help">
+            {{ effortHint }}
+            发给中转站的字段是 <code>reasoning_effort</code>（low / medium / high / xhigh）。
+            型号名带 reasoning / non-reasoning 也可以直接换模型；不支持该参数时请选「关闭」，否则中转站可能报错。
+          </small>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -215,7 +240,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AI_PRESETS, useAiStore, type AiPreset } from '../stores/ai'
+import { AI_PRESETS, REASONING_EFFORT_OPTIONS, useAiStore, type AiPreset } from '../stores/ai'
 import { useToast } from '../stores/toast'
 
 const emit = defineEmits<{
@@ -232,6 +257,16 @@ const testMsg = ref('')
 const testSuccess = ref(false)
 const modelSearchQuery = ref('')
 const cacheCount = ref(ai.getCacheCount())
+
+const effortLabel = computed(() => {
+  const found = REASONING_EFFORT_OPTIONS.find((o) => o.value === ai.reasoningEffort.value)
+  return found ? found.label : '关闭'
+})
+
+const effortHint = computed(() => {
+  const found = REASONING_EFFORT_OPTIONS.find((o) => o.value === ai.reasoningEffort.value)
+  return found?.hint || ''
+})
 
 const filteredModels = computed(() => {
   const q = modelSearchQuery.value.trim().toLowerCase()
@@ -464,7 +499,7 @@ function onSave() {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-2);
   border: 1px solid var(--border);
 }
 
@@ -500,6 +535,31 @@ function onSave() {
 .range-slider {
   width: 100%;
   accent-color: var(--accent);
+}
+
+.effort-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 4px;
+}
+
+.effort-pill {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.effort-pill.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
 }
 
 .quiz-switch-label {

@@ -9,6 +9,8 @@ import { EditorView, basicSetup } from 'codemirror'
 import { python } from '@codemirror/lang-python'
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
+import { tags } from '@lezer/highlight'
 import { getTheme } from '../theme'
 import type { Language } from '../types'
 
@@ -27,13 +29,27 @@ const themeConf = new Compartment()
 // 跟随站点手动主题（<html data-theme>），而非系统偏好
 const themeObserver = new MutationObserver(() => onThemeChange())
 
+// 浅色/护眼主题的语法高亮：全部引用站点 CSS 变量，随主题联动
+const lightHighlight = syntaxHighlighting(
+  HighlightStyle.define([
+    { tag: tags.keyword, color: 'var(--accent)' },
+    { tag: [tags.string, tags.special(tags.string)], color: 'var(--green)' },
+    { tag: [tags.number, tags.bool, tags.null], color: 'var(--amber)' },
+    { tag: tags.comment, color: 'var(--text-faint)', fontStyle: 'italic' },
+    { tag: [tags.function(tags.variableName), tags.function(tags.propertyName)], color: 'var(--purple)' },
+    { tag: [tags.typeName, tags.className], color: 'var(--accent-2)' },
+    { tag: [tags.operator, tags.punctuation], color: 'var(--text-dim)' },
+    { tag: tags.propertyName, color: 'var(--purple)' },
+  ]),
+)
+
 function langExt(lang: Language) {
   return lang === 'cpp' ? cpp() : python()
 }
 
 function themeExt() {
   const current = getTheme()
-  return (current === 'dark' || current === 'cyber') ? [oneDark, baseTheme()] : [baseTheme()]
+  return (current === 'dark' || current === 'cyber') ? [oneDark, baseTheme()] : [baseTheme(), lightHighlight]
 }
 
 function baseTheme() {

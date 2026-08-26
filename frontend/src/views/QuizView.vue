@@ -990,7 +990,7 @@ onBeforeUnmount(() => {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   font-weight: 600;
   font-size: 13px;
@@ -1111,7 +1111,7 @@ onBeforeUnmount(() => {
 .quiz-analysis-box {
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-2);
   padding: 20px 24px;
   margin-bottom: 24px;
 }
@@ -1165,7 +1165,7 @@ onBeforeUnmount(() => {
 kbd {
   padding: 2px 5px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   font-family: monospace;
   font-size: 11px;
@@ -1220,7 +1220,7 @@ kbd {
 
 .bank-progress-bar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
   border-radius: 3px;
   overflow: hidden;
   margin-top: 8px;

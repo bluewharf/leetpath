@@ -18,6 +18,7 @@ import time
 import traceback
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -559,6 +560,8 @@ def _write_result(
         return
     submission.status = status
     submission.runtime_ms = runtime_ms
+    if hasattr(submission, "judged_at"):
+        submission.judged_at = datetime.now(timezone.utc).replace(tzinfo=None)
     _assign_detail(submission, detail)
     submission.compile_output = compile_output
     session.commit()

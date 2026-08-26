@@ -20,7 +20,7 @@
 
 ## 数据模型（`app/models.py`）
 
-- `User`: id, username(唯一索引, 3-32), email(可空), password_hash, is_admin(bool, 默认 False), created_at
+- `User`: id, username(唯一索引, 3-32), email(可空), password_hash, is_admin(bool, 默认 False), avatar_path(可空), avatar_updated_at(可空), token_version(int, 默认 0), created_at
 - `Invite`: id, code_hash(SHA-256, 唯一), expires_at, used_at(可空), revoked_at(可空), created_by_id, used_by_id(可空), created_at
 - `Problem`: id, slug(唯一索引), leetcode_id(可空, 力扣原题号), title, difficulty(`easy|medium|hard`), source(`hot100|mianjing`), tags(JSON list[str]), statement_md(Text), time_limit_ms(默认 5000), memory_limit_mb(默认 256), is_published(bool 默认 True), created_at
 - `Testcase`: id, problem_id(FK, 索引), ordinal(int), input(Text), expected_output(Text), is_sample(bool)；UniqueConstraint(problem_id, ordinal)
@@ -32,12 +32,16 @@
 
 ## 认证（`app/auth.py` + `app/routers/auth.py`）
 
-- bcrypt 哈希；JWT（HS256，payload: sub=user_id, exp）；登录成功写 HttpOnly Cookie（SameSite=Lax，secure 取 COOKIE_SECURE，path=/）。
+- bcrypt 哈希；JWT（HS256，payload: sub=user_id, ver=token_version, exp）；登录成功写 HttpOnly Cookie（SameSite=Lax，secure 取 COOKIE_SECURE，path=/）。改密后 `token_version + 1` 并签发新 cookie，旧 cookie 失效。
 - `POST /api/auth/register` body `{username, password, email?, invite_code}`：username 只允许 `[a-zA-Z0-9_]{3,32}`，password 为 8-72 UTF-8 字节。邀请码必须未使用、未撤销且未过期，并通过条件更新原子认领；失败 → 400。用户名已存在 → 409。注册用户一律 `is_admin=False`。每 IP 每小时最多 5 次尝试。
 - 管理员通过 `python -m app.manage create-admin <username>` 初始化，不存在“首位注册自动管理员”。
 - `POST /api/auth/login` `{username, password}`：成功 200 + cookie；失败 401（`用户名或密码错误`）。每个 IP + username 每分钟最多 5 次尝试。
 - `POST /api/auth/logout`：清 cookie，204。
-- `GET /api/auth/me`：`{id, username, email, is_admin}`；未登录 401。
+- `GET /api/auth/me`：`{id, username, email, is_admin, avatar_url}`；未登录 401。`avatar_url` 未上传时为 null。
+- `POST /api/auth/password` `{old_password, new_password}`：需登录。校验当前密码后更新哈希；新密码 8-72 UTF-8 字节且不得与旧密码相同。当前密码错误 → 400。每用户 15 分钟最多 5 次。
+- `POST /api/auth/avatar` multipart 字段 `file`：JPG/PNG/WebP/GIF，≤1.5MB，服务端裁成 256² WebP 存 `data/avatars/{id}.webp`。每用户每小时最多 10 次。
+- `DELETE /api/auth/avatar`：清除自定义头像。
+- `GET /api/auth/avatar/{user_id}`：返回 WebP；未设置 404。需登录。
 - 用户 JSON 一律不含 password_hash。
 
 ## 路由
