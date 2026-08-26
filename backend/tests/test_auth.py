@@ -242,6 +242,16 @@ def test_production_settings_reject_insecure_defaults():
                  PUBLIC_ORIGIN="http://learn.example.com")
 
 
+def test_production_app_env_from_os_rejects_dev_defaults(monkeypatch):
+    # 对应容器无 .env：compose/镜像把 APP_ENV 设成 production，其余走代码默认值。
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("SECRET_KEY", "dev-secret-change-me")
+    monkeypatch.setenv("COOKIE_SECURE", "false")
+    monkeypatch.setenv("PUBLIC_ORIGIN", "http://localhost:5173")
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+
 def test_production_settings_accept_secure_configuration():
     settings = Settings(
         APP_ENV="production",

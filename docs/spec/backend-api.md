@@ -8,7 +8,7 @@
 - SQLAlchemy 2.x 风格（`Mapped[]` / `mapped_column`），SQLite 开 WAL：`PRAGMA journal_mode=WAL`。
 - 配置走环境变量（pydantic-settings），字段：
   - `SECRET_KEY`（默认 `dev-secret-change-me`，生产必须覆盖）
-  - `APP_ENV`（`development | test | production`，默认 development）
+  - `APP_ENV`（`development | test | production`；本地 uvicorn 默认 development，后端镜像与 compose 默认 production）
   - `PUBLIC_ORIGIN`（生产站点的精确 HTTPS origin，用于 Origin 校验）
   - `DATABASE_URL`（默认 `sqlite:///data/leetpath.db`，相对 backend 目录；启动时自动建目录）
   - `TOKEN_TTL_DAYS`（默认 7）
