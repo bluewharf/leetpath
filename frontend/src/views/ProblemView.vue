@@ -72,7 +72,7 @@
             <h1 style="font-size:20px;margin-top:4px">{{ problemHeading(problem) }}</h1>
             <div class="problem-meta">
               <span class="badge" :class="`badge-${problem.difficulty}`">{{ difficultyText }}</span>
-              <span class="badge badge-source">{{ problem.source === 'hot100' ? '热题100' : '面经手撕' }}</span>
+              <span v-for="label in sourceBadgeTexts(problem)" :key="label" class="badge badge-source">{{ label }}</span>
               <span v-for="t in problem.tags" :key="t" class="badge badge-tag">{{ t }}</span>
             </div>
             <div class="problem-limits">时间限制 {{ problem.time_limit_ms / 1000 }}s · 内存限制 {{ problem.memory_limit_mb }}MB</div>
@@ -259,6 +259,7 @@ import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import {
   isFinal,
   problemHeading,
+  sourceBadgeTexts,
   type Draft,
   type IoMode,
   type Language,

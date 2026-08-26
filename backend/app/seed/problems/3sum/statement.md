@@ -1,3 +1,5 @@
+> **面经**：[大疆 2027校招 AI全栈笔试手撕](https://www.nowcoder.com/feed/main/detail/59ef9aea3f974f298f1c6d17c06fe733) · [腾讯 2026秋招 大模型算法手撕](https://www.nowcoder.com/feed/main/detail/0b6a9775cf3945efad01530fa0637b32) · 重点学一下
+
 ## 题目描述
 
 给你一个整数数组 `nums`，判断是否存在三元组 `[nums[i], nums[j], nums[k]]` 满足 `i != j`、`i != k` 且 `j != k`，同时还满足 `nums[i] + nums[j] + nums[k] == 0`。

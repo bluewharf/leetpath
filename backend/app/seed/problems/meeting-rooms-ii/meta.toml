@@ -1,0 +1,9 @@
+slug = "meeting-rooms-ii"
+leetcode_id = 253
+title = "会议室的最少数量"
+difficulty = "medium"
+source = "mianjing"
+tags = ["数组", "排序", "堆", "扫描线", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

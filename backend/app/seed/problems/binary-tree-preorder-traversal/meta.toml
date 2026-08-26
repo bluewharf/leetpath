@@ -1,0 +1,9 @@
+slug = "binary-tree-preorder-traversal"
+leetcode_id = 144
+title = "二叉树的前序遍历"
+difficulty = "easy"
+source = "mianjing"
+tags = ["栈", "树", "DFS", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

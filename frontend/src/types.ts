@@ -51,6 +51,27 @@ export function problemHeading(p: { leetcode_id?: number | null; title: string }
   return p.leetcode_id != null ? `${p.leetcode_id}. ${p.title}` : p.title
 }
 
+/** 来源筛选：Hot100 撞车题仍 source=hot100，用标签「面经」同时出现在面经列表。 */
+export function belongsToSource(
+  p: { source: string; tags?: string[] | null },
+  source: string,
+): boolean {
+  if (!source) return true
+  if (p.source === source) return true
+  return source === 'mianjing' && (p.tags || []).includes('面经')
+}
+
+export function sourceBadgeTexts(
+  p: { source: string; tags?: string[] | null },
+  compact = false,
+): string[] {
+  const mianjing = compact ? '面经' : '面经手撕'
+  const out: string[] = []
+  if (p.source === 'hot100') out.push('热题100')
+  if (p.source === 'mianjing' || (p.tags || []).includes('面经')) out.push(mianjing)
+  return out
+}
+
 export interface SampleTest {
   ordinal: number
   input: string

@@ -64,7 +64,7 @@
           >
             <div class="problem-meta" style="justify-content:center;margin:0 0 14px">
               <span class="badge" :class="`badge-${current.difficulty}`">{{ difficultyText(current.difficulty) }}</span>
-              <span class="badge badge-source">{{ current.source === 'hot100' ? '热题100' : '面经手撕' }}</span>
+              <span v-for="label in sourceBadgeTexts(current)" :key="label" class="badge badge-source">{{ label }}</span>
               <span v-if="current.memory === 'remembered'" class="badge" style="color:var(--green)">✓ 已记住</span>
             </div>
             <div class="rc-title">{{ problemHeading(current) }}</div>
@@ -80,7 +80,7 @@
               <div class="review-canvas-bar-main">
                 <div class="problem-meta" style="margin:0 0 8px">
                   <span class="badge" :class="`badge-${current.difficulty}`">{{ difficultyText(current.difficulty) }}</span>
-                  <span class="badge badge-source">{{ current.source === 'hot100' ? '热题100' : '面经手撕' }}</span>
+                  <span v-for="label in sourceBadgeTexts(current)" :key="label" class="badge badge-source">{{ label }}</span>
                   <span v-if="current.memory === 'remembered'" class="badge" style="color:var(--green)">✓ 已记住</span>
                 </div>
                 <div class="review-canvas-title">{{ problemHeading(current) }}</div>
@@ -136,6 +136,7 @@ import { useLangPref } from '../stores/pref'
 import { useAiAssistant } from '../stores/aiAssistant'
 import {
   problemHeading,
+  sourceBadgeTexts,
   type Difficulty,
   type ProblemDetail,
   type ProblemListItem,

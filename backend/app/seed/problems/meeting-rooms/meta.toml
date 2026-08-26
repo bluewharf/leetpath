@@ -1,0 +1,9 @@
+slug = "meeting-rooms"
+leetcode_id = 252
+title = "会议时间互不重叠"
+difficulty = "easy"
+source = "mianjing"
+tags = ["数组", "排序", "区间", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

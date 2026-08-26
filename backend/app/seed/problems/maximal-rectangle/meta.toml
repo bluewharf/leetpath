@@ -1,0 +1,9 @@
+slug = "maximal-rectangle"
+leetcode_id = 85
+title = "最大矩形"
+difficulty = "hard"
+source = "mianjing"
+tags = ["栈", "数组", "矩阵", "单调栈", "面经"]
+time_limit_ms = 5000
+memory_limit_mb = 256
+samples = [1, 2]

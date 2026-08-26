@@ -79,7 +79,7 @@
             <span class="p-slug">{{ p.slug }}</span>
           </span>
           <span class="badge" :class="`badge-${p.difficulty}`">{{ difficultyText(p.difficulty) }}</span>
-          <span class="p-src">{{ p.source === 'hot100' ? '热题100' : '面经' }}</span>
+          <span class="p-src">{{ sourceBadgeTexts(p, true).join(' · ') }}</span>
           <span class="p-tags">{{ p.tags.slice(0, 3).join(' · ') }}</span>
           <span class="p-arrow">→</span>
         </RouterLink>
@@ -92,7 +92,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import Skeleton from '../components/Skeleton.vue'
-import { problemHeading, type Difficulty, type ProblemListItem } from '../types'
+import { belongsToSource, problemHeading, sourceBadgeTexts, type Difficulty, type ProblemListItem } from '../types'
 
 const problems = ref<ProblemListItem[]>([])
 const loading = ref(true)
@@ -161,7 +161,7 @@ const filtered = computed(() => {
   const kw = q.value.trim().toLowerCase()
   const list = problems.value.filter((p) => {
     if (difficulty.value && p.difficulty !== difficulty.value) return false
-    if (source.value && p.source !== source.value) return false
+    if (source.value && !belongsToSource(p, source.value)) return false
     if (tag.value && !p.tags.includes(tag.value)) return false
     if (
       kw &&
