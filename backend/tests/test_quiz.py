@@ -120,6 +120,159 @@ def test_quiz_seed_includes_agent_harness_bank():
     assert "B" in answers
 
 
+def test_quiz_seed_excludes_non_agent_scope():
+    from pathlib import Path
+    import json
+
+    path = Path(__file__).resolve().parents[1] / "app" / "seed" / "quiz_questions.json"
+    questions = json.loads(path.read_text(encoding="utf-8"))
+    banks = {q["bank"] for q in questions}
+    assert "算法与数据结构(机考核心)" not in banks
+    assert "算法与数学难题(机考进阶)" not in banks
+    assert "半导体工业场景(新凯来专属)" not in banks
+    assert "算法与机考" not in {q["category"] for q in questions}
+
+    retired_keys = {
+        ("机器学习与深度学习基础", 175),
+        ("机器学习与深度学习基础", 176),
+        ("杀手题库(二)·强化学习与工程篇", 621),
+        ("杀手题库(二)·强化学习与工程篇", 622),
+        ("杀手题库(二)·强化学习与工程篇", 623),
+        ("杀手题库(二)·强化学习与工程篇", 624),
+        ("杀手题库(二)·强化学习与工程篇", 625),
+        ("杀手题库(二)·强化学习与工程篇", 631),
+    }
+    assert {(q["bank"], q["ordinal"]) for q in questions}.isdisjoint(retired_keys)
+
+    blob = "\n".join(q["stem"] for q in questions)
+    for needle in ("不可变类型", "浅拷贝", "刻蚀", "FDC", "快速排序最坏", "0-1 背包"):
+        assert needle not in blob
+    assert "AI Agent" in blob or "Agent" in blob
+
+
+def test_quiz_loader_prunes_questions_missing_from_default_json(admin_client, tmp_path, monkeypatch):
+    import json
+
+    from sqlalchemy import select
+
+    from app import db as dbmod
+    from app.models import QuizQuestion, QuizRecord, QuizSolveEvent, User
+    from app.seed import quiz_loader
+    from app.seed.quiz_loader import load_quiz_questions
+
+    keep = {
+        "bank": "AI Agent 核心概念与架构",
+        "category": "AI Agent 与智能体",
+        "type": "single",
+        "ordinal": 1,
+        "stem": "AI Agent 的大脑通常指什么？",
+        "options": {"A": "数据库", "B": "大语言模型（LLM）", "C": "操作系统", "D": "向量库"},
+        "answer": "B",
+        "analysis": "【正确项】B",
+    }
+    seed_path = tmp_path / "quiz_questions.json"
+    seed_path.write_text(json.dumps([keep], ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(quiz_loader, "DEFAULT_JSON_PATH", seed_path)
+
+    with dbmod.SessionLocal() as db:
+        admin = db.scalar(select(User).where(User.username == "admin"))
+        assert admin is not None
+        keep_q = QuizQuestion(
+            bank=keep["bank"],
+            category=keep["category"],
+            type=keep["type"],
+            ordinal=keep["ordinal"],
+            stem=keep["stem"],
+            options=keep["options"],
+            answer=keep["answer"],
+            analysis=keep["analysis"],
+        )
+        stale_q = QuizQuestion(
+            bank="算法与数据结构(机考核心)",
+            category="算法与机考",
+            type="single",
+            ordinal=130,
+            stem="数组随机访问的时间复杂度是？",
+            options={"A": "O(1)", "B": "O(n)", "C": "O(log n)", "D": "O(n log n)"},
+            answer="A",
+            analysis="随机访问 O(1)",
+        )
+        db.add_all([keep_q, stale_q])
+        db.flush()
+        db.add(
+            QuizRecord(
+                user_id=admin.id,
+                question_id=stale_q.id,
+                is_correct=True,
+                user_answer="A",
+                attempts_count=1,
+                wrong_count=0,
+            )
+        )
+        db.add(QuizSolveEvent(user_id=admin.id, question_id=stale_q.id))
+        db.commit()
+        keep_id, stale_id, uid = keep_q.id, stale_q.id, admin.id
+
+    assert load_quiz_questions() == 1
+
+    with dbmod.SessionLocal() as db:
+        assert db.get(QuizQuestion, keep_id) is not None
+        assert db.get(QuizQuestion, stale_id) is None
+        assert db.get(QuizRecord, (uid, stale_id)) is None
+        assert db.get(QuizSolveEvent, (uid, stale_id)) is None
+        assert db.scalar(select(QuizQuestion).where(QuizQuestion.bank == "算法与数据结构(机考核心)")) is None
+
+
+def test_quiz_loader_partial_json_does_not_prune_other_banks(admin_client, tmp_path):
+    import json
+
+    from sqlalchemy import select
+
+    from app import db as dbmod
+    from app.models import QuizQuestion
+    from app.seed.quiz_loader import load_quiz_questions
+
+    with dbmod.SessionLocal() as db:
+        db.add(
+            QuizQuestion(
+                bank="AI Agent 核心概念与架构",
+                category="AI Agent 与智能体",
+                type="single",
+                ordinal=99,
+                stem="保留题",
+                options={"A": "1", "B": "2"},
+                answer="A",
+                analysis="x",
+            )
+        )
+        db.commit()
+
+    payload = [
+        {
+            "bank": "remap-only",
+            "category": "t",
+            "type": "single",
+            "ordinal": 1,
+            "stem": "临时导入",
+            "options": {"A": "1", "B": "2"},
+            "answer": "A",
+            "analysis": "x",
+        }
+    ]
+    path = tmp_path / "partial.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    assert load_quiz_questions(path) == 1
+
+    with dbmod.SessionLocal() as db:
+        assert db.scalar(
+            select(QuizQuestion).where(
+                QuizQuestion.bank == "AI Agent 核心概念与架构",
+                QuizQuestion.ordinal == 99,
+            )
+        ) is not None
+        assert db.scalar(select(QuizQuestion).where(QuizQuestion.bank == "remap-only")) is not None
+
+
 def test_quiz_loader_remaps_user_letters_without_resetting_records(admin_client, tmp_path):
     import json
 

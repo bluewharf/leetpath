@@ -6,10 +6,11 @@ import re
 import sys
 from pathlib import Path
 
+from sqlalchemy import delete as sql_delete
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import QuizQuestion, QuizRecord
+from app.models import QuizQuestion, QuizRecord, QuizSolveEvent
 
 DEFAULT_JSON_PATH = Path(__file__).resolve().parent / "quiz_questions.json"
 
@@ -277,6 +278,22 @@ def load_quiz_questions(
                 q_obj.answer = item["answer"]
                 q_obj.analysis = item["analysis"]
             imported_count += 1
+
+        # 正式题库 JSON 是全量快照：JSON 里没有的题从库中删掉（含作答与首次答对记录）。
+        # 只在加载默认路径时淘汰，避免用临时/部分 JSON 导入时误清空其它专题。
+        if path.resolve() == DEFAULT_JSON_PATH.resolve():
+            incoming_keys = {(item["bank"], item["ordinal"]) for item in questions}
+            stale_ids = [
+                q_obj.id
+                for key, q_obj in existing.items()
+                if key not in incoming_keys and q_obj.id is not None
+            ]
+            if stale_ids:
+                session.execute(
+                    sql_delete(QuizSolveEvent).where(QuizSolveEvent.question_id.in_(stale_ids))
+                )
+                session.execute(sql_delete(QuizRecord).where(QuizRecord.question_id.in_(stale_ids)))
+                session.execute(sql_delete(QuizQuestion).where(QuizQuestion.id.in_(stale_ids)))
 
         if own_session:
             session.commit()

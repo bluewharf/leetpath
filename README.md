@@ -57,7 +57,7 @@ npm run dev
 # 导入题库（在 backend/ 目录）
 python -m app.seed.loader
 
-# 导入八股客观题库（750 题含 Agent Harness，/quiz 页面数据源）
+# 导入八股客观题库（670 题含 Agent Harness，/quiz 页面数据源）
 python -m app.seed.quiz_loader
 
 # 校验参考解与用例（仓库根目录）
