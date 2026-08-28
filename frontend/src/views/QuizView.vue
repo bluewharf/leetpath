@@ -632,24 +632,22 @@ async function fetchQuestions() {
   try {
     const params = new URLSearchParams()
     if (currentTab.value === 'wrongbook') {
-      params.set('limit', '3000')
       params.set('status', 'wrong')
     } else if (currentTab.value === 'favorites') {
-      params.set('limit', '3000')
       params.set('status', 'favorited')
     } else if (currentTab.value === 'exam') {
       params.set('limit', '20')
       params.set('random_order', 'true')
       params.set('exclude_open', 'true')
     } else {
-      params.set('limit', '3000')
       if (selectedBank.value) params.set('bank', selectedBank.value)
       if (onlyUnanswered.value) params.set('status', 'unanswered')
       if (randomOrder.value) params.set('random_order', 'true')
     }
 
+    const qs = params.toString()
     const res = await api.get<{ total: number; items: QuizQuestionItem[] }>(
-      `/api/quiz/questions?${params.toString()}`,
+      qs ? `/api/quiz/questions?${qs}` : '/api/quiz/questions',
     )
     questions.value = res.items
     if (
@@ -659,7 +657,7 @@ async function fetchQuestions() {
     ) {
       selectedBank.value = ''
       const retry = await api.get<{ total: number; items: QuizQuestionItem[] }>(
-        '/api/quiz/questions?limit=3000',
+        '/api/quiz/questions',
       )
       questions.value = retry.items
     }

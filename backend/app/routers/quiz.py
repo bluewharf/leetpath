@@ -255,7 +255,11 @@ def list_questions(
     random_order: bool = False,
     exclude_skipped: bool = False,
     exclude_open: bool = False,
-    limit: int = Query(100, ge=1, le=3000),
+    limit: int | None = Query(
+        None,
+        ge=0,
+        description="不传或 0 返回全部匹配题；正整数为分页条数。刷题不要截断。",
+    ),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
@@ -317,16 +321,17 @@ def list_questions(
 
     if random_order:
         random.shuffle(filtered)
+    if limit:
         paged = filtered[offset : offset + limit]
     else:
-        paged = filtered[offset : offset + limit]
+        paged = filtered[offset:]
 
     items = [_question_item(q_obj, user_records.get(q_obj.id)) for q_obj in paged]
 
     return {
         "total": total_matched,
         "offset": offset,
-        "limit": limit,
+        "limit": limit if limit else len(items),
         "items": items,
     }
 

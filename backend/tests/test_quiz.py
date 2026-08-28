@@ -531,9 +531,38 @@ def test_quiz_seed_includes_oncall_open_ended():
         assert needle not in stems
 
 
-def test_quiz_list_limit_fits_full_seed_size(admin_client):
-    assert admin_client.get("/api/quiz/questions?limit=2000").status_code == 200
-    assert admin_client.get("/api/quiz/questions?limit=3001").status_code == 422
+def test_quiz_list_omitted_or_zero_limit_returns_all(admin_client):
+    from app import db as dbmod
+    from app.models import QuizQuestion
+
+    with dbmod.SessionLocal() as db:
+        db.add_all(
+            [
+                QuizQuestion(
+                    bank="full-bank",
+                    category="t",
+                    type="single",
+                    ordinal=i,
+                    stem=f"题 {i}",
+                    options={"A": "1", "B": "2"},
+                    answer="A",
+                    analysis="x",
+                )
+                for i in range(1, 121)
+            ]
+        )
+        db.commit()
+
+    omitted = admin_client.get("/api/quiz/questions?bank=full-bank").json()
+    assert omitted["total"] == 120
+    assert len(omitted["items"]) == 120
+    zero = admin_client.get("/api/quiz/questions?bank=full-bank&limit=0").json()
+    assert len(zero["items"]) == 120
+    paged = admin_client.get("/api/quiz/questions?bank=full-bank&limit=20").json()
+    assert paged["total"] == 120
+    assert len(paged["items"]) == 20
+    assert admin_client.get("/api/quiz/questions?limit=3001").status_code == 200
+    assert admin_client.get("/api/quiz/questions?limit=-1").status_code == 422
 
 
 def test_quiz_loader_imports_open_ended_empty_options(admin_client, tmp_path):
