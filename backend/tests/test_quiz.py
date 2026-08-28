@@ -481,3 +481,220 @@ def test_judge_grades_by_option_text_after_ab_swap(admin_client):
     assert ok.status_code == 200
     assert ok.json()["is_correct"] is True
     assert ok.json()["correct_answer"] == "错误"
+
+
+def test_quiz_seed_includes_oncall_open_ended():
+    from pathlib import Path
+    import json
+
+    path = Path(__file__).resolve().parents[1] / "app" / "seed" / "quiz_questions.json"
+    questions = json.loads(path.read_text(encoding="utf-8"))
+    existing = [q for q in questions if q["bank"] != "oncall-course"]
+    oncall = [q for q in questions if q["bank"] == "oncall-course"]
+    assert len(existing) == 670
+    assert len(oncall) == 63
+    assert all(q["type"] == "open" for q in oncall)
+    assert all(q.get("options") in ({}, None, []) for q in oncall)
+    assert all(q["category"] == "项目八股" for q in oncall)
+    java_skip = {
+        q["ordinal"]
+        for q in oncall
+        if "skip" in (q.get("tags") or []) and "java" in (q.get("tags") or [])
+    }
+    assert java_skip == {2, 3, 4, 5}
+    assert all(q.get("analysis") for q in oncall)
+
+
+def test_quiz_loader_imports_open_ended_empty_options(admin_client, tmp_path):
+    import json
+
+    from sqlalchemy import select
+
+    from app import db as dbmod
+    from app.models import QuizQuestion
+    from app.seed.quiz_loader import load_quiz_questions
+
+    payload = [
+        {
+            "bank": "oncall-course",
+            "category": "项目八股",
+            "ordinal": 1,
+            "type": "open",
+            "stem": "简单介绍一下这个项目",
+            "options": [],
+            "answer": "",
+            "answer_draft": "这是一段课程草稿答案。",
+            "tags": ["python"],
+        },
+        {
+            "bank": "oncall-course",
+            "category": "项目八股",
+            "n": 2,
+            "type": "open",
+            "stem": "简单说说Eino是什么框架",
+            "options": [],
+            "answer_draft": "Eino 是图编排框架。",
+            "tags": ["skip", "java"],
+        },
+    ]
+    path = tmp_path / "open.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    assert load_quiz_questions(path) == 2
+
+    with dbmod.SessionLocal() as db:
+        rows = list(
+            db.scalars(
+                select(QuizQuestion)
+                .where(QuizQuestion.bank == "oncall-course")
+                .order_by(QuizQuestion.ordinal)
+            ).all()
+        )
+        assert len(rows) == 2
+        assert rows[0].type == "open"
+        assert rows[0].options == {}
+        assert rows[0].answer == ""
+        assert rows[0].analysis == "这是一段课程草稿答案。"
+        assert rows[0].tags == ["python"]
+        assert rows[1].tags == ["skip", "java"]
+
+
+def test_open_ended_reveal_and_empty_options_list(admin_client):
+    from app import db as dbmod
+    from app.models import QuizQuestion
+
+    with dbmod.SessionLocal() as db:
+        q = QuizQuestion(
+            bank="oncall-course",
+            category="项目八股",
+            type="open",
+            ordinal=1,
+            stem="简单介绍一下这个项目",
+            options={},
+            answer="",
+            analysis="课程草稿：基于真实 OnCall 痛点做了 Agent。",
+            tags=["python"],
+        )
+        skip_q = QuizQuestion(
+            bank="oncall-course",
+            category="项目八股",
+            type="open",
+            ordinal=2,
+            stem="简单说说Eino是什么框架",
+            options={},
+            answer="",
+            analysis="Eino 草稿。",
+            tags=["skip", "java"],
+        )
+        db.add_all([q, skip_q])
+        db.commit()
+        qid, skip_id = q.id, skip_q.id
+
+    listed = admin_client.get("/api/quiz/questions?bank=oncall-course").json()
+    assert listed["total"] == 2
+    item = next(x for x in listed["items"] if x["id"] == qid)
+    assert item["type"] == "open"
+    assert item["options"] == {}
+    assert item["answer"] is None
+    assert item["analysis"] is None
+    assert item["answer_status"] == "draft"
+    assert item["tags"] == ["python"]
+
+    bad = admin_client.post(f"/api/quiz/questions/{qid}/answer", json={"user_answer": "A"})
+    assert bad.status_code == 400
+
+    revealed = admin_client.post(f"/api/quiz/questions/{qid}/reveal")
+    assert revealed.status_code == 200
+    body = revealed.json()
+    assert "OnCall" in body["analysis"]
+    assert body["answer_status"] == "draft"
+
+    after = admin_client.get(f"/api/quiz/questions/{qid}").json()
+    assert after["is_answered"] is True
+    assert after["analysis"].startswith("课程草稿")
+    assert after["answer"] is None
+
+    skipped = admin_client.get("/api/quiz/questions?exclude_skipped=true").json()["items"]
+    assert all(it["id"] != skip_id for it in skipped)
+    assert any(it["id"] == qid for it in skipped)
+
+    today = admin_client.get("/api/quiz/today?limit=10").json()
+    today_ids = {it["id"] for it in today["items"]}
+    assert skip_id not in today_ids
+    assert qid in today_ids
+
+
+def test_exam_excludes_open_and_skipped(admin_client):
+    from app import db as dbmod
+    from app.models import QuizQuestion
+
+    with dbmod.SessionLocal() as db:
+        db.add_all(
+            [
+                QuizQuestion(
+                    bank="客观库",
+                    category="t",
+                    type="single",
+                    ordinal=1,
+                    stem="客观题",
+                    options={"A": "1", "B": "2"},
+                    answer="A",
+                    analysis="x",
+                    tags=["python"],
+                ),
+                QuizQuestion(
+                    bank="oncall-course",
+                    category="项目八股",
+                    type="open",
+                    ordinal=9,
+                    stem="问答题",
+                    options={},
+                    answer="",
+                    analysis="草稿",
+                    tags=["python"],
+                ),
+                QuizQuestion(
+                    bank="oncall-course",
+                    category="项目八股",
+                    type="open",
+                    ordinal=2,
+                    stem="Java 题",
+                    options={},
+                    answer="",
+                    analysis="java 草稿",
+                    tags=["skip", "java"],
+                ),
+            ]
+        )
+        db.commit()
+
+    exam = admin_client.get(
+        "/api/quiz/questions?limit=20&random_order=true&exclude_skipped=true&exclude_open=true"
+    ).json()["items"]
+    assert exam
+    assert all(it["type"] != "open" for it in exam)
+    assert all("skip" not in (it.get("tags") or []) for it in exam)
+
+
+def test_ensure_schema_adds_quiz_tags_column(tmp_path):
+    from sqlalchemy import create_engine, text
+
+    from app.db import ensure_schema
+
+    db_path = tmp_path / "legacy.db"
+    engine = create_engine(f"sqlite:///{db_path.as_posix()}", future=True)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE TABLE problems (id INTEGER PRIMARY KEY, slug VARCHAR(128), title VARCHAR(255))"
+            )
+        )
+        conn.execute(
+            text(
+                "CREATE TABLE quiz_questions (id INTEGER PRIMARY KEY, bank VARCHAR(128), type VARCHAR(16))"
+            )
+        )
+    ensure_schema(engine)
+    with engine.connect() as conn:
+        cols = {row[1] for row in conn.execute(text("PRAGMA table_info(quiz_questions)"))}
+    assert "tags" in cols
+    ensure_schema(engine)
