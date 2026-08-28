@@ -231,6 +231,10 @@ def list_banks(
         b = bank_map[q.bank]
         b["total"] += 1
         rec = user_records.get(q.id)
+        if q.type == "open":
+            if _is_open_revealed(q, rec):
+                b["answered"] += 1
+            continue
         if _has_answered(rec):
             b["answered"] += 1
             if rec.is_correct:
@@ -251,7 +255,7 @@ def list_questions(
     random_order: bool = False,
     exclude_skipped: bool = False,
     exclude_open: bool = False,
-    limit: int = Query(100, ge=1, le=800),
+    limit: int = Query(100, ge=1, le=3000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),

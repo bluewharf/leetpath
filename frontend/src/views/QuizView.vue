@@ -630,20 +630,27 @@ async function fetchQuestions() {
   currentResult.value = null
   multiSelected.value = []
   try {
-    let url = '/api/quiz/questions?limit=800'
+    const params = new URLSearchParams()
     if (currentTab.value === 'wrongbook') {
-      url += '&status=wrong'
+      params.set('limit', '3000')
+      params.set('status', 'wrong')
     } else if (currentTab.value === 'favorites') {
-      url += '&status=favorited'
+      params.set('limit', '3000')
+      params.set('status', 'favorited')
     } else if (currentTab.value === 'exam') {
-      url += '&limit=20&random_order=true&exclude_open=true'
+      params.set('limit', '20')
+      params.set('random_order', 'true')
+      params.set('exclude_open', 'true')
     } else {
-      if (selectedBank.value) url += `&bank=${encodeURIComponent(selectedBank.value)}`
-      if (onlyUnanswered.value) url += '&status=unanswered'
-      if (randomOrder.value) url += '&random_order=true'
+      params.set('limit', '3000')
+      if (selectedBank.value) params.set('bank', selectedBank.value)
+      if (onlyUnanswered.value) params.set('status', 'unanswered')
+      if (randomOrder.value) params.set('random_order', 'true')
     }
 
-    const res = await api.get<{ total: number; items: QuizQuestionItem[] }>(url)
+    const res = await api.get<{ total: number; items: QuizQuestionItem[] }>(
+      `/api/quiz/questions?${params.toString()}`,
+    )
     questions.value = res.items
     if (
       currentTab.value === 'practice' &&
@@ -652,7 +659,7 @@ async function fetchQuestions() {
     ) {
       selectedBank.value = ''
       const retry = await api.get<{ total: number; items: QuizQuestionItem[] }>(
-        '/api/quiz/questions?limit=800',
+        '/api/quiz/questions?limit=3000',
       )
       questions.value = retry.items
     }

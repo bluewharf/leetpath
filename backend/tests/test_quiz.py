@@ -493,23 +493,47 @@ def test_quiz_seed_includes_oncall_open_ended():
     proj = [q for q in questions if q["bank"] == "秋招-项目知识点"]
     bagu = [q for q in questions if q["bank"] == "秋招-八股"]
     legacy = [q for q in questions if q["bank"] not in {"oncall-course", "秋招-项目知识点", "秋招-八股"}]
+    assert len(questions) == 670 + 63 + 369 + 232
     assert len(legacy) == 670
     assert len(oncall) == 63
     assert len(proj) == 369
     assert len(bagu) == 232
-    assert all(q["type"] == "open" for q in proj + bagu)
+    assert all(q["type"] in {"single", "multiple", "judge"} for q in legacy)
+    assert all(q["type"] == "open" for q in oncall + proj + bagu)
     assert all(q.get("category") == "项目知识点" for q in proj)
     assert all(q.get("category") == "八股" for q in bagu)
-    assert all(q["type"] == "open" for q in oncall)
-    assert all(q.get("options") in ({}, None, []) for q in oncall)
     assert all(q["category"] == "项目八股" for q in oncall)
+    assert all(q.get("options") in ({}, None, []) for q in oncall + proj + bagu)
     java_skip = {
         q["ordinal"]
         for q in oncall
         if "skip" in (q.get("tags") or []) and "java" in (q.get("tags") or [])
     }
     assert java_skip == {2, 3, 4, 5}
-    assert all(q.get("analysis") for q in oncall)
+    assert all(q.get("analysis") for q in oncall + proj + bagu)
+    # 秋招源表 45 道手撕走算法题库，不得进 /quiz（不少题干没有【手撕】前缀）
+    assert not any(
+        "手撕" in (q.get("bank") or "") or (q.get("category") or "") == "手撕"
+        for q in questions
+    )
+    stems = "\n".join(q.get("stem") or "" for q in questions)
+    for needle in (
+        "【手撕】",
+        "LC11 盛最多水的容器",
+        "固定容量队列，push/pop都要O(1)",
+        "k个一组翻转链表",
+        "一维列表转树",
+        "岛屿最大面积（LC695）",
+        "Hot100 最大矩形（LC85）",
+        "图像差异最小包围矩形求解",
+        "T4 基环树DP",
+    ):
+        assert needle not in stems
+
+
+def test_quiz_list_limit_fits_full_seed_size(admin_client):
+    assert admin_client.get("/api/quiz/questions?limit=2000").status_code == 200
+    assert admin_client.get("/api/quiz/questions?limit=3001").status_code == 422
 
 
 def test_quiz_loader_imports_open_ended_empty_options(admin_client, tmp_path):
@@ -619,6 +643,18 @@ def test_open_ended_reveal_and_empty_options_list(admin_client):
     assert after["is_answered"] is True
     assert after["analysis"].startswith("课程草稿")
     assert after["answer"] is None
+
+    oncall_bank = next(
+        item for item in admin_client.get("/api/quiz/banks").json()
+        if item["bank"] == "oncall-course"
+    )
+    assert oncall_bank["answered"] == 1
+    assert oncall_bank["correct"] == 0
+    assert oncall_bank["wrong"] == 0
+    stats = admin_client.get("/api/quiz/stats").json()
+    assert stats["answered_count"] == 1
+    assert stats["correct_count"] == 0
+    assert stats["accuracy_rate"] == 0.0
 
     skipped = admin_client.get("/api/quiz/questions?exclude_skipped=true").json()["items"]
     assert all(it["id"] != skip_id for it in skipped)
