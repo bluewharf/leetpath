@@ -489,10 +489,17 @@ def test_quiz_seed_includes_oncall_open_ended():
 
     path = Path(__file__).resolve().parents[1] / "app" / "seed" / "quiz_questions.json"
     questions = json.loads(path.read_text(encoding="utf-8"))
-    existing = [q for q in questions if q["bank"] != "oncall-course"]
     oncall = [q for q in questions if q["bank"] == "oncall-course"]
-    assert len(existing) == 670
+    proj = [q for q in questions if q["bank"] == "秋招-项目知识点"]
+    bagu = [q for q in questions if q["bank"] == "秋招-八股"]
+    legacy = [q for q in questions if q["bank"] not in {"oncall-course", "秋招-项目知识点", "秋招-八股"}]
+    assert len(legacy) == 670
     assert len(oncall) == 63
+    assert len(proj) == 369
+    assert len(bagu) == 232
+    assert all(q["type"] == "open" for q in proj + bagu)
+    assert all(q.get("category") == "项目知识点" for q in proj)
+    assert all(q.get("category") == "八股" for q in bagu)
     assert all(q["type"] == "open" for q in oncall)
     assert all(q.get("options") in ({}, None, []) for q in oncall)
     assert all(q["category"] == "项目八股" for q in oncall)
