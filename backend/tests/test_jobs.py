@@ -1,6 +1,9 @@
 from datetime import date, timedelta
 
 import pytest
+from sqlalchemy import create_engine, text
+
+from app.db import ensure_schema
 
 
 def test_jobs_crud_admin(admin_client):
@@ -98,6 +101,126 @@ def test_job_track_sync(admin_client, user_client):
     assert admin_client.get("/api/jobs/track").json() == {str(job_id): "offer"}
     user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
     assert user_client.get("/api/jobs/track").json() == {}
+
+
+def test_delete_job_cascades_existing_tracks(admin_client, user_client):
+    admin_client.post("/api/auth/login", json={"username": "admin", "password": "password123"})
+    job = admin_client.post("/api/jobs", json={"company": "级联测试", "position": "后端"}).json()
+    job_id = job["id"]
+
+    user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
+    tracked = user_client.put(f"/api/jobs/{job_id}/track", json={"status": "applied"})
+    assert tracked.status_code == 200
+
+    admin_client.post("/api/auth/login", json={"username": "admin", "password": "password123"})
+    deleted = admin_client.delete(f"/api/jobs/{job_id}")
+    assert deleted.status_code == 204
+
+    user_client.post("/api/auth/login", json={"username": "bob", "password": "password123"})
+    assert user_client.get("/api/jobs/track").json() == {}
+
+
+def test_ensure_schema_adds_job_track_delete_cascade_to_legacy_database(tmp_path):
+    db_path = tmp_path / "legacy-jobs.db"
+    legacy = create_engine(f"sqlite:///{db_path.as_posix()}", future=True)
+    with legacy.begin() as conn:
+        conn.execute(text("PRAGMA foreign_keys=ON"))
+        conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY)"))
+        conn.execute(text("CREATE TABLE jobs (id INTEGER PRIMARY KEY)"))
+        conn.execute(
+            text(
+                """
+                CREATE TABLE job_tracks (
+                    user_id INTEGER NOT NULL,
+                    job_id INTEGER NOT NULL,
+                    status VARCHAR(16) NOT NULL,
+                    updated_at DATETIME NOT NULL,
+                    PRIMARY KEY (user_id, job_id),
+                    FOREIGN KEY(user_id) REFERENCES users (id),
+                    FOREIGN KEY(job_id) REFERENCES jobs (id)
+                )
+                """
+            )
+        )
+        conn.execute(text("INSERT INTO users (id) VALUES (1)"))
+        conn.execute(text("INSERT INTO jobs (id) VALUES (2)"))
+        conn.execute(
+            text(
+                "INSERT INTO job_tracks (user_id, job_id, status, updated_at) "
+                "VALUES (1, 2, 'applied', '2026-08-28 00:00:00')"
+            )
+        )
+
+    ensure_schema(legacy)
+    ensure_schema(legacy)
+
+    with legacy.begin() as conn:
+        foreign_keys = conn.execute(text("PRAGMA foreign_key_list(job_tracks)")).fetchall()
+        job_fk = next(row for row in foreign_keys if row[2] == "jobs" and row[3] == "job_id")
+        assert job_fk[6].upper() == "CASCADE"
+        assert conn.scalar(text("SELECT count(*) FROM job_tracks")) == 1
+        conn.execute(text("DELETE FROM jobs WHERE id = 2"))
+        assert conn.scalar(text("SELECT count(*) FROM job_tracks")) == 0
+
+    legacy.dispose()
+
+
+def test_job_track_cascade_migration_rolls_back_cleanly_on_invalid_legacy_data(tmp_path):
+    db_path = tmp_path / "broken-legacy-jobs.db"
+    legacy = create_engine(f"sqlite:///{db_path.as_posix()}", future=True)
+    with legacy.begin() as conn:
+        conn.execute(text("PRAGMA foreign_keys=OFF"))
+        conn.execute(text("CREATE TABLE users (id INTEGER PRIMARY KEY)"))
+        conn.execute(text("CREATE TABLE jobs (id INTEGER PRIMARY KEY)"))
+        conn.execute(
+            text(
+                """
+                CREATE TABLE job_tracks (
+                    user_id INTEGER NOT NULL,
+                    job_id INTEGER NOT NULL,
+                    status VARCHAR(16) NOT NULL,
+                    updated_at DATETIME NOT NULL,
+                    PRIMARY KEY (user_id, job_id),
+                    FOREIGN KEY(user_id) REFERENCES users (id),
+                    FOREIGN KEY(job_id) REFERENCES jobs (id)
+                )
+                """
+            )
+        )
+        conn.execute(text("INSERT INTO users (id) VALUES (1)"))
+        conn.execute(
+            text(
+                "INSERT INTO job_tracks (user_id, job_id, status, updated_at) "
+                "VALUES (1, 99, 'applied', '2026-08-28 00:00:00')"
+            )
+        )
+
+    with pytest.raises(RuntimeError, match="外键迁移后校验失败"):
+        ensure_schema(legacy)
+
+    with legacy.begin() as conn:
+        tables = {row[0] for row in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))}
+        assert "job_tracks" in tables
+        assert "job_tracks__cascade_new" not in tables
+        assert conn.scalar(text("SELECT count(*) FROM job_tracks WHERE job_id = 99")) == 1
+        job_fk = next(
+            row
+            for row in conn.execute(text("PRAGMA foreign_key_list(job_tracks)"))
+            if row[2] == "jobs" and row[3] == "job_id"
+        )
+        assert job_fk[6].upper() == "NO ACTION"
+        conn.execute(text("INSERT INTO jobs (id) VALUES (99)"))
+
+    ensure_schema(legacy)
+    with legacy.begin() as conn:
+        job_fk = next(
+            row
+            for row in conn.execute(text("PRAGMA foreign_key_list(job_tracks)"))
+            if row[2] == "jobs" and row[3] == "job_id"
+        )
+        assert job_fk[6].upper() == "CASCADE"
+
+    legacy.dispose()
 
 
 def test_job_urls_must_use_https(admin_client):

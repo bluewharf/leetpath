@@ -92,6 +92,99 @@ def test_prepare_workdir_wraps_leetcode_solution(tmp_path, monkeypatch):
     assert "if __name__" in source
 
 
+def test_output_limit_closes_streams_without_waiting_on_blocked_writer():
+    import time
+
+    started = time.monotonic()
+    result = worker._run_process_limited(
+        [
+            sys.executable,
+            "-c",
+            "import sys, time\n"
+            "sys.stdout.write('x' * 8_000_000)\n"
+            "sys.stdout.flush()\n"
+            "time.sleep(30)\n",
+        ],
+        timeout=10,
+        output_limit=2048,
+    )
+    elapsed = time.monotonic() - started
+    assert result.returncode == worker.OUTPUT_LIMIT_RETURN_CODE
+    assert len(result.stdout.encode("utf-8")) <= 2048
+    assert elapsed < 5
+
+
+def test_infra_error_compile_output_is_sanitized(admin_client, tmp_path, monkeypatch):
+    from app import db as dbmod
+    from app.models import Problem, Submission, Testcase
+
+    leaked = str(tmp_path / "secret" / "host-worker.py")
+    created = admin_client.post(
+        "/api/submissions",
+        json={"problem_slug": "two-sum", "language": "python3", "code": "print(1)"},
+    ).json()
+    assert dbmod.SessionLocal is not None
+    with dbmod.SessionLocal() as db:
+        submission = db.get(Submission, created["id"])
+        assert submission is not None
+        submission.status = "judging"
+        db.commit()
+
+    def explode(_job):
+        raise RuntimeError(
+            f"Traceback (most recent call last):\n  File \"{leaked}\", line 1\nboom"
+        )
+
+    monkeypatch.setattr(worker, "evaluate", explode)
+    worker.process_submission(dbmod.SessionLocal, Submission, Problem, Testcase, created["id"])
+
+    with dbmod.SessionLocal() as db:
+        submission = db.get(Submission, created["id"])
+        assert submission is not None
+        assert submission.status == "IE"
+        output = submission.compile_output or ""
+        assert output == worker.USER_IE_MESSAGE
+        assert "Traceback" not in output
+        assert leaked not in output
+        assert str(tmp_path) not in output
+
+
+def test_write_result_requires_judging_status(admin_client):
+    from app import db as dbmod
+    from app.models import Submission
+
+    created = admin_client.post(
+        "/api/submissions",
+        json={"problem_slug": "two-sum", "language": "python3", "code": "print(1)"},
+    ).json()
+    sub_id = created["id"]
+    assert dbmod.SessionLocal is not None
+
+    with dbmod.SessionLocal() as db:
+        assert worker._write_result(
+            db, Submission, sub_id, worker.STATUS_AC, 12, [{"ordinal": 1, "status": "AC"}], None
+        ) is False
+        assert db.get(Submission, sub_id).status == "pending"
+
+        db.get(Submission, sub_id).status = "judging"
+        db.commit()
+
+    with dbmod.SessionLocal() as db:
+        assert worker._write_result(
+            db,
+            Submission,
+            sub_id,
+            worker.STATUS_WA,
+            8,
+            [{"ordinal": 1, "status": "WA"}],
+            None,
+        ) is True
+        row = db.get(Submission, sub_id)
+        assert row.status == "WA"
+        assert row.runtime_ms == 8
+        assert row.detail[0]["status"] == "WA"
+
+
 def test_worker_recovers_orphaned_judging_submissions(admin_client):
     from app import db as dbmod
     from app.models import Submission

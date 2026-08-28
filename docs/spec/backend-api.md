@@ -54,7 +54,7 @@
 ### `app/routers/submissions.py`
 
 - `POST /api/submissions` body `{problem_slug, language, io_mode?, code}`：language ∈ {python3, cpp}，io_mode ∈ {acm, leetcode}（默认 acm），code ≤ 64KB。`leetcode` 且本题无函数签名 → 400。全局 pending/judging ≥ 10、该用户最近一分钟提交 ≥ 10，或该用户 pending/judging ≥ 2 时返回 429。成功 202 → `{id, status: "pending"}`。
-- `GET /api/submissions/{id}` → 仅本人或管理员：`{id, problem_slug, problem_title, language, io_mode, code, status, runtime_ms, compile_output, detail, created_at}`。detail 结构见 `judge.md`。
+- `GET /api/submissions/{id}` → 仅本人或管理员：`{id, problem_slug, problem_title, language, io_mode, code, status, runtime_ms, compile_output, detail, created_at}`。detail 结构见 `judge.md`。`status=IE` 时 `compile_output` 为脱敏短文案，不含宿主机路径或异常栈。
 - `GET /api/submissions?problem_slug=&limit=50` → 我的提交列表（不含 code，含 io_mode，新→旧）。
 
 ### `app/routers/drafts.py`

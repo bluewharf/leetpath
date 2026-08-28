@@ -141,7 +141,7 @@ class JobTrack(Base):
     __tablename__ = "job_tracks"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id"), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
     status: Mapped[str] = mapped_column(String(16))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 

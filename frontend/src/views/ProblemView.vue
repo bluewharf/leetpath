@@ -236,6 +236,13 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
+import {
+  DraftSaveQueue,
+  createGenerationGate,
+  type DraftKey,
+  type DraftSnapshot,
+  type FlushResult,
+} from '../problemDraftSession'
 import AppIcon from '../components/AppIcon.vue'
 import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
@@ -365,8 +372,17 @@ const historyCode = ref<Record<number, string>>({})
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null
 let pollTimer: ReturnType<typeof setTimeout> | null = null
-let pollDeadline = 0
-let dirty = false
+let activeDraftKey: DraftKey | null = null
+let suppressCodeTracking = false
+let activePageGeneration = 0
+
+const draftQueue = new DraftSaveQueue()
+const navigationGeneration = createGenerationGate()
+const pageGeneration = createGenerationGate()
+const draftGeneration = createGenerationGate()
+const pollGeneration = createGenerationGate()
+
+const DRAFT_FLUSH_OPTIONS = { maxAttempts: 2, timeoutMs: 1500 } as const
 
 // ACM 极速模板
 const DEFAULT_TEMPLATES: Record<Language, string> = {
@@ -492,6 +508,8 @@ function toggleTc(ordinal: number) {
 }
 
 async function toggleHistory(id: number) {
+  const requestedSlug = slug.value
+  const generation = activePageGeneration
   const s = new Set(expandedHistory.value)
   if (s.has(id)) {
     s.delete(id)
@@ -499,21 +517,32 @@ async function toggleHistory(id: number) {
     s.add(id)
     if (!historyCode.value[id]) {
       const full = await api.get<Submission>(`/api/submissions/${id}`)
+      if (!pageGeneration.isCurrent(generation) || slug.value !== requestedSlug) return
       historyCode.value = { ...historyCode.value, [id]: full.code ?? '' }
     }
   }
+  if (!pageGeneration.isCurrent(generation) || slug.value !== requestedSlug) return
   expandedHistory.value = s
 }
 
-function loadCodeIntoEditor(historySnippet: string, lang: Language, mode: IoMode = 'acm') {
+async function loadCodeIntoEditor(historySnippet: string, lang: Language, mode: IoMode = 'acm') {
   if (!historySnippet) return
   if (confirm('确认将此历史提交代码载入到编辑器中吗？当前未保存的修改将被覆盖。')) {
-    if (language.value !== lang) setLang(lang)
-    if (ioMode.value !== mode) setIoMode(mode)
+    const generation = draftGeneration.next()
+    if (saveTimer) clearTimeout(saveTimer)
+    if (activeDraftKey) void flushDraftKey(activeDraftKey)
+    if (!draftGeneration.isCurrent(generation)) return
+    language.value = lang
     ioMode.value = mode
+    setLang(lang)
+    setIoMode(mode)
+    const key = makeDraftKey(slug.value, lang, mode)
+    activeDraftKey = key
+    draftQueue.edit(key, historySnippet)
+    suppressCodeTracking = true
     code.value = historySnippet
-    dirty = true
-    saveDraftNow()
+    suppressCodeTracking = false
+    await saveDraftNow()
     toast.success('已载入历史提交代码')
   }
 }
@@ -534,87 +563,125 @@ function defaultCodeFor(lang: Language, mode: IoMode): string {
 function confirmResetCode() {
   if (confirm('确定要重置当前代码吗？将恢复为初始默认模板。')) {
     code.value = defaultCodeFor(language.value, ioMode.value)
-    dirty = true
-    saveDraftNow()
+    void saveDraftNow()
     toast.info(ioMode.value === 'leetcode' ? '已重置为力扣函数模板' : '代码已重置为初始模板')
   }
 }
 
-async function loadSolution() {
-  if (solutionMd.value) return
-  solutionLoading.value = true
-  try {
-    const res = await api.get<{ slug: string; solution_md: string }>(
-      `/api/problems/${slug.value}/solution`,
-    )
-    solutionMd.value = res.solution_md
-  } catch {
-    solutionMd.value = ''
-  } finally {
-    solutionLoading.value = false
+function makeDraftKey(
+  slugValue: string,
+  lang: Language = language.value,
+  mode: IoMode = ioMode.value,
+): DraftKey {
+  return { slug: slugValue, language: lang, ioMode: mode }
+}
+
+function isActiveDraftKey(key: DraftKey): boolean {
+  return Boolean(
+    activeDraftKey
+      && activeDraftKey.slug === key.slug
+      && activeDraftKey.language === key.language
+      && activeDraftKey.ioMode === key.ioMode,
+  )
+}
+
+async function persistDraftSnapshot(snapshot: DraftSnapshot): Promise<void> {
+  await api.put(`/api/drafts/${snapshot.slug}`, {
+    language: snapshot.language,
+    io_mode: snapshot.ioMode,
+    code: snapshot.code,
+  })
+}
+
+function updateSaveHint(key: DraftKey, result: FlushResult): void {
+  if (!isActiveDraftKey(key)) return
+  if (result.status === 'failed' || result.status === 'timeout') {
+    saveHint.value = '保存失败，本地修改待重试'
+    return
+  }
+  if (result.status === 'saved' && draftQueue.isDirty(key)) {
+    saveHint.value = '有未保存修改'
+    return
+  }
+  if (result.status === 'saved') {
+    const d = new Date()
+    saveHint.value = `已保存 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   }
 }
 
-async function saveDraftNow() {
-  if (!problem.value || !dirty) return
-  dirty = false
-  saveHint.value = '保存中…'
-  try {
-    await api.put(`/api/drafts/${slug.value}`, {
-      language: language.value,
-      io_mode: ioMode.value,
-      code: code.value,
-    })
-    const d = new Date()
-    saveHint.value = `已保存 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  } catch {
-    saveHint.value = '保存失败'
+async function flushDraftKey(key: DraftKey, showHint = true): Promise<FlushResult> {
+  if (showHint && isActiveDraftKey(key) && draftQueue.isDirty(key)) {
+    saveHint.value = '保存中…'
   }
+  const result = await draftQueue.flush(key, persistDraftSnapshot, DRAFT_FLUSH_OPTIONS)
+  if (showHint) updateSaveHint(key, result)
+  return result
+}
+
+async function saveDraftNow(): Promise<FlushResult> {
+  if (!problem.value || !activeDraftKey) return { status: 'clean' }
+  return flushDraftKey(activeDraftKey)
 }
 
 watch(code, () => {
-  dirty = true
+  if (suppressCodeTracking || !activeDraftKey) return
+  draftQueue.edit(activeDraftKey, code.value)
   if (saveTimer) clearTimeout(saveTimer)
-  saveTimer = setTimeout(saveDraftNow, 1000)
-})
+  saveTimer = setTimeout(() => void saveDraftNow(), 1000)
+}, { flush: 'sync' })
 
-async function loadDraft() {
+async function loadDraftFor(key: DraftKey, generation: number): Promise<void> {
   const draft = await api.get<Draft>(
-    `/api/drafts/${slug.value}?language=${language.value}&io_mode=${ioMode.value}`,
+    `/api/drafts/${key.slug}?language=${key.language}&io_mode=${key.ioMode}`,
   )
-  if (draft.code && draft.code.trim().length > 0) {
-    code.value = draft.code
-  } else {
-    code.value = defaultCodeFor(language.value, ioMode.value)
-  }
-  dirty = false
-  saveHint.value = draft.is_default ? '' : '草稿已恢复'
+  if (!draftGeneration.isCurrent(generation)) return
+  const serverCode = draft.code && draft.code.trim().length > 0
+    ? draft.code
+    : defaultCodeFor(key.language, key.ioMode)
+  const restored = draftQueue.recordLoaded(key, serverCode)
+  if (!draftGeneration.isCurrent(generation)) return
+  activeDraftKey = key
+  suppressCodeTracking = true
+  code.value = restored.code
+  suppressCodeTracking = false
+  saveHint.value = restored.dirty
+    ? '已恢复本地未保存修改'
+    : draft.is_default ? '' : '草稿已恢复'
 }
 
 async function setMode(mode: IoMode) {
-  if (ioMode.value === mode) return
+  if (ioMode.value === mode && activeDraftKey?.ioMode === mode) return
   if (mode === 'leetcode' && !problem.value?.leetcode_available) {
     toast.info('本题暂不支持力扣函数模式')
     return
   }
+  const generation = draftGeneration.next()
   if (saveTimer) clearTimeout(saveTimer)
-  await saveDraftNow()
+  if (activeDraftKey) void flushDraftKey(activeDraftKey)
+  if (!draftGeneration.isCurrent(generation)) return
   ioMode.value = mode
   setIoMode(mode)
-  await loadDraft()
-}
-
-async function onLanguageChange() {
-  if (saveTimer) clearTimeout(saveTimer)
-  await saveDraftNow()
-  await loadDraft()
+  try {
+    await loadDraftFor(makeDraftKey(slug.value, language.value, mode), generation)
+  } catch {
+    if (draftGeneration.isCurrent(generation)) saveHint.value = '草稿加载失败'
+  }
 }
 
 // 全局语言偏好变化时，编辑器语言与草稿同步切换
 watch(langPref, async (lang) => {
-  if (language.value === lang) return
+  if (language.value === lang && activeDraftKey?.language === lang) return
+  const generation = draftGeneration.next()
+  if (saveTimer) clearTimeout(saveTimer)
+  if (activeDraftKey) void flushDraftKey(activeDraftKey)
+  if (!draftGeneration.isCurrent(generation)) return
   language.value = lang
-  await onLanguageChange()
+  if (!problem.value) return
+  try {
+    await loadDraftFor(makeDraftKey(slug.value, lang, ioMode.value), generation)
+  } catch {
+    if (draftGeneration.isCurrent(generation)) saveHint.value = '草稿加载失败'
+  }
 })
 
 async function submit() {
@@ -631,8 +698,8 @@ async function submit() {
       code: code.value,
     })
     submission.value = null
-    pollDeadline = Date.now() + 90_000
-    poll(res.id)
+    const generation = pollGeneration.next()
+    void poll(res.id, generation, slug.value, Date.now() + 90_000)
   } catch (e) {
     toast.error(e instanceof Error ? e.message : '提交评测失败')
     submitting.value = false
@@ -641,64 +708,120 @@ async function submit() {
 
 const { recordSolvedProblem, activePlan } = useStudyPlan()
 
-async function poll(id: number) {
+function stopPolling(): void {
+  pollGeneration.invalidate()
+  if (pollTimer) clearTimeout(pollTimer)
+  pollTimer = null
+  submitting.value = false
+}
+
+async function poll(id: number, generation: number, submittedSlug: string, deadline: number) {
   try {
     const s = await api.get<Submission>(`/api/submissions/${id}`)
+    if (!pollGeneration.isCurrent(generation) || slug.value !== submittedSlug) return
     submission.value = s
     if (isFinal(s.status)) {
       submitting.value = false
       if (s.status === 'AC') {
         toast.success('恭喜！代码全部通过 (Accepted)')
         if (activePlan.value) {
-          recordSolvedProblem(slug.value)
+          recordSolvedProblem(submittedSlug)
         }
       } else {
         toast.info(`评测完成：状态为 ${s.status}`)
       }
-      loadHistory()
+      void loadHistoryFor(submittedSlug, () => (
+        pollGeneration.isCurrent(generation) && slug.value === submittedSlug
+      ))
       return
     }
   } catch {
     /* 忽略网络抖动 */
   }
-  if (Date.now() > pollDeadline) {
+  if (!pollGeneration.isCurrent(generation) || slug.value !== submittedSlug) return
+  if (Date.now() > deadline) {
     submitting.value = false
     toast.error('评测响应超时，请刷新重试')
     return
   }
-  pollTimer = setTimeout(() => poll(id), 800)
+  pollTimer = setTimeout(() => void poll(id, generation, submittedSlug, deadline), 800)
 }
 
-async function loadHistory() {
-  history.value = await api.get<Submission[]>(`/api/submissions?problem_slug=${slug.value}&limit=20`)
+async function loadHistoryFor(requestedSlug: string, isCurrent: () => boolean): Promise<void> {
+  const loadedHistory = await api.get<Submission[]>(
+    `/api/submissions?problem_slug=${requestedSlug}&limit=20`,
+  )
+  if (isCurrent()) history.value = loadedHistory
 }
 
-async function loadAll() {
-  loading.value = true
-  submission.value = null
-  solutionMd.value = ''
-  tab.value = window.innerWidth >= 1024 ? 'code' : 'statement'
+async function loadSolutionFor(requestedSlug: string, generation: number): Promise<void> {
+  solutionLoading.value = true
   try {
-    problem.value = await api.get<ProblemDetail>(`/api/problems/${slug.value}`)
-    const preferred: IoMode =
-      problem.value.leetcode_available && ioModePref.value === 'leetcode' ? 'leetcode' : 'acm'
-    ioMode.value = preferred
-    await Promise.all([loadDraft(), loadHistory(), loadSolution()])
+    const res = await api.get<{ slug: string; solution_md: string }>(
+      `/api/problems/${requestedSlug}/solution`,
+    )
+    if (pageGeneration.isCurrent(generation) && slug.value === requestedSlug) {
+      solutionMd.value = res.solution_md
+    }
   } catch {
-    problem.value = null
+    if (pageGeneration.isCurrent(generation) && slug.value === requestedSlug) {
+      solutionMd.value = ''
+    }
   } finally {
-    loading.value = false
+    if (pageGeneration.isCurrent(generation) && slug.value === requestedSlug) {
+      solutionLoading.value = false
+    }
   }
 }
 
-function onGlobalKeydown(e: KeyboardEvent) {
+async function loadAll(requestedSlug: string) {
+  const generation = pageGeneration.next()
+  activePageGeneration = generation
+  loading.value = true
+  submission.value = null
+  solutionMd.value = ''
+  expandedHistory.value = new Set()
+  historyCode.value = {}
+  tab.value = window.innerWidth >= 1024 ? 'code' : 'statement'
+  try {
+    const loadedProblem = await api.get<ProblemDetail>(`/api/problems/${requestedSlug}`)
+    if (!pageGeneration.isCurrent(generation) || slug.value !== requestedSlug) return
+    problem.value = loadedProblem
+    language.value = langPref.value
+    const preferred: IoMode =
+      loadedProblem.leetcode_available && ioModePref.value === 'leetcode' ? 'leetcode' : 'acm'
+    ioMode.value = preferred
+    const draftLoadGeneration = draftGeneration.next()
+    await Promise.all([
+      loadDraftFor(makeDraftKey(requestedSlug, language.value, preferred), draftLoadGeneration),
+      loadHistoryFor(requestedSlug, () => (
+        pageGeneration.isCurrent(generation) && slug.value === requestedSlug
+      )),
+      loadSolutionFor(requestedSlug, generation),
+    ])
+  } catch {
+    if (pageGeneration.isCurrent(generation) && slug.value === requestedSlug) {
+      problem.value = null
+    }
+  } finally {
+    if (pageGeneration.isCurrent(generation) && slug.value === requestedSlug) {
+      loading.value = false
+    }
+  }
+}
+
+async function onGlobalKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault()
     submit()
   } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
     e.preventDefault()
-    saveDraftNow()
-    toast.success('草稿已立即保存')
+    const result = await saveDraftNow()
+    if (result.status === 'saved' || result.status === 'clean') {
+      toast.success('草稿已立即保存')
+    } else {
+      toast.error('草稿保存失败，本地修改仍会保留')
+    }
   } else if (e.key === 'Escape') {
     if (isZen.value) isZen.value = false
   }
@@ -710,9 +833,15 @@ function onResize() {
 
 watch(slug, async (n, o) => {
   if (n !== o && o) {
+    const generation = navigationGeneration.next()
+    pageGeneration.invalidate()
+    draftGeneration.invalidate()
+    stopPolling()
     if (saveTimer) clearTimeout(saveTimer)
-    await saveDraftNow()
-    await loadAll()
+    const previousKey = activeDraftKey
+    if (previousKey) void flushDraftKey(previousKey)
+    if (!navigationGeneration.isCurrent(generation) || slug.value !== n) return
+    await loadAll(n)
   }
 })
 
@@ -724,15 +853,19 @@ onMounted(() => {
   }
   window.addEventListener('resize', onResize)
   window.addEventListener('keydown', onGlobalKeydown)
-  loadAll()
+  navigationGeneration.next()
+  void loadAll(slug.value)
 })
 
 onBeforeUnmount(() => {
+  navigationGeneration.invalidate()
+  pageGeneration.invalidate()
+  draftGeneration.invalidate()
+  stopPolling()
   window.removeEventListener('resize', onResize)
   window.removeEventListener('keydown', onGlobalKeydown)
   if (saveTimer) clearTimeout(saveTimer)
-  if (pollTimer) clearTimeout(pollTimer)
   if (timerInterval) clearInterval(timerInterval)
-  saveDraftNow()
+  void draftQueue.flushAll(persistDraftSnapshot, DRAFT_FLUSH_OPTIONS)
 })
 </script>

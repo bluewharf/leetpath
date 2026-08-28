@@ -9,10 +9,28 @@ marked.use(
   }),
 )
 
-// 题面 / 题解 / AI 回复都走这里；外链必须带 noopener，避免 tabnabbing。
+const EXTERNAL_URL = /^(?:https?:)?\/\//i
+
+/** 题面 / 题解 / AI 回复共用的消毒配置：禁 style，禁 SVG，禁外链图片。 */
+export const MARKDOWN_PURIFY_CONFIG = {
+  USE_PROFILES: { html: true, mathMl: true, svg: false },
+  FORBID_TAGS: ['svg', 'iframe', 'object', 'embed', 'form', 'input', 'link', 'meta', 'base', 'style'],
+  FORBID_ATTR: ['style', 'srcset', 'srcdoc', 'xlink:href'],
+  ADD_ATTR: ['target', 'rel', 'aria-hidden', 'display', 'xmlns', 'encoding'],
+  ALLOW_DATA_ATTR: false,
+}
+
+// 外链必须带 noopener；外网图片 src 直接剥掉，避免像素追踪。
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName !== 'A' || !node.hasAttribute('href')) return
-  node.setAttribute('rel', 'noopener noreferrer')
+  if (node.tagName === 'A' && node.hasAttribute('href')) {
+    node.setAttribute('rel', 'noopener noreferrer')
+  }
+  if (node.tagName === 'IMG') {
+    const src = node.getAttribute('src') || ''
+    if (EXTERNAL_URL.test(src)) {
+      node.removeAttribute('src')
+    }
+  }
 })
 
 export function filterSolutionMarkdown(markdown: string, lang: 'python3' | 'cpp'): string {
@@ -44,42 +62,5 @@ export function filterSolutionMarkdown(markdown: string, lang: 'python3' | 'cpp'
 export function renderMarkdown(source: string): string {
   if (!source) return ''
   const rawHtml = marked.parse(source, { async: false }) as string
-  return DOMPurify.sanitize(rawHtml, {
-    ADD_TAGS: [
-      'math',
-      'semantics',
-      'mrow',
-      'mi',
-      'mo',
-      'mn',
-      'msup',
-      'msub',
-      'msubsup',
-      'mfrac',
-      'mover',
-      'munder',
-      'munderover',
-      'mtable',
-      'mtr',
-      'mtd',
-      'annotation',
-      'span',
-      'svg',
-      'path',
-      'line',
-    ],
-    ADD_ATTR: [
-      'xmlns',
-      'display',
-      'aria-hidden',
-      'viewBox',
-      'd',
-      'fill',
-      'stroke',
-      'class',
-      'style',
-      'target',
-      'rel',
-    ],
-  })
+  return String(DOMPurify.sanitize(rawHtml, MARKDOWN_PURIFY_CONFIG))
 }

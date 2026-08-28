@@ -1,4 +1,14 @@
-export type Theme = 'paper' | 'ink' | 'slate' | 'oat' | 'cyber' | 'sepia'
+export type Theme =
+  | 'paper'
+  | 'ink'
+  | 'telemetry'
+  | 'swiss'
+  | 'signal'
+  | 'terminal'
+  | 'slate'
+  | 'oat'
+  | 'cyber'
+  | 'sepia'
 
 const KEY = 'leetpath-theme'
 
@@ -10,10 +20,14 @@ export interface ThemeMeta {
   dark: boolean
 }
 
-/** 主题全家桶：档案朱橙(默认浅) / 深夜档案(默认暗) / 莫兰迪灰蓝 / 燕麦拿铁 / 赛博霓虹 / 豆沙护眼 */
+/** 主题全家桶：档案朱橙(默认浅) / 深夜档案(默认暗) / 深空遥测 / 瑞士网格 / 瓷白信号 / 石墨终端 / 莫兰迪灰蓝 / 燕麦拿铁 / 赛博霓虹 / 豆沙护眼 */
 export const THEME_LIST: ThemeMeta[] = [
   { id: 'paper', name: '档案朱橙', dark: false },
   { id: 'ink', name: '深夜档案', dark: true },
+  { id: 'telemetry', name: '深空遥测', dark: true },
+  { id: 'swiss', name: '瑞士网格', dark: false },
+  { id: 'signal', name: '瓷白信号', dark: false },
+  { id: 'terminal', name: '石墨终端', dark: true },
   { id: 'slate', name: '莫兰迪灰蓝', dark: false },
   { id: 'oat', name: '燕麦拿铁', dark: false },
   { id: 'cyber', name: '赛博霓虹', dark: true },

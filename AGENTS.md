@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 后端：FastAPI + SQLAlchemy 2.x + SQLite(WAL)，JWT cookie 认证（bcrypt）
-- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，「档案刊物」设计系统（暖纸/墨色/朱橙点睛 + 发丝规线 + 微粒噪点，主断点 1023px，宽屏增强 1800px；主题六态：paper 档案朱橙(默认浅)/ink 深夜档案(默认暗)/slate 莫兰迪灰蓝/oat 燕麦拿铁/cyber 赛博霓虹/sepia 豆沙护眼，均定义在 base.css 变量块，paper/ink 大标题用衬线刊头）
+- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，「档案刊物」设计系统（暖纸/墨色/朱橙点睛 + 发丝规线 + 微粒噪点，主断点 1023px，宽屏增强 1800px；主题十态全家桶：paper 档案朱橙(默认浅)/ink 深夜档案(默认暗)/telemetry 深空遥测(航天HUD暗)/swiss 瑞士网格(包豪斯浅)/signal 瓷白信号(现代工具浅)/terminal 石墨终端(现代工具暗)/slate 莫兰迪灰蓝/oat 燕麦拿铁/cyber 赛博霓虹/sepia 豆沙护眼，均定义在 base.css 变量块，paper/ink 大标题用衬线刊头）
 - 判题：独立 worker 进程轮询 SQLite，每次提交起一次性 Docker 容器（`--network none --read-only`）
 - 部署：docker-compose（nginx 静态+反代 / backend / judge worker）
 

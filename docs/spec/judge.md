@@ -51,7 +51,7 @@ UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
    - `<limit_s>` = ceil(time_limit_ms/1000)，另加外层进程超时 `limit_s+15` 兜底（含容器启动开销），外层超时视为 TLE。
 4. 每个用例判定：
    - 退出码 124 记 `TLE`；137 时根据 Docker `OOMKilled` 区分 `MLE`，否则记 `TLE`
-   - stdout + stderr 合计超过 1 MiB 时立即终止容器并记 `RE`；编译输出超限记 `CE`
+   - stdout + stderr 合计超过 1 MiB 时立即关闭读流、终止容器并记 `RE`；编译输出超限记 `CE`
    - 其他非零退出 → `RE`（stderr 截断 500 字符记入该用例 detail）
    - 零退出 → 比对 stdout 与 expected_output：**规范化**（每行去行尾空白、整体去末尾空行）后相等 → `AC`，否则 `WA`（记录实际输出截断 500 字符）
    - 单用例 runtime_ms：容器运行的外层 wall time（近似值，含启动开销，文档注明）
@@ -64,7 +64,7 @@ UPDATE submissions SET status='judging' WHERE id=:id AND status='pending'
    ```
 
    - `input/expected/output` 仅样例用例（is_sample=true）包含，且各截断 1000 字符；隐藏用例只有 ordinal/is_sample/status/runtime_ms（+RE 时的 stderr）。
-7. 任何基础设施异常（docker 不可用、镜像缺失等）→ 状态 `IE`，异常信息入 `compile_output`。**异常不能使 worker 退出**，记录后继续轮询。
+7. 任何基础设施异常（docker 不可用、镜像缺失等）→ 状态 `IE`。用户可见的 `compile_output` 只给固定脱敏文案（不含宿主机路径或 Traceback）；完整异常栈只写 worker 日志。**异常不能使 worker 退出**，记录后继续轮询。写回结果必须带 `status='judging'` 条件，避免覆盖已回收或已终态的提交。
 8. 清理临时目录（finally）。
 
 ## 配置（环境变量）

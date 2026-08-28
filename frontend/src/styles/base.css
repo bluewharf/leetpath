@@ -347,6 +347,234 @@
 :root[data-theme="sepia"] .heatmap-cell.level-3 { background: rgba(46, 125, 50, 0.68); }
 :root[data-theme="sepia"] .heatmap-cell.level-4 { background: #2e7d32; }
 
+/* ---------- Telemetry · 深空遥测（航天空间站仪器风 · 暗色） ---------- */
+:root[data-theme="telemetry"] {
+  --bg: #07090e;
+  --bg-glow-1: rgba(0, 240, 255, 0.08);
+  --bg-glow-2: rgba(245, 158, 11, 0.06);
+  --surface: #0d121c;
+  --surface-2: #141b26;
+  --surface-3: #1c2636;
+  --bg-soft: var(--surface-2);
+  --card: var(--surface);
+  --bg-card: var(--surface);
+  --border: rgba(0, 240, 255, 0.16);
+  --border-strong: rgba(0, 240, 255, 0.38);
+  --text: #e2e8f0;
+  --text-dim: #8493a8;
+  --text-faint: #526074;
+  --muted: var(--text-dim);
+
+  --accent: #00f0ff;
+  --accent-2: #38bdf8;
+  --accent-hover: #00d2df;
+  --accent-soft: rgba(0, 240, 255, 0.12);
+  --accent-border: rgba(0, 240, 255, 0.45);
+  --ink: #e2e8f0;
+  --ink-hover: #ffffff;
+  --grad: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);
+  --grad-text: linear-gradient(120deg, #ffffff 20%, #00f0ff 90%);
+
+  --green: #10b981;
+  --green-soft: rgba(16, 185, 129, 0.16);
+  --red: #f43f5e;
+  --red-soft: rgba(244, 63, 94, 0.16);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.18);
+  --purple: #a855f7;
+  --purple-soft: rgba(168, 85, 247, 0.16);
+
+  --display-font: "JetBrains Mono Variable", "JetBrains Mono", Consolas, monospace;
+  --display-tracking: 0.04em;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 240, 255, 0.05);
+  --shadow-lg: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 24px rgba(0, 240, 255, 0.1);
+  --shadow-accent: 0 0 18px rgba(0, 240, 255, 0.45);
+  --spec-hi: rgba(0, 240, 255, 0.12);
+  --card-hi: rgba(0, 240, 255, 0.06);
+  --material: rgba(13, 18, 28, 0.85);
+  --material-strong: rgba(20, 27, 38, 0.95);
+  color-scheme: dark;
+}
+:root[data-theme="telemetry"] .heatmap-cell.level-1 { background: rgba(0, 240, 255, 0.22); }
+:root[data-theme="telemetry"] .heatmap-cell.level-2 { background: rgba(0, 240, 255, 0.48); }
+:root[data-theme="telemetry"] .heatmap-cell.level-3 { background: rgba(0, 240, 255, 0.76); }
+:root[data-theme="telemetry"] .heatmap-cell.level-4 { background: #00f0ff; box-shadow: 0 0 10px #00f0ff; }
+
+/* ---------- Swiss · 瑞士网格（国际主义包豪斯几何 · 浅色） ---------- */
+:root[data-theme="swiss"] {
+  --bg: #eaeaea;
+  --bg-glow-1: rgba(0, 56, 255, 0.04);
+  --bg-glow-2: rgba(0, 0, 0, 0.03);
+  --surface: #ffffff;
+  --surface-2: #dfdfdf;
+  --surface-3: #cecece;
+  --bg-soft: var(--surface-2);
+  --card: var(--surface);
+  --bg-card: var(--surface);
+  --border: #111111;
+  --border-strong: #000000;
+  --text: #000000;
+  --text-dim: #444444;
+  --text-faint: #777777;
+  --muted: var(--text-dim);
+
+  --accent: #0038ff;
+  --accent-2: #2554ff;
+  --accent-hover: #002ed4;
+  --accent-soft: rgba(0, 56, 255, 0.09);
+  --accent-border: rgba(0, 56, 255, 0.4);
+  --ink: #000000;
+  --ink-hover: #222222;
+  --grad: linear-gradient(135deg, #0038ff 0%, #002099 100%);
+  --grad-text: linear-gradient(120deg, #000000 40%, #0038ff 100%);
+
+  --green: #008844;
+  --green-soft: rgba(0, 136, 68, 0.12);
+  --red: #d00000;
+  --red-soft: rgba(208, 0, 0, 0.12);
+  --amber: #d97706;
+  --amber-soft: rgba(217, 119, 6, 0.14);
+  --purple: #6b21a8;
+  --purple-soft: rgba(107, 33, 168, 0.12);
+
+  --display-font: var(--sans);
+  --display-tracking: -0.04em;
+
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-lg: 0px;
+
+  --shadow: 2px 2px 0px #000000;
+  --shadow-lg: 4px 4px 0px #000000;
+  --shadow-accent: 3px 3px 0px #000000;
+  --spec-hi: rgba(255, 255, 255, 0.8);
+  --card-hi: rgba(255, 255, 255, 0.6);
+  --material: rgba(234, 234, 234, 0.9);
+  --material-strong: rgba(255, 255, 255, 0.98);
+  color-scheme: light;
+}
+:root[data-theme="swiss"] .heatmap-cell.level-1 { background: rgba(0, 56, 255, 0.2); }
+:root[data-theme="swiss"] .heatmap-cell.level-2 { background: rgba(0, 56, 255, 0.45); }
+:root[data-theme="swiss"] .heatmap-cell.level-3 { background: rgba(0, 56, 255, 0.72); }
+:root[data-theme="swiss"] .heatmap-cell.level-4 { background: #0038ff; }
+
+/* ---------- Signal · 瓷白信号（现代极简开发工具 · 浅色） ---------- */
+:root[data-theme="signal"] {
+  --bg: #f4f4f2;
+  --bg-glow-1: rgba(255, 64, 0, 0.03);
+  --bg-glow-2: rgba(24, 22, 19, 0.03);
+  --surface: #ffffff;
+  --surface-2: #eaeae7;
+  --surface-3: #dededb;
+  --bg-soft: var(--surface-2);
+  --card: var(--surface);
+  --bg-card: var(--surface);
+  --border: rgba(24, 22, 17, 0.1);
+  --border-strong: rgba(24, 22, 17, 0.22);
+  --text: #181611;
+  --text-dim: #66635c;
+  --text-faint: #9c988f;
+  --muted: var(--text-dim);
+
+  --accent: #ff4000;
+  --accent-2: #ff6a33;
+  --accent-hover: #e53a00;
+  --accent-soft: rgba(255, 64, 0, 0.08);
+  --accent-border: rgba(255, 64, 0, 0.35);
+  --ink: #181611;
+  --ink-hover: #35312a;
+  --grad: linear-gradient(135deg, #ff4000 0%, #d63300 100%);
+  --grad-text: linear-gradient(120deg, #181611 30%, #ff4000 100%);
+
+  --green: #10b981;
+  --green-soft: rgba(16, 185, 129, 0.12);
+  --red: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.12);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.14);
+  --purple: #8b5cf6;
+  --purple-soft: rgba(139, 92, 246, 0.12);
+
+  --display-font: var(--sans);
+  --display-tracking: -0.03em;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08), 0 16px 36px rgba(0, 0, 0, 0.08);
+  --shadow-accent: 0 2px 10px rgba(255, 64, 0, 0.3);
+  --spec-hi: rgba(255, 255, 255, 0.7);
+  --card-hi: rgba(255, 255, 255, 0.5);
+  --material: rgba(244, 244, 242, 0.85);
+  --material-strong: rgba(255, 255, 255, 0.95);
+  color-scheme: light;
+}
+:root[data-theme="signal"] .heatmap-cell.level-1 { background: rgba(255, 64, 0, 0.2); }
+:root[data-theme="signal"] .heatmap-cell.level-2 { background: rgba(255, 64, 0, 0.45); }
+:root[data-theme="signal"] .heatmap-cell.level-3 { background: rgba(255, 64, 0, 0.72); }
+:root[data-theme="signal"] .heatmap-cell.level-4 { background: #ff4000; box-shadow: 0 0 8px rgba(255, 64, 0, 0.5); }
+
+/* ---------- Terminal · 石墨终端（现代极简开发工具 · 暗色） ---------- */
+:root[data-theme="terminal"] {
+  --bg: #101012;
+  --bg-glow-1: rgba(255, 90, 31, 0.05);
+  --bg-glow-2: rgba(255, 255, 255, 0.02);
+  --surface: #17171a;
+  --surface-2: #222226;
+  --surface-3: #2d2d33;
+  --bg-soft: var(--surface-2);
+  --card: var(--surface);
+  --bg-card: var(--surface);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #f4f4f6;
+  --text-dim: #8e8e93;
+  --text-faint: #5e5e64;
+  --muted: var(--text-dim);
+
+  --accent: #ff4000;
+  --accent-2: #ff6a33;
+  --accent-hover: #e53a00;
+  --accent-soft: rgba(255, 64, 0, 0.14);
+  --accent-border: rgba(255, 64, 0, 0.4);
+  --ink: #f4f4f6;
+  --ink-hover: #ffffff;
+  --grad: linear-gradient(135deg, #ff4000 0%, #d63300 100%);
+  --grad-text: linear-gradient(120deg, #ffffff 30%, #ff4000 100%);
+
+  --green: #10b981;
+  --green-soft: rgba(16, 185, 129, 0.16);
+  --red: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.16);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.16);
+  --purple: #a855f7;
+  --purple-soft: rgba(168, 85, 247, 0.16);
+
+  --display-font: var(--sans);
+  --display-tracking: -0.03em;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.6), 0 20px 48px rgba(0, 0, 0, 0.65);
+  --shadow-accent: 0 0 16px rgba(255, 64, 0, 0.38);
+  --spec-hi: rgba(255, 255, 255, 0.08);
+  --card-hi: rgba(255, 255, 255, 0.04);
+  --material: rgba(16, 16, 18, 0.85);
+  --material-strong: rgba(23, 23, 26, 0.95);
+  color-scheme: dark;
+}
+:root[data-theme="terminal"] .heatmap-cell.level-1 { background: rgba(255, 64, 0, 0.22); }
+:root[data-theme="terminal"] .heatmap-cell.level-2 { background: rgba(255, 64, 0, 0.48); }
+:root[data-theme="terminal"] .heatmap-cell.level-3 { background: rgba(255, 64, 0, 0.75); }
+:root[data-theme="terminal"] .heatmap-cell.level-4 { background: #ff4000; box-shadow: 0 0 10px rgba(255, 64, 0, 0.6); }
+
 /* ---------- 全站三档字号体系（契约：html[data-font-size]） ---------- */
 :root,
 html[data-font-size="md"],

@@ -227,6 +227,10 @@ const themeList = THEME_LIST
 const themeDots: Record<Theme, string> = {
   paper: '#bd3f0e',
   ink: '#e8601f',
+  telemetry: '#00f0ff',
+  swiss: '#0038ff',
+  signal: '#ff4000',
+  terminal: '#ff4000',
   slate: '#56718c',
   oat: '#97795a',
   cyber: '#00f2fe',

@@ -15,7 +15,6 @@ import sys
 import tempfile
 import threading
 import time
-import traceback
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -50,6 +49,9 @@ STATUS_RE = "RE"
 STATUS_IE = "IE"
 STATUS_JUDGING = "judging"
 STATUS_PENDING = "pending"
+
+# 写给用户的 IE 文案：不含宿主机路径、Traceback 或 Docker 细节。
+USER_IE_MESSAGE = "评测系统异常，请稍后重试"
 
 
 class JudgeInfraError(Exception):
@@ -89,6 +91,20 @@ def _truncate(s: str, n: int) -> str:
     if len(s) <= n:
         return s
     return s[:n]
+
+
+def public_ie_output(_internal: object | None = None) -> str:
+    """IE 时给用户的 compile_output。内部异常只进日志。"""
+    return USER_IE_MESSAGE
+
+
+def _close_stream(stream: Any) -> None:
+    if stream is None:
+        return
+    try:
+        stream.close()
+    except Exception:
+        pass
 
 
 def _docker_volume(host: Path, dest: str, read_only: bool = False) -> str:
@@ -161,17 +177,27 @@ def _run_process_limited(
     output_exceeded = threading.Event()
 
     def read_stream(name: str, stream: Any) -> None:
-        while True:
-            chunk = stream.read(65536)
-            if not chunk:
-                return
-            with lock:
-                used = len(buffers["stdout"]) + len(buffers["stderr"])
-                remaining = max(0, output_limit - used)
-                buffers[name].extend(chunk[:remaining])
-                if len(chunk) > remaining:
-                    output_exceeded.set()
+        try:
+            while True:
+                if output_exceeded.is_set():
                     return
+                chunk = stream.read(65536)
+                if not chunk:
+                    return
+                with lock:
+                    used = len(buffers["stdout"]) + len(buffers["stderr"])
+                    remaining = max(0, output_limit - used)
+                    if remaining == 0:
+                        output_exceeded.set()
+                        return
+                    buffers[name].extend(chunk[:remaining])
+                    if len(chunk) > remaining:
+                        output_exceeded.set()
+                        return
+        except (ValueError, OSError):
+            return
+        finally:
+            _close_stream(stream)
 
     threads = [
         threading.Thread(target=read_stream, args=("stdout", process.stdout), daemon=True),
@@ -182,18 +208,22 @@ def _run_process_limited(
 
     deadline = time.monotonic() + timeout
     timed_out = False
-    while process.poll() is None:
-        if output_exceeded.is_set():
-            process.kill()
-            break
-        if time.monotonic() >= deadline:
-            timed_out = True
-            process.kill()
-            break
-        time.sleep(0.01)
-    process.wait()
-    for thread in threads:
-        thread.join(timeout=1)
+    try:
+        while process.poll() is None:
+            if output_exceeded.is_set():
+                process.kill()
+                break
+            if time.monotonic() >= deadline:
+                timed_out = True
+                process.kill()
+                break
+            time.sleep(0.01)
+        process.wait()
+        for thread in threads:
+            thread.join(timeout=1)
+    finally:
+        _close_stream(process.stdout)
+        _close_stream(process.stderr)
 
     if output_exceeded.is_set():
         returncode = OUTPUT_LIMIT_RETURN_CODE
@@ -552,19 +582,17 @@ def evaluate(job: JobData) -> tuple[str, int | None, list[dict[str, Any]], str |
         shutil.rmtree(work_dir, ignore_errors=True)
 
 
-def _assign_detail(submission: Any, detail: list[dict[str, Any]] | None) -> None:
+def _serialize_detail(Submission: Any, detail: list[dict[str, Any]] | None) -> Any:
     if detail is None:
-        submission.detail = None
-        return
+        return None
     try:
-        col = submission.__table__.c.detail
+        col = Submission.__table__.c.detail
         type_name = type(col.type).__name__.lower()
         if "json" in type_name:
-            submission.detail = detail
-        else:
-            submission.detail = json.dumps(detail, ensure_ascii=False)
+            return detail
+        return json.dumps(detail, ensure_ascii=False)
     except Exception:
-        submission.detail = detail
+        return detail
 
 
 def _write_result(
@@ -575,18 +603,33 @@ def _write_result(
     runtime_ms: int | None,
     detail: list[dict[str, Any]] | None,
     compile_output: str | None,
-) -> None:
-    submission = session.get(Submission, submission_id)
-    if submission is None:
-        log.error("写回失败：submission id=%s 不存在", submission_id)
-        return
-    submission.status = status
-    submission.runtime_ms = runtime_ms
-    if hasattr(submission, "judged_at"):
-        submission.judged_at = datetime.now(timezone.utc).replace(tzinfo=None)
-    _assign_detail(submission, detail)
-    submission.compile_output = compile_output
+) -> bool:
+    """仅当提交仍处于 judging 时写回，避免覆盖已回收或已终态的记录。"""
+    from sqlalchemy import update
+
+    values: dict[str, Any] = {
+        "status": status,
+        "runtime_ms": runtime_ms,
+        "compile_output": compile_output,
+        "detail": _serialize_detail(Submission, detail),
+    }
+    if hasattr(Submission, "judged_at"):
+        values["judged_at"] = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    result = session.execute(
+        update(Submission)
+        .where(Submission.id == submission_id, Submission.status == STATUS_JUDGING)
+        .values(**values)
+    )
     session.commit()
+    if result.rowcount != 1:
+        log.warning(
+            "跳过写回：submission id=%s 不是 judging（rowcount=%s）",
+            submission_id,
+            result.rowcount,
+        )
+        return False
+    return True
 
 
 def process_submission(
@@ -616,9 +659,8 @@ def process_submission(
             runtime_ms,
             len(detail),
         )
-    except Exception as e:
+    except Exception:
         log.exception("评测异常 submission id=%s", submission_id)
-        msg = traceback.format_exc() if not isinstance(e, JudgeInfraError) else str(e)
         try:
             with SessionLocal() as session:
                 _write_result(
@@ -628,7 +670,7 @@ def process_submission(
                     STATUS_IE,
                     None,
                     None,
-                    _truncate(msg, COMPILE_OUTPUT_LIMIT),
+                    public_ie_output(),
                 )
         except Exception:
             log.exception("写回 IE 失败 submission id=%s", submission_id)

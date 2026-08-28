@@ -113,6 +113,52 @@ class QuizStats(BaseModel):
     today_count: int
 
 
+def _has_answered(rec: QuizRecord | None) -> bool:
+    """收藏/斩题可以建记录，但不能当成已作答。"""
+    return rec is not None and rec.attempts_count > 0
+
+
+def _question_item(q_obj: QuizQuestion, rec: QuizRecord | None) -> QuizQuestionItem:
+    is_answered = _has_answered(rec)
+    return QuizQuestionItem(
+        id=q_obj.id,
+        bank=q_obj.bank,
+        category=q_obj.category or "综合理论",
+        type=q_obj.type,
+        ordinal=q_obj.ordinal,
+        stem=q_obj.stem,
+        options=q_obj.options or {},
+        is_answered=is_answered,
+        is_correct=rec.is_correct if is_answered else None,
+        user_answer=rec.user_answer if is_answered else None,
+        is_favorite=rec.is_favorite if rec else False,
+        is_slashed=rec.is_slashed if rec else False,
+        wrong_count=rec.wrong_count if rec else 0,
+        attempts_count=rec.attempts_count if rec else 0,
+        answer=q_obj.answer if is_answered else None,
+        analysis=q_obj.analysis if is_answered else None,
+    )
+
+
+def _preference_record(
+    *,
+    user_id: int,
+    question_id: int,
+    is_favorite: bool = False,
+    is_slashed: bool = False,
+) -> QuizRecord:
+    return QuizRecord(
+        user_id=user_id,
+        question_id=question_id,
+        is_correct=False,
+        user_answer="",
+        attempts_count=0,
+        wrong_count=0,
+        is_favorite=is_favorite,
+        is_slashed=is_slashed,
+    )
+
+
 @router.get("/banks")
 def list_banks(
     db: Session = Depends(get_db),
@@ -142,7 +188,7 @@ def list_banks(
         b = bank_map[q.bank]
         b["total"] += 1
         rec = user_records.get(q.id)
-        if rec:
+        if _has_answered(rec):
             b["answered"] += 1
             if rec.is_correct:
                 b["correct"] += 1
@@ -191,15 +237,16 @@ def list_questions(
     filtered: list[QuizQuestion] = []
     for q_item in questions:
         rec = user_records.get(q_item.id)
+        answered = _has_answered(rec)
         if status == "wrong":
             # 错题本：做错过且未斩题（未被移除）
-            if rec and (not rec.is_correct) and (not rec.is_slashed):
+            if answered and (not rec.is_correct) and (not rec.is_slashed):
                 filtered.append(q_item)
         elif status == "unanswered":
-            if not rec:
+            if not answered:
                 filtered.append(q_item)
         elif status == "correct":
-            if rec and rec.is_correct:
+            if answered and rec.is_correct:
                 filtered.append(q_item)
         elif status == "favorited":
             if rec and rec.is_favorite:
@@ -218,30 +265,7 @@ def list_questions(
     else:
         paged = filtered[offset : offset + limit]
 
-    items = []
-    for q_obj in paged:
-        rec = user_records.get(q_obj.id)
-        is_answered = rec is not None
-        items.append(
-            QuizQuestionItem(
-                id=q_obj.id,
-                bank=q_obj.bank,
-                category=q_obj.category or "综合理论",
-                type=q_obj.type,
-                ordinal=q_obj.ordinal,
-                stem=q_obj.stem,
-                options=q_obj.options or {},
-                is_answered=is_answered,
-                is_correct=rec.is_correct if rec else None,
-                user_answer=rec.user_answer if rec else None,
-                is_favorite=rec.is_favorite if rec else False,
-                is_slashed=rec.is_slashed if rec else False,
-                wrong_count=rec.wrong_count if rec else 0,
-                attempts_count=rec.attempts_count if rec else 0,
-                answer=q_obj.answer if is_answered else None,
-                analysis=q_obj.analysis if is_answered else None,
-            )
-        )
+    items = [_question_item(q_obj, user_records.get(q_obj.id)) for q_obj in paged]
 
     return {
         "total": total_matched,
@@ -263,25 +287,7 @@ def get_question(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="题目不存在")
 
     rec = db.get(QuizRecord, (user.id, question_id))
-    is_answered = rec is not None
-    return QuizQuestionItem(
-        id=q_obj.id,
-        bank=q_obj.bank,
-        category=q_obj.category or "综合理论",
-        type=q_obj.type,
-        ordinal=q_obj.ordinal,
-        stem=q_obj.stem,
-        options=q_obj.options or {},
-        is_answered=is_answered,
-        is_correct=rec.is_correct if rec else None,
-        user_answer=rec.user_answer if rec else None,
-        is_favorite=rec.is_favorite if rec else False,
-        is_slashed=rec.is_slashed if rec else False,
-        wrong_count=rec.wrong_count if rec else 0,
-        attempts_count=rec.attempts_count if rec else 0,
-        answer=q_obj.answer if is_answered else None,
-        analysis=q_obj.analysis if is_answered else None,
-    )
+    return _question_item(q_obj, rec)
 
 
 @router.post("/questions/{question_id}/answer")
@@ -357,24 +363,13 @@ def toggle_favorite(
     rec = db.get(QuizRecord, (user.id, question_id))
     if rec is None:
         fav = True if (body is None or body.favorite is None) else body.favorite
-        rec = QuizRecord(
-            user_id=user.id,
-            question_id=question_id,
-            is_correct=False,
-            user_answer="",
-            attempts_count=0,
-            wrong_count=0,
-            is_favorite=fav,
-            is_slashed=False,
-            updated_at=utcnow(),
-        )
+        rec = _preference_record(user_id=user.id, question_id=question_id, is_favorite=fav)
         db.add(rec)
     else:
         if body is None or body.favorite is None:
             rec.is_favorite = not rec.is_favorite
         else:
             rec.is_favorite = body.favorite
-        rec.updated_at = utcnow()
 
     db.commit()
     return {"id": question_id, "is_favorite": rec.is_favorite}
@@ -395,21 +390,10 @@ def slash_question(
     rec = db.get(QuizRecord, (user.id, question_id))
     slashed = True if body is None else body.slashed
     if rec is None:
-        rec = QuizRecord(
-            user_id=user.id,
-            question_id=question_id,
-            is_correct=True,
-            user_answer="",
-            attempts_count=0,
-            wrong_count=0,
-            is_favorite=False,
-            is_slashed=slashed,
-            updated_at=utcnow(),
-        )
+        rec = _preference_record(user_id=user.id, question_id=question_id, is_slashed=slashed)
         db.add(rec)
     else:
         rec.is_slashed = slashed
-        rec.updated_at = utcnow()
 
     db.commit()
     return {"id": question_id, "is_slashed": rec.is_slashed}
@@ -427,9 +411,10 @@ def get_quiz_stats(
         db.scalars(select(QuizRecord).where(QuizRecord.user_id == user.id)).all()
     )
 
-    answered_count = len(records)
-    correct_count = sum(1 for r in records if r.is_correct)
-    wrong_count = sum(1 for r in records if not r.is_correct and not r.is_slashed)
+    answered_records = [r for r in records if _has_answered(r)]
+    answered_count = len(answered_records)
+    correct_count = sum(1 for r in answered_records if r.is_correct)
+    wrong_count = sum(1 for r in answered_records if not r.is_correct and not r.is_slashed)
     slashed_count = sum(1 for r in records if r.is_slashed)
     favorite_count = sum(1 for r in records if r.is_favorite)
 
@@ -437,11 +422,11 @@ def get_quiz_stats(
         round((correct_count / answered_count) * 100, 1) if answered_count > 0 else 0.0
     )
 
-    # 今日刷题数：按客户端本地时区切天，避免 UTC 零点导致清晨记录归入昨日
+    # 今日刷题数只统计实际作答；收藏/斩题不改 updated_at，避免污染。
     offset = timedelta(minutes=tz_offset)
     local_now = utcnow() + offset
     today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0) - offset
-    today_count = sum(1 for r in records if r.updated_at >= today_start)
+    today_count = sum(1 for r in answered_records if r.updated_at >= today_start)
 
     return QuizStats(
         total_questions=total_q,

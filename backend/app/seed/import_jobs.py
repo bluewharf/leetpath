@@ -98,6 +98,7 @@ def main() -> None:
 
     engine = dbmod.configure_db()
     Base.metadata.create_all(bind=engine)
+    dbmod.ensure_schema(engine)
 
     today = date.today()
     inserted = 0
