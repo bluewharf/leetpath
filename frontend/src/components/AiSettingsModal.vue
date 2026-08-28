@@ -1,90 +1,112 @@
 <template>
-  <div class="modal-backdrop" @click.self="$emit('close')">
-    <div class="modal card ai-modal">
-      <div class="modal-header">
-        <div>
-          <div class="kicker">BYOK · OpenAI Compatible</div>
-          <h2>🤖 AI 导师与大模型接入设置</h2>
+  <div class="ai-modal-backdrop" @click.self="$emit('close')">
+    <div class="ai-modal">
+      <div class="ai-modal-head">
+        <div class="ai-modal-title">
+          <span class="ai-modal-icon"><AppIcon name="robot" :size="19" /></span>
+          <div>
+            <div class="kicker">BYOK · OpenAI Compatible</div>
+            <h2>AI 导师与大模型接入设置</h2>
+          </div>
         </div>
-        <button class="btn btn-xs btn-ghost" @click="$emit('close')">✕</button>
+        <button class="btn btn-xs btn-ghost ai-close" title="关闭" @click="$emit('close')">
+          <AppIcon name="x" :size="14" />
+        </button>
       </div>
 
-      <div class="modal-body">
-        <p class="muted" style="margin-bottom:14px;font-size:13px">
+      <div class="ai-modal-body">
+        <p class="muted ai-intro">
           默认已接入 <strong>Antithor 专属中转站</strong>。密钥和问答缓存仅保存在你的本地浏览器中，绝不上报服务器。
         </p>
 
-        <!-- 专属中转站标识 -->
-        <div class="form-group" style="margin-bottom:14px">
-          <div class="relay-brand-badge">
-            <span class="relay-dot"></span>
-            <span class="relay-title">⚡ Antithor 专属中转站 (默认高速通道)</span>
-          </div>
-        </div>
-
-        <!-- Base URL -->
-        <div class="form-group">
-          <label class="form-label">
-            API 接口地址 (Base URL) <span class="req">*</span>
-          </label>
-          <input
-            v-model="ai.baseUrl.value"
-            type="text"
-            class="input mono"
-            placeholder="默认: https://api.antithor.asia/v1"
-          />
-          <small class="form-help">默认已配置 <code>https://api.antithor.asia/v1</code>，输入 Key 即可直接拉取并使用全部模型</small>
-        </div>
-
-        <!-- API Key -->
-        <div class="form-group">
-          <div class="label-with-link">
-            <label class="form-label" style="margin-bottom:0">
-              API 密钥 (API Key) <span class="req">*</span>
-            </label>
-            <a
-              href="https://api.antithor.asia"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="key-portal-link"
-              title="点击在新窗口打开 Antithor 中转站控制台获取或创建你的 Key"
-            >
-              🔗 点击链接跳转登录 antithor 获取你的 key ↗
-            </a>
-          </div>
-          <div class="input-with-action">
-            <input
-              v-model="ai.apiKey.value"
-              :type="showKey ? 'text' : 'password'"
-              class="input mono"
-              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-            />
-            <button type="button" class="btn btn-xs btn-ghost input-suffix-btn" @click="showKey = !showKey">
-              {{ showKey ? '隐藏' : '显示' }}
-            </button>
-          </div>
-          <small class="form-help">
-            还没有 API Key？请 <a href="https://api.antithor.asia" target="_blank" rel="noopener noreferrer" class="link-highlight">点击链接跳转登录 antithor 获取你的 key</a>
-          </small>
-        </div>
-
-        <!-- 选用模型与拉取 -->
-        <div class="form-group">
-          <div class="model-fetch-row">
-            <label class="form-label">选用模型 (Model) <span class="req">*</span></label>
+        <!-- 分组：接入中转站 -->
+        <section class="ai-group">
+          <!-- 预设中转站胶囊组 -->
+          <div class="ai-presets">
             <button
+              v-for="p in AI_PRESETS"
+              :key="p.name"
               type="button"
-              class="btn btn-xs btn-outline"
-              :disabled="fetchingModels"
-              @click="onFetchModels"
+              class="ai-preset-pill"
+              :class="{ active: ai.baseUrl.value === p.url }"
+              :title="p.url"
+              @click="applyPreset(p)"
             >
-              <span v-if="fetchingModels">拉取中...</span>
-              <span v-else>🔄 一键获取全部可用模型</span>
+              <span class="ai-preset-dot"></span>
+              {{ p.name }}
             </button>
           </div>
 
-          <!-- 自由输入 + 下拉建议组合框 -->
-          <div class="model-select-wrap">
+          <!-- Base URL -->
+          <div class="field">
+            <label>
+              API 接口地址 (Base URL) <span class="ai-req">*</span>
+            </label>
+            <input
+              v-model="ai.baseUrl.value"
+              type="text"
+              class="input mono"
+              placeholder="默认: https://api.antithor.asia/v1"
+            />
+            <small class="ai-help">默认已配置 <code>https://api.antithor.asia/v1</code>，输入 Key 即可直接拉取并使用全部模型</small>
+          </div>
+
+          <!-- API Key -->
+          <div class="field">
+            <div class="ai-label-row">
+              <label>
+                API 密钥 (API Key) <span class="ai-req">*</span>
+              </label>
+              <a
+                href="https://api.antithor.asia"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="ai-link"
+                title="点击在新窗口打开 Antithor 中转站控制台获取或创建你的 Key"
+              >
+                点击链接跳转登录 antithor 获取你的 key ↗
+              </a>
+            </div>
+            <div class="ai-input-action">
+              <input
+                v-model="ai.apiKey.value"
+                :type="showKey ? 'text' : 'password'"
+                class="input mono"
+                placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+              />
+              <button
+                type="button"
+                class="btn btn-xs btn-ghost ai-input-suffix"
+                :title="showKey ? '隐藏 Key' : '显示 Key'"
+                @click="showKey = !showKey"
+              >
+                <AppIcon :name="showKey ? 'eye-off' : 'eye'" :size="15" />
+              </button>
+            </div>
+            <small class="ai-help">
+              还没有 API Key？请 <a href="https://api.antithor.asia" target="_blank" rel="noopener noreferrer" class="ai-link">点击链接跳转登录 antithor 获取你的 key</a>
+            </small>
+          </div>
+        </section>
+
+        <!-- 分组：选用模型 -->
+        <section class="ai-group">
+          <div class="field">
+            <div class="ai-label-row">
+              <label>选用模型 (Model) <span class="ai-req">*</span></label>
+              <button
+                type="button"
+                class="btn btn-xs btn-outline"
+                :disabled="fetchingModels"
+                @click="onFetchModels"
+              >
+                <AppIcon name="refresh" :size="12" />
+                <span v-if="fetchingModels">拉取中...</span>
+                <span v-else>一键获取全部可用模型</span>
+              </button>
+            </div>
+
+            <!-- 自由输入 + 下拉建议组合框 -->
             <input
               v-model="ai.selectedModel.value"
               list="models-datalist"
@@ -95,23 +117,23 @@
             <datalist id="models-datalist">
               <option v-for="m in ai.modelsList.value" :key="m" :value="m" />
             </datalist>
+
+            <div v-if="ai.modelsList.value.length > 0" class="form-success">
+              <AppIcon name="check" :size="13" /> 已从中转站成功识别 {{ ai.modelsList.value.length }} 个可用模型（输入框支持直接搜索与手动输入）
+            </div>
           </div>
+        </section>
 
-          <small v-if="ai.modelsList.value.length > 0" class="form-help" style="color:var(--green);margin-top:6px">
-            ✓ 已从中转站成功识别 {{ ai.modelsList.value.length }} 个可用模型（输入框支持直接搜索与手动输入）
-          </small>
-        </div>
-
-        <!-- Token 节省与上下文约束设置 -->
-        <div class="token-saving-card">
-          <div class="saving-card-head">
-            <span class="saving-title">⚡ 上下文长度限制与 Token 防溢出策略</span>
+        <!-- 分组：Token 节省与上下文约束设置 -->
+        <section class="ai-group">
+          <div class="ai-group-title">
+            <AppIcon name="sparkle" :size="13" /> 上下文长度限制与 Token 防溢出策略
           </div>
 
           <!-- 最大输入上下文 Token 预算 -->
-          <div class="form-group" style="margin-bottom:12px">
-            <label class="form-label" style="font-size:13px">最大上下文 Token 预算 (Max Context Tokens)</label>
-            <select v-model.number="ai.maxContextTokens.value" class="input mono" style="font-size:13px">
+          <div class="field">
+            <label>最大上下文 Token 预算 (Max Context Tokens)</label>
+            <select v-model.number="ai.maxContextTokens.value" class="select mono">
               <option :value="32768">32,768 Tokens (32K · 常用紧凑)</option>
               <option :value="65536">65,536 Tokens (64K · 进阶长文)</option>
               <option :value="131072">131,072 Tokens (128K · 热门长文本 · 默认)</option>
@@ -119,15 +141,15 @@
               <option :value="524288">524,288 Tokens (500K · 海量上下文)</option>
               <option :value="1048576">1,048,576 Tokens (1M · 百万级全量窗口)</option>
             </select>
-            <small class="form-help">
+            <small class="ai-help">
               内置<strong>滑动窗口智能裁剪算法</strong>：题干与系统核心 Prompt 永远锁定保护，多轮追问超限时自动丢弃最旧历史，<strong>绝不发生 Context Length Exceeded (400) 报错</strong>。
             </small>
           </div>
 
           <!-- 单次回复最大 Token -->
-          <div class="form-group" style="margin-bottom:12px">
-            <label class="form-label" style="font-size:13px">单次回复最大输出 (Max Response Tokens)</label>
-            <select v-model.number="ai.maxResponseTokens.value" class="input mono" style="font-size:13px">
+          <div class="field">
+            <label>单次回复最大输出 (Max Response Tokens)</label>
+            <select v-model.number="ai.maxResponseTokens.value" class="select mono">
               <option :value="1024">1,024 Tokens (简短答疑)</option>
               <option :value="2048">2,048 Tokens (标准代码与解析)</option>
               <option :value="4096">4,096 Tokens (推荐 · 深度详尽题解)</option>
@@ -136,10 +158,10 @@
           </div>
 
           <!-- 上下文轮数约束 -->
-          <div class="form-group" style="margin-bottom:12px">
-            <div style="display:flex;justify-content:space-between">
-              <label class="form-label" style="font-size:13px">对话记忆深度 (Context Turns)</label>
-              <span class="mono" style="font-size:13px;color:var(--accent)">{{ ai.maxContextTurns.value }} 轮 ({{ ai.maxContextTurns.value * 2 }} 条消息)</span>
+          <div class="field">
+            <div class="ai-label-row">
+              <label>对话记忆深度 (Context Turns)</label>
+              <span class="mono ai-val">{{ ai.maxContextTurns.value }} 轮 ({{ ai.maxContextTurns.value * 2 }} 条消息)</span>
             </div>
             <input
               v-model.number="ai.maxContextTurns.value"
@@ -147,87 +169,94 @@
               min="1"
               max="10"
               step="1"
-              class="range-slider"
+              class="ai-range"
             />
-            <small class="form-help">限制追问时仅携带最近 {{ ai.maxContextTurns.value }} 轮历史，配合 Token 滑动裁剪，双重防止费用爆炸</small>
+            <small class="ai-help">限制追问时仅携带最近 {{ ai.maxContextTurns.value }} 轮历史，配合 Token 滑动裁剪，双重防止费用爆炸</small>
           </div>
 
-          <!-- 本地响应缓存开关 -->
-          <div class="cache-control-row">
-            <label class="quiz-switch-label" style="font-weight:500;color:var(--text)">
-              <input type="checkbox" v-model="ai.enableLocalCache.value" />
-              <span>开启本地回答智能缓存 (Local Response Cache)</span>
-            </label>
-            <div class="cache-stats-row">
-              <span class="cache-count-badge mono">已缓存 {{ cacheCount }} 条回答</span>
+          <!-- 本地响应缓存开关（iOS 开关） -->
+          <div>
+            <div class="ai-cache-row">
+              <div class="ai-cache-text">
+                <span class="ai-cache-title">本地回答智能缓存 (Local Response Cache)</span>
+                <small class="ai-help">
+                  开启后，再次点击同一道题的同一追问将<strong>直接读取本地缓存秒级展现，0 消耗 Token</strong>。
+                </small>
+              </div>
+              <label class="switch">
+                <input type="checkbox" v-model="ai.enableLocalCache.value" />
+                <span class="track"></span>
+              </label>
+            </div>
+            <div class="ai-cache-stats">
+              <span class="ai-cache-badge mono">已缓存 {{ cacheCount }} 条回答</span>
               <button
                 v-if="cacheCount > 0"
                 type="button"
-                class="btn btn-xs btn-ghost"
-                style="color:var(--red)"
+                class="btn btn-xs btn-ghost ai-danger"
                 @click="onClearCache"
               >
                 清空缓存
               </button>
             </div>
           </div>
-          <small class="form-help" style="margin-top:4px">
-            开启后，再次点击同一道题的同一追问将<strong>直接读取本地缓存秒级展现，0 消耗 Token</strong>。
-          </small>
-        </div>
+        </section>
 
-        <!-- 温度参数 -->
-        <div class="form-group" style="margin-top:16px">
-          <div style="display:flex;justify-content:space-between">
-            <label class="form-label">发散度 (Temperature)</label>
-            <span class="mono" style="font-size:13px;color:var(--accent)">{{ ai.temperature.value }}</span>
+        <!-- 分组：生成参数 -->
+        <section class="ai-group">
+          <!-- 温度参数 -->
+          <div class="field">
+            <div class="ai-label-row">
+              <label>发散度 (Temperature)</label>
+              <span class="mono ai-val">{{ ai.temperature.value }}</span>
+            </div>
+            <input
+              v-model.number="ai.temperature.value"
+              type="range"
+              min="0"
+              max="1.2"
+              step="0.1"
+              class="ai-range"
+            />
+            <small class="ai-help">0.2~0.5 严谨准确（适合代码找茬），0.7 平衡适中（适合考点发散）</small>
           </div>
-          <input
-            v-model.number="ai.temperature.value"
-            type="range"
-            min="0"
-            max="1.2"
-            step="0.1"
-            class="range-slider"
-          />
-          <small class="form-help">0.2~0.5 严谨准确（适合代码找茬），0.7 平衡适中（适合考点发散）</small>
-        </div>
 
-        <div class="form-group">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
-            <label class="form-label">推理强度 (reasoning_effort)</label>
-            <span class="mono" style="font-size:13px;color:var(--accent)">{{ effortLabel }}</span>
+          <div class="field">
+            <div class="ai-label-row">
+              <label>推理强度 (reasoning_effort)</label>
+              <span class="mono ai-val">{{ effortLabel }}</span>
+            </div>
+            <div class="segmented ai-effort">
+              <button
+                v-for="opt in REASONING_EFFORT_OPTIONS"
+                :key="opt.value"
+                type="button"
+                :class="{ active: ai.reasoningEffort.value === opt.value }"
+                :title="opt.hint"
+                @click="ai.reasoningEffort.value = opt.value"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+            <small class="ai-help">
+              {{ effortHint }}
+              发给中转站的字段是 <code>reasoning_effort</code>（low / medium / high / xhigh）。
+              型号名带 reasoning / non-reasoning 也可以直接换模型；不支持该参数时请选「关闭」，否则中转站可能报错。
+            </small>
           </div>
-          <div class="effort-pills">
-            <button
-              v-for="opt in REASONING_EFFORT_OPTIONS"
-              :key="opt.value"
-              type="button"
-              class="effort-pill"
-              :class="{ active: ai.reasoningEffort.value === opt.value }"
-              :title="opt.hint"
-              @click="ai.reasoningEffort.value = opt.value"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-          <small class="form-help">
-            {{ effortHint }}
-            发给中转站的字段是 <code>reasoning_effort</code>（low / medium / high / xhigh）。
-            型号名带 reasoning / non-reasoning 也可以直接换模型；不支持该参数时请选「关闭」，否则中转站可能报错。
-          </small>
-        </div>
+        </section>
       </div>
 
-      <div class="modal-footer">
-        <div class="test-feedback">
-          <span v-if="testMsg" :class="testSuccess ? 'test-success' : 'test-error'">
+      <div class="ai-modal-foot">
+        <div class="ai-test-feedback">
+          <span v-if="testMsg" :class="testSuccess ? 'form-success' : 'ai-test-err'">
             {{ testMsg }}
           </span>
         </div>
-        <div class="footer-actions">
+        <div class="ai-foot-actions">
           <button type="button" class="btn" :disabled="testing" @click="onTestConnection">
-            {{ testing ? '测试中...' : '🔌 测试连通性' }}
+            <AppIcon name="play" :size="13" />
+            {{ testing ? '测试中...' : '测试连通性' }}
           </button>
           <button type="button" class="btn btn-primary" @click="onSave">
             保存并应用
@@ -242,6 +271,7 @@
 import { computed, ref } from 'vue'
 import { AI_PRESETS, REASONING_EFFORT_OPTIONS, useAiStore, type AiPreset } from '../stores/ai'
 import { useToast } from '../stores/toast'
+import AppIcon from './AppIcon.vue'
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -341,233 +371,3 @@ function onSave() {
 }
 </script>
 
-<style scoped>
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 16px;
-}
-
-.ai-modal {
-  width: 100%;
-  max-width: 580px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 24px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--text);
-}
-
-.req {
-  color: var(--red);
-}
-
-.form-help {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-.label-with-link {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.key-portal-link {
-  font-size: 12px;
-  color: var(--accent);
-  text-decoration: none;
-  font-weight: 600;
-  transition: opacity 0.15s;
-}
-
-.key-portal-link:hover {
-  text-decoration: underline;
-  opacity: 0.85;
-}
-
-.link-highlight {
-  color: var(--accent);
-  text-decoration: underline;
-  font-weight: 600;
-}
-
-.relay-brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.relay-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--green, #10b981);
-  box-shadow: 0 0 6px var(--green, #10b981);
-}
-
-.input-with-action {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-with-action .input {
-  padding-right: 60px;
-}
-
-.input-suffix-btn {
-  position: absolute;
-  right: 6px;
-}
-
-.model-fetch-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.token-saving-card {
-  border-radius: 8px;
-  border: 1px solid var(--accent-border);
-  background: var(--accent-soft);
-  padding: 14px 16px;
-  margin: 18px 0;
-}
-
-.saving-card-head {
-  margin-bottom: 12px;
-}
-
-.saving-title {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--accent);
-}
-
-.cache-control-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.cache-stats-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.cache-count-badge {
-  font-size: 11px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
-}
-
-.footer-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.test-feedback {
-  font-size: 12px;
-  max-width: 260px;
-}
-
-.test-success {
-  color: var(--green);
-}
-
-.test-error {
-  color: var(--red);
-}
-
-.range-slider {
-  width: 100%;
-  accent-color: var(--accent);
-}
-
-.effort-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 6px 0 4px;
-}
-
-.effort-pill {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-dim);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  padding: 5px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.effort-pill.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.quiz-switch-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  user-select: none;
-}
-</style>

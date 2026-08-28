@@ -24,7 +24,7 @@
       <!-- 顶部辅助工具栏（全屏/禅模式、计时器） -->
       <div class="workspace-bar">
         <div class="workspace-left">
-          <RouterLink to="/problems" class="btn btn-sm back-link">← 返回题库</RouterLink>
+          <RouterLink to="/problems" class="btn btn-sm back-link"><AppIcon name="arrow-left" :size="14" /> 返回题库</RouterLink>
           <span class="problem-title-inline">{{ problemHeading(problem) }}</span>
           <span class="badge" :class="`badge-${problem.difficulty}`">{{ difficultyText }}</span>
         </div>
@@ -32,12 +32,13 @@
         <div class="workspace-right">
           <!-- 计时器 -->
           <div class="stopwatch-badge" :class="{ running: timerRunning, urgent: timerMode === 'countdown' && timerSeconds <= 300 }">
-            <span class="timer-icon">◷</span>
+            <span class="timer-icon"><AppIcon name="clock" :size="13" /></span>
             <span class="timer-text mono">{{ formattedTimer }}</span>
             <button class="timer-btn" :title="timerRunning ? '暂停' : '开始'" @click="toggleTimer">
-              {{ timerRunning ? '⏸' : '▶' }}
+              <span v-if="timerRunning" class="pause-glyph"></span>
+              <AppIcon v-else name="play" :size="12" />
             </button>
-            <button class="timer-btn" title="重置计时器" @click="resetTimer">↺</button>
+            <button class="timer-btn" title="重置计时器" @click="resetTimer"><AppIcon name="refresh" :size="12" /></button>
             <button class="timer-btn mode-btn" :title="timerMode === 'stopwatch' ? '切换为30分钟面试倒计时' : '切换为正向计时'" @click="toggleTimerMode">
               {{ timerMode === 'stopwatch' ? '倒计时' : '正计时' }}
             </button>
@@ -45,7 +46,8 @@
 
           <!-- 禅模式切换 -->
           <button class="btn btn-sm zen-btn" :class="{ active: isZen }" :title="isZen ? '退出禅模式 (Esc)' : '开启沉浸禅模式'" @click="isZen = !isZen">
-            {{ isZen ? '✕ 退出全屏' : '禅模式' }}
+            <template v-if="isZen"><AppIcon name="x" :size="13" /> 退出全屏</template>
+            <template v-else><AppIcon name="sparkle" :size="13" /> 禅模式</template>
           </button>
         </div>
       </div>
@@ -69,7 +71,7 @@
 
           <!-- 题面内容 -->
           <div v-show="!isDesktop ? tab === 'statement' : leftPaneTab === 'statement'">
-            <h1 style="font-size:20px;margin-top:4px">{{ problemHeading(problem) }}</h1>
+            <h1 class="statement-title">{{ problemHeading(problem) }}</h1>
             <div class="problem-meta">
               <span class="badge" :class="`badge-${problem.difficulty}`">{{ difficultyText }}</span>
               <span v-for="label in sourceBadgeTexts(problem)" :key="label" class="badge badge-source">{{ label }}</span>
@@ -85,9 +87,9 @@
               <div v-for="s in history" :key="s.id" class="sub-item">
                 <div class="sub-line" @click="toggleHistory(s.id)">
                   <StatusBadge :status="s.status" />
-                  <span class="mono" style="font-size:12px">{{ s.language === 'cpp' ? 'C++' : 'Python3' }}</span>
-                  <span class="mono" style="font-size:11px;color:var(--text-faint)">{{ s.io_mode === 'leetcode' ? '力扣' : 'ACM' }}</span>
-                  <span v-if="s.runtime_ms !== null" style="color:var(--text-faint);font-size:12px">{{ s.runtime_ms }}ms</span>
+                  <span class="mono sub-lang">{{ s.language === 'cpp' ? 'C++' : 'Python3' }}</span>
+                  <span class="mono sub-io">{{ s.io_mode === 'leetcode' ? '力扣' : 'ACM' }}</span>
+                  <span v-if="s.runtime_ms !== null" class="sub-runtime">{{ s.runtime_ms }}ms</span>
                   <span class="sub-time">{{ formatTime(s.created_at) }}</span>
                 </div>
                 <div v-if="expandedHistory.has(s.id)" class="history-code-box">
@@ -107,7 +109,7 @@
 
           <!-- 题解内容 -->
           <div v-show="!isDesktop ? tab === 'solution' : leftPaneTab === 'solution'" class="solution-pane-wrap">
-            <h2 style="font-size:18px;margin-top:6px;display:flex;align-items:center;gap:8px">
+            <h2 class="solution-title">
               <span>{{ problemHeading(problem) }} · 题解（多种解法）</span>
             </h2>
             <div v-if="solutionLoading" class="empty" style="padding:24px 0">题解加载中…</div>
@@ -133,7 +135,7 @@
             <div class="editor-toolbar">
               <!-- 语言由顶栏全局偏好统一控制，此处只读展示 -->
               <span class="editor-lang-label mono" title="在页面右上角切换全局语言">{{ language === 'cpp' ? 'C++ (C++20)' : 'Python3' }}</span>
-              <div class="mode-switch" role="group" aria-label="评测模式">
+              <div class="segmented mode-switch" role="group" aria-label="评测模式">
                 <button
                   type="button"
                   :class="{ active: ioMode === 'acm' }"
@@ -154,12 +156,11 @@
               </button>
 
               <button
-                class="btn btn-sm btn-outline"
-                style="border-color:var(--accent);color:var(--accent)"
+                class="btn btn-sm btn-outline ai-btn"
                 @click="openAiDrawer"
                 title="让 AI 助教帮我找茬、分析复杂度或提供递进思路"
               >
-                🤖 AI 助教
+                <AppIcon name="robot" :size="14" /> AI 助教
               </button>
 
               <button class="btn btn-sm btn-ghost" @click="confirmResetCode" title="重置为初始模板代码">
@@ -182,7 +183,7 @@
             <div class="result-body">
               <div v-if="!submission" class="empty" style="padding:24px 0">
                 <p>提交后在这里查看实时评测结果</p>
-                <span style="font-size:12px;color:var(--text-faint)">支持 Python 3 / C++，可切换 ACM 标准输入输出或力扣函数模式</span>
+                <span class="result-empty-note">支持 Python 3 / C++，可切换 ACM 标准输入输出或力扣函数模式</span>
               </div>
               <template v-else>
                 <div class="result-head">
@@ -191,13 +192,13 @@
                 </div>
                 <div v-if="submission.compile_output" class="io-block">
                   <div class="io-label">编译 / 系统诊断输出</div>
-                  <pre class="mono" style="background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12.5px;white-space:pre-wrap;word-break:break-all">{{ submission.compile_output }}</pre>
+                  <pre class="mono compile-pre">{{ submission.compile_output }}</pre>
                 </div>
                 <div v-for="tc in submission.detail ?? []" :key="tc.ordinal">
                   <div class="tc-row" :style="tc.is_sample ? 'cursor:pointer' : ''" @click="tc.is_sample && toggleTc(tc.ordinal)">
                     <span class="tc-ord">#{{ tc.ordinal }}</span>
                     <span v-if="tc.is_sample" class="tc-sample">样例</span>
-                    <span class="status-pill" :class="`st-${tc.status}`" style="padding:1px 10px;font-size:12px">{{ tc.status }}</span>
+                    <span class="status-pill tc-status" :class="`st-${tc.status}`">{{ tc.status }}</span>
                     <span class="tc-time">{{ tc.runtime_ms ?? '-' }}ms</span>
                   </div>
                   <div v-if="tc.is_sample && expandedTc.has(tc.ordinal)" class="tc-detail">
@@ -235,6 +236,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
+import AppIcon from '../components/AppIcon.vue'
 import Editor from '../components/Editor.vue'
 import Skeleton from '../components/Skeleton.vue'
 import StatusBadge from '../components/StatusBadge.vue'

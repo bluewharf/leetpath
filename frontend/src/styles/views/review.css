@@ -1,0 +1,326 @@
+/* ==========================================================================
+   背题模式（ReviewView）— Apple 风翻页卡 + 摊开书页对照画布
+   --------------------------------------------------------------------------
+   结构：page-head 统计 → 进度条 → 语言分段器（base .segmented）
+        → 翻页卡（正面 .review-card 极简题名 | 背面 .review-board 书页对照）
+   字号强压钩子（base.css 契约，类名勿改）：
+   .rc-title .rc-solution .review-canvas-title
+   本簇私有变量：
+   --canvas-grid  方格纸底纹（按主题重定义，比旧版更浅）
+   ========================================================================== */
+
+/* ---------- 页面工具区 ---------- */
+.review-progress { margin-bottom: 24px; }
+
+.review-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.review-lang-hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-weight: 550;
+}
+
+.review-skeleton {
+  padding: 32px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ---------- 翻页舞台 ---------- */
+.review-stage {
+  max-width: 720px;
+  margin: 0 auto;
+  min-width: 0;
+  perspective: 1600px; /* 翻面过渡的 3D 景深 */
+  transition: max-width 0.35s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+.review-stage.open { max-width: 100%; }
+
+/* 柔和翻面：纯 CSS transform（rotateY + 轻微缩放 + 淡入淡出），out-in 接力 */
+.review-flip-enter-active,
+.review-flip-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.26s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+.review-flip-enter-from { opacity: 0; transform: rotateY(-7deg) scale(0.985); }
+.review-flip-leave-to { opacity: 0; transform: rotateY(7deg) scale(0.985); }
+
+/* ---------- 徽章行（背面/正面共用，替代旧 .problem-meta 用法） ---------- */
+.review-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.review-meta-center {
+  justify-content: center;
+  margin: 0 0 16px;
+}
+.badge-remembered {
+  color: var(--green);
+  background: var(--green-soft);
+  gap: 4px;
+}
+
+/* ---------- 正面：极简大标题卡 ---------- */
+.review-card {
+  border-radius: var(--radius-lg);
+  min-height: 340px;
+  padding: 56px 44px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.25s ease,
+    border-color 0.25s ease;
+}
+.review-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  border-color: var(--accent-border);
+}
+.review-card:active { transform: scale(0.99); }
+
+.rc-title {
+  font-size: var(--font-display); /* sm/lg 档位由 base 强压钩子覆盖 */
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+  text-wrap: balance;
+}
+.rc-slug {
+  color: var(--text-faint);
+  font-size: 12.5px;
+  margin-top: 8px;
+}
+.rc-tags {
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-top: 10px;
+}
+.rc-hint {
+  margin-top: 34px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ---------- 背面：方格纸画布 + 摊开的书页 ---------- */
+.review-board {
+  /* 方格纸底纹：语义为画布网格，各主题下都压到比旧版更浅的一档 */
+  --canvas-grid: rgba(0, 0, 0, 0.032);
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border);
+  background-color: var(--surface-2);
+  background-image:
+    linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  box-shadow: var(--shadow-lg);
+  min-width: 0;
+  overflow: hidden;
+}
+:root[data-theme="dark"] .review-board { --canvas-grid: rgba(255, 255, 255, 0.045); }
+:root[data-theme="cyber"] .review-board { --canvas-grid: rgba(0, 242, 254, 0.06); }
+:root[data-theme="sepia"] .review-board { --canvas-grid: rgba(37, 57, 31, 0.05); }
+
+/* 画布操作条：左标题右操作 */
+.review-canvas-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 14px 16px;
+}
+.review-canvas-bar-main { min-width: 0; flex: 1; }
+.review-canvas-title {
+  font-size: calc(var(--font-display) * 0.7); /* ≈22px@md；sm/lg 由强压钩子覆盖 */
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+.review-canvas-sub { margin-top: 4px; }
+.review-canvas-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+/* 操作条按钮统一胶囊化 */
+.review-canvas-bar-actions .btn,
+.review-canvas-link { border-radius: 999px; }
+
+/* AI 助教入口：浅蓝填充胶囊，hover 沉成实色 */
+.review-ai-btn {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+.review-ai-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-accent);
+}
+
+/* 「去刷这道题」幽灵胶囊链接 */
+.review-canvas-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 6px 14px;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+.review-canvas-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* 摊开的书页：一整张纸中间一道发丝中缝 */
+.review-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  align-items: stretch;
+  min-width: 0;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.review-sheet {
+  padding: 24px 26px 30px;
+  min-width: 0;
+  min-height: 440px;
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+}
+/* 书页中缝：发丝级分隔线 */
+.review-sheet-solution { border-left: 0.5px solid var(--border-strong); }
+
+.review-sheet-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 650;
+  margin-bottom: 12px;
+}
+.review-sheet-loading { padding: 28px 0; }
+
+/* 书页内 markdown 标题收敛一档，贴近阅读排版 */
+.review-sheet .markdown-body h2 {
+  font-size: 15.5px;
+  font-weight: 750;
+  margin: 1.25em 0 0.5em;
+  letter-spacing: -0.01em;
+}
+.review-sheet .markdown-body h2:first-child { margin-top: 0; }
+.review-sheet .markdown-body h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 1em 0 0.4em;
+  color: var(--text-dim);
+}
+
+/* ---------- 底部操作：胶囊按钮组 ---------- */
+.review-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+.review-actions .btn {
+  border-radius: 999px;
+  padding: 9px 20px;
+}
+.review-pos {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-top: 12px;
+}
+
+/* ---------- 移动端 ≤1023px：单列书页、操作条纵排、触控目标 ≥44px ---------- */
+@media (max-width: 1023px) {
+  .review-toolbar { margin-bottom: 20px; }
+  .review-toolbar .segmented button {
+    min-height: 44px;
+    padding: 8px 20px;
+  }
+
+  .review-card {
+    min-height: 300px;
+    padding: 44px 24px;
+  }
+
+  .review-stage.open { max-width: 100%; }
+  .review-board { padding: 8px; }
+
+  /* 画布头部纵向堆叠：标题占满宽，操作按钮换行排在下方（勿退化） */
+  .review-canvas-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 12px 14px;
+  }
+  .review-canvas-bar-actions { gap: 8px; }
+  .review-canvas-bar-actions .btn,
+  .review-canvas-link {
+    min-height: 44px;
+    padding: 8px 18px;
+    font-size: 14px;
+  }
+
+  /* 书页改单列，中缝转为横向发丝线；高度交给页面滚动 */
+  .review-spread { grid-template-columns: minmax(0, 1fr); }
+  .review-sheet {
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    padding: 18px 18px 24px;
+  }
+  .review-sheet-solution {
+    border-left: none;
+    border-top: 0.5px solid var(--border-strong);
+  }
+
+  .review-actions { gap: 8px; margin-top: 18px; }
+  .review-actions .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+    flex: 1 1 auto;
+  }
+}
+
+/* ---------- 宽屏 ≥1800px ---------- */
+@media (min-width: 1800px) {
+  .review-sheet { padding: 30px 34px 36px; }
+}

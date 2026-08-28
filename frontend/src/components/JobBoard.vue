@@ -40,20 +40,20 @@
         <input type="checkbox" v-model="trackedOnly" /> 仅看我跟进的
       </label>
 
-      <span class="problem-limits" style="margin-left:auto">
+      <span class="problem-limits">
         显示 {{ filteredCompanies.length }} 家公司 / {{ filteredJobsCount }} 岗
       </span>
     </div>
 
     <!-- 骨架屏加载 -->
-    <div v-if="loading" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(360px, 1fr));gap:16px;margin-top:16px">
-      <div v-for="i in 6" :key="i" class="card" style="padding:18px">
+    <div v-if="loading" class="job-skeleton-grid">
+      <div v-for="i in 6" :key="i" class="card job-skeleton-card">
         <Skeleton :count="1" height="28px" width="50%" radius="6px" gap="10px" />
         <Skeleton :count="2" height="16px" width="80%" radius="4px" gap="8px" />
       </div>
     </div>
 
-    <div v-else-if="filteredCompanies.length === 0" class="empty" style="padding:40px 0">
+    <div v-else-if="filteredCompanies.length === 0" class="empty">
       没有匹配的秋招公司或岗位
     </div>
 
@@ -92,13 +92,14 @@
               class="btn btn-sm btn-ghost"
               title="前往校招官网投递主页"
             >
-              校招官网 ↗
+              校招官网 <AppIcon name="arrow-right" :size="12" class="icon-open" />
             </a>
             <button
               class="btn btn-sm expand-btn"
               @click.stop="toggleCompany(c.name)"
             >
-              {{ expandedCompanies.has(c.name) ? '收起 ▴' : `查看岗位 (${c.jobs.length}) ▾` }}
+              {{ expandedCompanies.has(c.name) ? '收起' : `查看岗位 (${c.jobs.length})` }}
+              <AppIcon name="chevron-down" :size="13" class="expand-chevron" />
             </button>
           </div>
         </div>
@@ -130,7 +131,7 @@
               <div
                 v-for="job in getFilteredJobs(c)"
                 :key="job.id"
-                class="pos-card"
+                class="pos-card job-card"
                 :class="{ 'is-closed': isClosed(job), 'is-tracked': getTrackedStatus(job.id) !== 'none' }"
               >
                 <div class="pos-top-line">
@@ -148,7 +149,7 @@
                       rel="noopener"
                       class="btn btn-sm btn-primary"
                     >
-                      直达投递 ↗
+                      直达投递 <AppIcon name="arrow-right" :size="12" class="icon-open" />
                     </a>
                     <slot name="actions" :job="job"></slot>
                   </div>
@@ -158,8 +159,9 @@
                   <span v-if="job.open_at">开投: {{ job.open_at }}</span>
                   <span v-if="job.deadline_at">截止: {{ job.deadline_at }}</span>
                   <span v-if="job.jd_text">
-                    <button type="button" class="jd-toggle" @click="toggleJd(job.id)">
-                      {{ expandedJd.has(job.id) ? '收起 JD ▴' : '查看 JD 要求 ▾' }}
+                    <button type="button" class="jd-toggle" :class="{ open: expandedJd.has(job.id) }" @click="toggleJd(job.id)">
+                      {{ expandedJd.has(job.id) ? '收起 JD' : '查看 JD 要求' }}
+                      <AppIcon name="chevron-down" :size="12" class="jd-chevron" />
                     </button>
                   </span>
                 </div>
@@ -197,6 +199,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
 import Skeleton from './Skeleton.vue'
+import AppIcon from './AppIcon.vue'
 import { useToast } from '../stores/toast'
 import type { Job } from '../types'
 
@@ -437,9 +440,8 @@ async function load() {
   loading.value = true
   try {
     jobs.value = await api.get<Job[]>('/api/jobs')
-    // 默认自动展开前 2 家头部大厂（如字节/腾讯）以便直接浏览
-    const top2 = companyList.value.slice(0, 2).map((c) => c.name)
-    expandedCompanies.value = new Set(top2)
+    // 不再默认展开公司：头部大厂单家就有几百个岗位，自动展开会一次性渲染
+    // 数千个 DOM 节点，每次进入看板都触发一次渲染尖峰（低端 GPU 直接卡死）
   } finally {
     loading.value = false
   }

@@ -6,7 +6,7 @@
     </div>
     <div class="hero">
       <div class="kicker">Daily Practice & Career Board</div>
-      <h1>
+      <h1 class="display">
         专为校招求职打造的<br />
         <span class="grad">极客刷题与算法手撕平台</span>
       </h1>
@@ -34,11 +34,26 @@
       </div>
 
       <div class="hero-actions">
-        <RouterLink class="btn btn-primary" to="/problems">代码题库 →</RouterLink>
-        <RouterLink class="btn btn-primary" style="background:var(--card);border-color:var(--accent);color:var(--accent)" to="/quiz">📝 八股自测{{ quizTotal ? ` (${quizTotal}题)` : '' }} →</RouterLink>
-        <button class="btn btn-ghost" @click="pickRandomProblem">🎲 随机刷算法</button>
-        <RouterLink class="btn" to="/review">背题模式</RouterLink>
-        <RouterLink class="btn" to="/handbook">新手手册</RouterLink>
+        <RouterLink class="btn btn-primary" to="/problems">
+          代码题库
+          <AppIcon name="arrow-right" :size="15" />
+        </RouterLink>
+        <RouterLink class="btn" to="/quiz">
+          <AppIcon name="pencil" :size="15" />
+          八股自测{{ quizTotal ? ` (${quizTotal}题)` : '' }}
+        </RouterLink>
+        <button class="btn" @click="pickRandomProblem">
+          <AppIcon name="dice" :size="15" />
+          随机刷算法
+        </button>
+        <RouterLink class="btn" to="/review">
+          <AppIcon name="cards" :size="15" />
+          背题模式
+        </RouterLink>
+        <RouterLink class="btn" to="/handbook">
+          <AppIcon name="book" :size="15" />
+          新手手册
+        </RouterLink>
       </div>
     </div>
 
@@ -46,7 +61,6 @@
     <PlanCard
       :problems="problems"
       @open-modal="showPlanModal = true"
-      style="margin-bottom: 24px"
     />
 
     <!-- 年度打卡热力图卡片 -->
@@ -103,9 +117,12 @@
 
     <!-- 算法核心专题掌握度 -->
     <div class="card category-card" v-if="categoryStats.length > 0">
-      <div class="section-title" style="margin:0 0 16px">
+      <div class="section-title">
         <h3>经典算法专题掌握度</h3>
-        <RouterLink to="/problems">查看全部专题 →</RouterLink>
+        <RouterLink to="/problems">
+          查看全部专题
+          <AppIcon name="chevron-right" :size="13" />
+        </RouterLink>
       </div>
 
       <div class="category-grid">
@@ -124,7 +141,10 @@
     <!-- 秋招看板精选 -->
     <div class="section-title">
       <h2>秋招高频在招看板</h2>
-      <RouterLink to="/jobs">查看全部公司与岗位 →</RouterLink>
+      <RouterLink to="/jobs">
+        查看全部公司与岗位
+        <AppIcon name="chevron-right" :size="13" />
+      </RouterLink>
     </div>
     <JobBoard :limit="4" />
 
@@ -141,6 +161,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '../api'
+import AppIcon from '../components/AppIcon.vue'
 import JobBoard from '../components/JobBoard.vue'
 import PlanCard from '../components/PlanCard.vue'
 import PlanModal from '../components/PlanModal.vue'

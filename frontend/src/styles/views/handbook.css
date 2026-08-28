@@ -1,0 +1,345 @@
+/* ==========================================================================
+   手册 + 外链簇（HandbookView / LinksView）· Apple 风文档页
+   --------------------------------------------------------------------------
+   - 所有选择器限定在 .handbook-page / .links-page 作用域内：
+     .curated-* 等类名同时被 QuizView（quiz 簇）使用，避免跨簇污染
+   - 字号钩子 .curated-card / .curated-desc / .handbook-table / .template-content
+     在模板中保留，md 档用 var(--font-base)，sm/lg 档由 base.css 强压
+   - 颜色一律走 base.css 令牌变量
+   ========================================================================== */
+
+/* ---------- 手册页骨架 ---------- */
+.handbook-page .handbook-section { animation: page-fade 0.3s ease; }
+
+/* ---------- 顶部 5 项分段器（base .segmented，移动端横滑不挤压） ---------- */
+.handbook-tabs-wrap {
+  margin: 0 0 24px;
+  padding-bottom: 8px; /* 给 active 项阴影留出空间，避免被 overflow 裁掉 */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.handbook-tabs-wrap::-webkit-scrollbar { display: none; }
+.handbook-page .handbook-tabs { width: max-content; max-width: none; }
+
+/* ---------- 文档卡片（rule-card） ---------- */
+.handbook-page .rule-card { padding: 26px 30px; }
+.handbook-page .rule-card-gap { margin-top: 16px; }
+.handbook-page .rule-card h2 {
+  font-size: var(--font-title);
+  margin: 0 0 10px;
+  letter-spacing: -0.02em;
+}
+.handbook-page .rule-h3 { font-size: 16px; margin: 24px 0 12px; font-weight: 700; }
+.handbook-page .rule-intro { color: var(--text-dim); margin: 0 0 18px; line-height: 1.7; }
+.handbook-page .rule-intro.rule-flush { margin-bottom: 0; }
+.handbook-page .rule-intro.rule-after { margin: 14px 0 0; }
+/* 正文内联代码（base 只覆盖 .markdown-body，这里补齐手册场景） */
+.handbook-page .rule-intro code,
+.handbook-page .handbook-table code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+/* ---------- 入门路线列表 ---------- */
+.handbook-page .basics-roadmap { margin: 0 0 18px; padding-left: 24px; color: var(--text-dim); }
+.handbook-page .basics-roadmap li { margin: 10px 0; line-height: 1.7; padding-left: 4px; }
+.handbook-page .basics-roadmap li::marker { color: var(--accent); font-weight: 700; font-family: var(--mono); }
+.handbook-page .basics-roadmap strong { color: var(--text); }
+.handbook-page .basics-sub-title { font-size: 17px; margin: 28px 0 14px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* ---------- 手册表格：细发丝线 + 斑马纹 ---------- */
+.handbook-page .table-wrap { overflow-x: auto; }
+.handbook-page .handbook-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-base);
+}
+.handbook-page .handbook-table th {
+  text-align: left;
+  padding: 9px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  border-bottom: 0.5px solid var(--border-strong);
+  white-space: nowrap;
+}
+.handbook-page .handbook-table td {
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  line-height: 1.6;
+  vertical-align: top;
+}
+.handbook-page .handbook-table tbody tr:nth-child(even) td { background: var(--surface-2); }
+.handbook-page .handbook-table tbody tr:hover td { background: var(--accent-soft); }
+.handbook-page .handbook-table tbody tr:last-child td { border-bottom: none; }
+.handbook-page .accent-cell { color: var(--accent); }
+.handbook-page .bold { font-weight: 650; }
+.handbook-page .code-cell { white-space: pre; font-size: var(--font-mono); line-height: 1.55; }
+
+/* ---------- 双列代码对比块（力扣 vs ACM / 极速 I/O） ---------- */
+.handbook-page .io-templates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 12px;
+}
+.handbook-page .io-temp-box {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  min-width: 0;
+}
+.handbook-page .io-temp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.handbook-page .io-pre {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre;
+}
+
+/* ---------- 精选卡片（开源笔记 / 数据结构） ---------- */
+.handbook-page .curated-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.handbook-page .curated-card {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  font-size: var(--font-base);
+  border-radius: var(--radius-lg);
+  transition: transform 0.2s cubic-bezier(0.2, 0.6, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.handbook-page .curated-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-border);
+  text-decoration: none;
+}
+.handbook-page .curated-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+.handbook-page .curated-badge {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+  background: var(--accent-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.handbook-page .curated-star { font-size: 11.5px; color: var(--text-faint); font-family: var(--mono); }
+.handbook-page .curated-title { font-size: 17px; margin: 0 0 8px; font-weight: 700; letter-spacing: -0.01em; }
+.handbook-page .curated-desc {
+  font-size: var(--font-base);
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 16px;
+  flex: 1;
+}
+.handbook-page .curated-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  margin-top: auto;
+  border-top: 0.5px solid var(--border);
+  padding-top: 12px;
+}
+.handbook-page .curated-tag { color: var(--text-faint); }
+.handbook-page .curated-link {
+  color: var(--accent);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+/* 外链指示：arrow-right 旋转成 ↗，hover 沿箭头方向轻推 */
+.handbook-page .ext-icon { transform: rotate(-45deg); transition: transform 0.2s ease; }
+.handbook-page .curated-card:hover .ext-icon { transform: rotate(-45deg) translate(3px, 0); }
+/* 数据结构卡片的展开/收起箭头 */
+.handbook-page .fold-icon { transition: transform 0.2s ease; }
+.handbook-page .fold-icon.open { transform: rotate(180deg); }
+
+/* 可点选的数据结构卡片 */
+.handbook-page .ds-card { cursor: pointer; }
+.handbook-page .ds-card.selected {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3.5px var(--accent-soft);
+}
+.handbook-page .ds-detail { margin-top: 16px; animation: page-fade 0.3s ease; }
+
+/* ---------- 模板区：macOS 侧栏 + 代码面板 ---------- */
+.handbook-page .template-layout {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+.handbook-page .template-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  position: sticky;
+  top: calc(var(--topbar-h) + 16px);
+}
+.handbook-page .template-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.handbook-page .template-menu-item:hover { background: var(--surface-2); color: var(--text); }
+/* macOS 侧栏选中项：surface-2 圆角填充 */
+.handbook-page .template-menu-item.active {
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 650;
+}
+.handbook-page .tpl-idx { font-family: var(--mono); font-size: 11px; color: var(--text-faint); flex: none; }
+.handbook-page .template-menu-item.active .tpl-idx { color: var(--accent); }
+.handbook-page .tpl-name { min-width: 0; }
+
+.handbook-page .template-content { padding: 24px 28px; font-size: var(--font-base); }
+.handbook-page .tpl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 0.5px solid var(--border);
+  padding-bottom: 16px;
+  flex-wrap: wrap;
+}
+.handbook-page .tpl-header h2 { font-size: var(--font-title); margin: 0 0 4px; letter-spacing: -0.02em; }
+.handbook-page .tpl-desc { color: var(--text-dim); font-size: 13.5px; margin: 0; line-height: 1.6; }
+.handbook-page .tpl-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+/* 代码块：surface-2 底 + mono */
+.handbook-page .tpl-code-block pre {
+  margin: 0;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  font-size: var(--font-mono);
+  overflow-x: auto;
+  line-height: 1.65;
+}
+
+/* ---------- 外链页（LinksView 八股笔记） ---------- */
+.links-page .page-head .sub { color: var(--text-dim); font-size: 14px; }
+.links-page .link-group { margin-bottom: 32px; }
+.links-page .link-group h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  margin: 0 0 12px;
+}
+.links-page .link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.links-page .link-card {
+  padding: 18px 20px;
+  display: block;
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  transition: transform 0.2s cubic-bezier(0.2, 0.6, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.links-page .link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-border);
+  text-decoration: none;
+}
+.links-page .link-title {
+  font-weight: 650;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.links-page .link-title .ext {
+  color: var(--text-faint);
+  flex: none;
+  transform: rotate(-45deg);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.links-page .link-card:hover .link-title .ext {
+  color: var(--accent);
+  transform: rotate(-45deg) translate(3px, 0);
+}
+.links-page .link-note { font-size: 13px; color: var(--text-dim); margin-top: 5px; line-height: 1.55; }
+
+/* ---------- 宽屏增强（≥1800px） ---------- */
+@media (min-width: 1800px) {
+  .handbook-page .curated-grid,
+  .links-page .link-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+  .handbook-page .template-layout { grid-template-columns: 300px 1fr; gap: 22px; }
+}
+
+/* ---------- 移动端（≤1023px）：宽松不拥挤 ---------- */
+@media (max-width: 1023px) {
+  /* 分段器触控目标 ≥44px */
+  .handbook-page .handbook-tabs button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 6px 16px;
+  }
+  .handbook-page .rule-card { padding: 20px; }
+  .handbook-page .rule-card h2 { letter-spacing: -0.015em; }
+  .handbook-page .basics-roadmap li { margin: 14px 0; }
+  .handbook-page .io-templates-grid { grid-template-columns: 1fr; }
+  /* 模板区纵向堆叠，侧栏变横向滑动列表 */
+  .handbook-page .template-layout { grid-template-columns: 1fr; }
+  .handbook-page .template-menu {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 6px;
+  }
+  .handbook-page .template-menu::-webkit-scrollbar { display: none; }
+  .handbook-page .template-menu-item {
+    flex: none;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+  .handbook-page .template-content { padding: 20px; }
+  .handbook-page .tpl-header { flex-direction: column; align-items: stretch; }
+  .handbook-page .tpl-actions { justify-content: flex-start; }
+  .handbook-page .curated-card { padding: 20px; }
+}

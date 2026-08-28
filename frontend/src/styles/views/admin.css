@@ -1,0 +1,334 @@
+/* ==========================================================================
+   admin.css — 排行榜（LeaderboardView + LeaderboardPopup）+ 设置 + 管理后台
+   --------------------------------------------------------------------------
+   - 榜单：base .segmented 分段器 / 我的排名条 / 三柱 podium / iOS 分组列表表格
+   - 弹窗：iOS alert 风（居中磨砂材质卡，radius-lg）
+   - 管理：.admin-tabs(=segmented) / .admin-card / .admin-row(发丝分隔) / 表单 grid
+   说明：本文件无新增语义色，遮罩用 color-mix 基于 --bg 派生，随主题自适应。
+   ========================================================================== */
+
+/* ========== 排行榜页 ========== */
+.leaderboard-page { max-width: none; }
+.leaderboard-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 4px 0 22px;
+  flex-wrap: wrap;
+}
+
+/* 我的排名条 */
+.leaderboard-me {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 14px;
+}
+.leaderboard-me strong { margin-left: auto; font-weight: 700; }
+.leaderboard-me-value { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* 前三 podium：冠军稍高 + accent 光晕 */
+.leaderboard-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.podium-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.podium-item strong { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-item > span:last-child { color: var(--text-dim); font-size: 12.5px; }
+.podium-1 {
+  padding: 26px 12px 22px;
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-accent);
+}
+.podium-1 .podium-rank { color: var(--accent); font-size: 26px; }
+.podium-trophy { color: var(--amber); }
+
+/* iOS 分组列表风表格：圆角卡 + 发丝分隔 */
+.leaderboard-table-wrap {
+  overflow: hidden;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.leaderboard-table { width: 100%; border-collapse: collapse; }
+.leaderboard-table th,
+.leaderboard-table td { text-align: left; padding: 13px 18px; }
+.leaderboard-table th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  border-bottom: 0.5px solid var(--border);
+  background: var(--surface);
+}
+.leaderboard-table td { border-bottom: 0.5px solid var(--border); }
+.leaderboard-table tbody tr:last-child td { border-bottom: 0; }
+.leaderboard-table th:last-child, .leaderboard-table td:last-child { text-align: right; }
+.leaderboard-table td:first-child { font-variant-numeric: tabular-nums; color: var(--text-dim); }
+.leaderboard-table tr.mine { background: var(--accent-soft); }
+.leaderboard-table tr.mine td:first-child { color: var(--accent); font-weight: 700; }
+.mine-label {
+  margin-left: 8px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 650;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.leaderboard-table tr.mine .mine-label { background: var(--surface); }
+.leaderboard-user-cell { display: flex; align-items: center; gap: 10px; }
+
+.state-message, .empty-state { padding: 56px 20px; text-align: center; color: var(--text-dim); }
+.empty-state h2 { color: var(--text); font-size: 19px; letter-spacing: -0.02em; }
+.empty-state p { margin: 0; font-size: 14px; }
+
+/* ========== 今日榜单弹窗（iOS alert 风：居中磨砂材质卡） ========== */
+.leaderboard-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  /* 遮罩：由 --bg 派生的半透明层，四主题自适应。
+     不做全屏 backdrop-filter 模糊——GPU 受限环境软件渲染会直接假死 */
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+}
+.leaderboard-popup {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 26px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--material-strong);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: var(--shadow-lg);
+}
+.leaderboard-popup-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.leaderboard-popup-close:hover { background: var(--surface-3); color: var(--text); }
+.leaderboard-popup h2 { margin: 4px 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+.leaderboard-popup-subtitle { margin: 0 0 20px; color: var(--text-dim); font-size: 14px; }
+.leaderboard-popup-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0 0 22px;
+  list-style: none;
+}
+.leaderboard-popup-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.leaderboard-popup-list li.mine {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 0.5px var(--accent-border);
+}
+.leaderboard-popup-rank {
+  width: 22px;
+  color: var(--accent);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.leaderboard-popup-user {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderboard-popup-user small { margin-left: 7px; color: var(--accent); font-weight: 600; }
+.leaderboard-popup-list strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.leaderboard-popup-state {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  text-align: center;
+  font-size: 14px;
+}
+.leaderboard-popup-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.leaderboard-popup-actions .btn { flex: 1; min-width: 130px; min-height: 40px; }
+
+/* ========== 管理后台 ========== */
+.admin-tabs { margin-bottom: 18px; max-width: 100%; overflow-x: auto; }
+.admin-tabs button { display: inline-flex; align-items: center; gap: 5px; }
+
+.admin-card { padding: 20px 22px; margin-bottom: 14px; }
+.admin-card h3 { margin: 0 0 14px; font-size: 16px; letter-spacing: -0.01em; }
+.admin-card h3 .admin-h3-icon { color: var(--accent); vertical-align: -3px; margin-right: 6px; }
+
+/* 卡内工具条（如题目管理的导入按钮行） */
+.admin-card-toolbar {
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.admin-note { font-size: 13px; color: var(--text-dim); }
+.admin-dim { color: var(--text-faint); font-size: 12px; }
+.admin-ok { font-size: 13px; color: var(--green); font-weight: 600; }
+
+/* 列表行：发丝分隔的 inset 行 */
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-bottom: 0.5px solid var(--border);
+  flex-wrap: wrap;
+}
+.admin-row:last-child { border-bottom: 0; }
+.admin-row .badge { flex: none; }
+.admin-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-dim);
+  flex: none;
+  cursor: pointer;
+  user-select: none;
+}
+.admin-check input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+/* 危险文字按钮（删除/撤销） */
+.btn-danger-text { color: var(--red); }
+.btn-danger-text:hover { background: var(--red-soft); color: var(--red); }
+
+/* 表单 grid（岗位 CRUD / AI 配置共用，整齐对齐） */
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 14px;
+  margin-bottom: 12px;
+}
+.admin-form-grid-wide { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px 16px; }
+.admin-field-full { grid-column: 1 / -1; }
+.admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+
+/* textarea：补齐 base 未覆盖的填充式多行输入（与 .input 同族） */
+.textarea {
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.textarea:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3.5px var(--accent-soft);
+}
+
+/* 表单成功提示（与 base .error-banner 对偶） */
+.form-success {
+  background: var(--green-soft);
+  color: var(--green);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13.5px;
+  font-weight: 550;
+}
+.admin-card .form-err, .admin-card .form-success { margin-bottom: 14px; }
+
+/* 邀请码 */
+.admin-inline-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.admin-inline-form .field { min-width: 180px; }
+.invite-result { margin-top: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.invite-result code {
+  padding: 9px 12px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+.admin-note-block { margin: 10px 0 0; font-size: 13px; }
+.admin-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.admin-head-row h3 { margin-bottom: 6px; }
+.admin-key-badge { font-size: 12px; padding: 5px 12px; gap: 5px; }
+.admin-field-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint); }
+
+/* ========== 移动端 ≤1023px ========== */
+@media (max-width: 1023px) {
+  .leaderboard-controls { flex-direction: column; align-items: stretch; }
+  .leaderboard-controls .segmented { width: 100%; }
+  .leaderboard-controls .segmented button { flex: 1; padding: 8px 6px; }
+  .leaderboard-me { padding: 14px 16px; flex-wrap: wrap; }
+  .leaderboard-podium { gap: 8px; }
+  .podium-item { padding: 14px 8px; }
+  .podium-1 { padding: 20px 8px 16px; }
+  .leaderboard-table th, .leaderboard-table td { padding: 12px 12px; }
+  .leaderboard-popup { padding: 22px 18px 18px; }
+  .leaderboard-popup-actions { flex-direction: column; }
+  .leaderboard-popup-actions .btn { width: 100%; min-height: 44px; }
+  .admin-card { padding: 16px; }
+  .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-inline-form .field { min-width: 0; flex: 1; }
+  .admin-actions .btn { min-height: 44px; }
+}

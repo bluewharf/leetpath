@@ -22,14 +22,14 @@
     </div>
 
     <!-- 顶部进度条 -->
-    <div v-if="!loading && deck.length" class="progress-track" style="margin-bottom:24px">
+    <div v-if="!loading && deck.length" class="progress-track review-progress">
       <div class="seg" :style="{ width: `${(rememberedCount / deck.length) * 100}%`, background: 'var(--accent)' }"></div>
     </div>
 
     <!-- 语言切换工具栏 -->
     <div class="review-toolbar" v-if="!loading && deck.length > 0">
-      <span class="review-lang-hint">当前背题语言：</span>
-      <div class="lang-switch-pills">
+      <span class="review-lang-hint">当前背题语言</span>
+      <div class="segmented">
         <button
           :class="{ active: langPref === 'python3' }"
           @click="setLang('python3')"
@@ -46,7 +46,7 @@
     </div>
 
     <!-- 骨架屏加载 -->
-    <div v-if="loading" class="card" style="padding:32px;max-width:720px;margin:0 auto">
+    <div v-if="loading" class="card review-skeleton">
       <Skeleton :count="1" height="32px" width="50%" radius="6px" gap="16px" />
       <Skeleton :count="4" height="20px" width="100%" radius="6px" gap="12px" />
     </div>
@@ -55,17 +55,19 @@
     <!-- 背题卡片主体：正面只亮题名，翻开后是「题目 | 题解」对照画布 -->
     <template v-else-if="current">
       <div class="review-stage" :class="{ open: flipped }">
-        <transition name="fade" mode="out-in">
+        <transition name="review-flip" mode="out-in">
           <div
             v-if="!flipped"
             key="front"
             class="card review-card"
             @click="flipped = true"
           >
-            <div class="problem-meta" style="justify-content:center;margin:0 0 14px">
+            <div class="review-meta review-meta-center">
               <span class="badge" :class="`badge-${current.difficulty}`">{{ difficultyText(current.difficulty) }}</span>
               <span v-for="label in sourceBadgeTexts(current)" :key="label" class="badge badge-source">{{ label }}</span>
-              <span v-if="current.memory === 'remembered'" class="badge" style="color:var(--green)">✓ 已记住</span>
+              <span v-if="current.memory === 'remembered'" class="badge badge-remembered">
+                <AppIcon name="check" :size="11" :stroke-width="2.6" /> 已记住
+              </span>
             </div>
             <div class="rc-title">{{ problemHeading(current) }}</div>
             <div class="rc-slug mono">{{ current.slug }}</div>
@@ -78,37 +80,42 @@
           <div v-else key="back" class="review-board">
             <div class="review-canvas-bar">
               <div class="review-canvas-bar-main">
-                <div class="problem-meta" style="margin:0 0 8px">
+                <div class="review-meta">
                   <span class="badge" :class="`badge-${current.difficulty}`">{{ difficultyText(current.difficulty) }}</span>
                   <span v-for="label in sourceBadgeTexts(current)" :key="label" class="badge badge-source">{{ label }}</span>
-                  <span v-if="current.memory === 'remembered'" class="badge" style="color:var(--green)">✓ 已记住</span>
+                  <span v-if="current.memory === 'remembered'" class="badge badge-remembered">
+                    <AppIcon name="check" :size="11" :stroke-width="2.6" /> 已记住
+                  </span>
                 </div>
                 <div class="review-canvas-title">{{ problemHeading(current) }}</div>
-                <div class="rc-slug mono" style="margin-top:4px">{{ current.slug }} · {{ current.tags.join(' · ') }}</div>
+                <div class="rc-slug mono review-canvas-sub">{{ current.slug }} · {{ current.tags.join(' · ') }}</div>
               </div>
               <div class="review-canvas-bar-actions">
-                <button
-                  class="btn btn-xs btn-outline"
-                  style="border-color:var(--accent);color:var(--accent)"
-                  type="button"
-                  @click="openAiTutor"
-                >
-                  🤖 问 AI 更多解法 / 口诀
+                <button class="btn btn-sm review-ai-btn" type="button" @click="openAiTutor">
+                  <AppIcon name="robot" :size="14" /> 问 AI 更多解法 / 口诀
                 </button>
-                <button class="btn btn-xs btn-ghost" type="button" @click="flipped = false">↺ 翻回正面</button>
-                <RouterLink :to="`/problems/${current.slug}`">去刷这道题 →</RouterLink>
+                <button class="btn btn-sm btn-ghost" type="button" @click="flipped = false">
+                  <AppIcon name="refresh" :size="13" /> 翻回正面
+                </button>
+                <RouterLink class="review-canvas-link" :to="`/problems/${current.slug}`">
+                  去刷这道题 <AppIcon name="arrow-right" :size="13" />
+                </RouterLink>
               </div>
             </div>
 
             <div class="review-spread">
               <section class="review-sheet">
-                <div class="review-sheet-label">题目</div>
-                <div v-if="payloadLoading && !statementHtml" class="empty" style="padding:28px 0">题面加载中…</div>
+                <div class="review-sheet-label">
+                  <AppIcon name="book" :size="12" /> 题目
+                </div>
+                <div v-if="payloadLoading && !statementHtml" class="empty review-sheet-loading">题面加载中…</div>
                 <div v-else class="markdown-body" v-html="statementHtml"></div>
               </section>
               <section class="review-sheet review-sheet-solution">
-                <div class="review-sheet-label">题解 · {{ langPref === 'cpp' ? 'C++' : 'Python3' }}</div>
-                <div v-if="payloadLoading && !solutionHtml" class="empty" style="padding:28px 0">题解加载中…</div>
+                <div class="review-sheet-label">
+                  <AppIcon name="sparkle" :size="12" /> 题解 · {{ langPref === 'cpp' ? 'C++' : 'Python3' }}
+                </div>
+                <div v-if="payloadLoading && !solutionHtml" class="empty review-sheet-loading">题解加载中…</div>
                 <div v-else class="markdown-body rc-solution" v-html="solutionHtml"></div>
               </section>
             </div>
@@ -116,10 +123,18 @@
         </transition>
 
         <div class="review-actions">
-          <button class="btn" :disabled="index === 0" @click="go(index - 1)">← 上一张</button>
-          <button class="btn" :disabled="marking" @click="mark(false)">没记住</button>
-          <button class="btn btn-primary" :disabled="marking" @click="mark(true)">记住了 ✓</button>
-          <button class="btn" :disabled="index >= deck.length - 1" @click="go(index + 1)">下一张 →</button>
+          <button class="btn" :disabled="index === 0" @click="go(index - 1)">
+            <AppIcon name="chevron-left" :size="15" /> 上一张
+          </button>
+          <button class="btn" :disabled="marking" @click="mark(false)">
+            <AppIcon name="x" :size="14" /> 没记住
+          </button>
+          <button class="btn btn-primary" :disabled="marking" @click="mark(true)">
+            <AppIcon name="check" :size="15" :stroke-width="2.4" /> 记住了
+          </button>
+          <button class="btn" :disabled="index >= deck.length - 1" @click="go(index + 1)">
+            下一张 <AppIcon name="chevron-right" :size="15" />
+          </button>
         </div>
         <div class="review-pos num">{{ index + 1 }} / {{ deck.length }}</div>
       </div>
@@ -132,6 +147,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import { renderMarkdown, filterSolutionMarkdown } from '../markdown'
 import Skeleton from '../components/Skeleton.vue'
+import AppIcon from '../components/AppIcon.vue'
 import { useLangPref } from '../stores/pref'
 import { useAiAssistant } from '../stores/aiAssistant'
 import {

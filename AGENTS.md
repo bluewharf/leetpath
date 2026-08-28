@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 后端：FastAPI + SQLAlchemy 2.x + SQLite(WAL)，JWT cookie 认证（bcrypt）
-- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，手写响应式 CSS（主断点 1023px，宽屏增强 1800px；主题四态：light/dark/cyber/sepia 护眼）
+- 前端：Vue 3 + Vite + TypeScript + CodeMirror 6 + marked/dompurify，「档案刊物」设计系统（暖纸/墨色/朱橙点睛 + 发丝规线 + 微粒噪点，主断点 1023px，宽屏增强 1800px；主题六态：paper 档案朱橙(默认浅)/ink 深夜档案(默认暗)/slate 莫兰迪灰蓝/oat 燕麦拿铁/cyber 赛博霓虹/sepia 豆沙护眼，均定义在 base.css 变量块，paper/ink 大标题用衬线刊头）
 - 判题：独立 worker 进程轮询 SQLite，每次提交起一次性 Docker 容器（`--network none --read-only`）
 - 部署：docker-compose（nginx 静态+反代 / backend / judge worker）
 
@@ -54,6 +54,9 @@ scripts/upgrade.sh
 - 判题协议为 ACM 模式（stdin/stdout），测试用例比对忽略行尾空白与末尾空行；刷题页可切换力扣函数模式，由 worker 套读入 harness 后仍按 ACM 用例评测
 - 提交状态：pending / judging / AC / WA / TLE / MLE / CE / RE / IE
 - 所有 API 在 `/api` 前缀下，除 `/api/auth/*` 外均需登录
+- 前端样式集中在 `frontend/src/styles/`：`base.css`（设计令牌+基础组件，先加载）→ `chrome.css`（桌面报纸刊头 masthead（报头行+规线栏目条+主题菜单）/ 移动端顶栏+Tab Bar）→ `views/*.css`（按页面簇）；入口 `styles/index.css`。颜色一律用 CSS 变量，图标统一用 `components/AppIcon.vue` 内联 SVG
+- 主题切换走 `frontend/src/theme.ts`（THEME_LIST 单一来源，含中文名与 dark 标记；旧 light/dark 存储值自动迁移为 paper/ink）；新增主题 = base.css 加变量块 + THEME_LIST 加项 + App.vue `themeDots` 加色点
+- 版心宽度：`.container` / `.masthead-inner` 全屏流式（无 max-width），桌面左右 padding 48px、≥1800px 宽屏 64px、≤1023px 20px
 - 题面、注释、UI 文案用中文；代码标识符用英文
 - 版本号单源为根目录 `VERSION` 文件：后端经 compose 注入 `APP_VERSION`（`/api/health` 返回），前端构建时经 vite define 注入并显示在顶栏；docker 镜像按 `leetpath-backend/frontend:<版本>` 打标签
 - 不要提交 `.env`、`data/`、种子数据以外的产物

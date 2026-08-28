@@ -33,7 +33,7 @@
     </div>
 
     <!-- 顶部主进度条 -->
-    <div v-if="stats && stats.total_questions > 0" class="progress-track" style="margin-bottom:20px">
+    <div v-if="stats && stats.total_questions > 0" class="progress-track">
       <div
         class="seg"
         :style="{
@@ -43,23 +43,25 @@
       ></div>
     </div>
 
-    <!-- 模式导航选项卡 -->
-    <div class="handbook-nav-tabs quiz-nav-tabs">
-      <button :class="{ active: currentTab === 'practice' }" @click="switchTab('practice')">
-        🎯 刷题练习
-      </button>
-      <button :class="{ active: currentTab === 'wrongbook' }" @click="switchTab('wrongbook')">
-        🗡️ 错题斩题 ({{ stats?.wrong_count || 0 }})
-      </button>
-      <button :class="{ active: currentTab === 'banks' }" @click="switchTab('banks')">
-        📑 {{ bankCount }} 个专题库
-      </button>
-      <button :class="{ active: currentTab === 'favorites' }" @click="switchTab('favorites')">
-        ⭐ 收藏夹 ({{ stats?.favorite_count || 0 }})
-      </button>
-      <button :class="{ active: currentTab === 'exam' }" @click="switchTab('exam')">
-        ⏱️ 模拟小测 (20题)
-      </button>
+    <!-- 模式导航选项卡（iOS 分段器，五项可横向滚动） -->
+    <div class="quiz-tabs-scroll">
+      <div class="segmented quiz-nav-tabs">
+        <button :class="{ active: currentTab === 'practice' }" @click="switchTab('practice')">
+          <AppIcon name="pencil" :size="14" /> 刷题练习
+        </button>
+        <button :class="{ active: currentTab === 'wrongbook' }" @click="switchTab('wrongbook')">
+          <AppIcon name="flame" :size="14" /> 错题斩题 ({{ stats?.wrong_count || 0 }})
+        </button>
+        <button :class="{ active: currentTab === 'banks' }" @click="switchTab('banks')">
+          <AppIcon name="cards" :size="14" /> {{ bankCount }} 个专题库
+        </button>
+        <button :class="{ active: currentTab === 'favorites' }" @click="switchTab('favorites')">
+          <AppIcon name="sparkle" :size="14" /> 收藏夹 ({{ stats?.favorite_count || 0 }})
+        </button>
+        <button :class="{ active: currentTab === 'exam' }" @click="switchTab('exam')">
+          <AppIcon name="clock" :size="14" /> 模拟小测 (20题)
+        </button>
+      </div>
     </div>
 
     <!-- ==================== 视图 1: 刷题练习 / 错题本 / 收藏夹 / 模拟小测 ==================== -->
@@ -70,7 +72,7 @@
           <!-- 专题选择器（练习模式下有效） -->
           <div class="quiz-filter-item" v-if="currentTab === 'practice'">
             <label>专题分类：</label>
-            <select v-model="selectedBank" @change="fetchQuestions">
+            <select class="select" v-model="selectedBank" @change="fetchQuestions">
               <option value="">全部 {{ bankCount }} 个专题 ({{ stats?.total_questions }}题)</option>
               <optgroup v-for="(bList, cat) in groupedBanks" :key="cat" :label="cat">
                 <option v-for="b in bList" :key="b.bank" :value="b.bank">
@@ -100,35 +102,44 @@
 
           <!-- 错题本提示 -->
           <div class="wrongbook-hint" v-if="currentTab === 'wrongbook'">
-            <span>🗡️ <strong>错题斩题模式</strong>：做对或点击「斩题」可从错题本消除，直到清空所有错题！</span>
+            <AppIcon name="flame" :size="15" class="hint-icon hint-icon-red" />
+            <span><strong>错题斩题模式</strong>：做对或点击「斩题」可从错题本消除，直到清空所有错题！</span>
           </div>
 
           <!-- 收藏夹提示 -->
           <div class="wrongbook-hint" v-if="currentTab === 'favorites'">
-            <span>⭐ <strong>我的收藏夹</strong>：复习标记过的重点和难题。</span>
+            <AppIcon name="sparkle" :size="15" class="hint-icon hint-icon-amber" />
+            <span><strong>我的收藏夹</strong>：复习标记过的重点和难题。</span>
           </div>
 
           <!-- 模拟考试提示 -->
           <div class="wrongbook-hint" v-if="currentTab === 'exam'">
-            <span>⏱️ <strong>模拟测验</strong>：随机抽取 20 道客观题进行自测。</span>
-            <button class="btn btn-xs btn-primary" @click="startNewExam" style="margin-left:12px">重新抽题</button>
+            <AppIcon name="clock" :size="15" class="hint-icon" />
+            <span><strong>模拟测验</strong>：随机抽取 20 道客观题进行自测。</span>
+            <button class="btn btn-xs btn-primary" @click="startNewExam">重新抽题</button>
           </div>
         </div>
 
         <div class="quiz-tool-actions">
-          <label class="quiz-switch-label" v-if="currentTab === 'practice'">
-            <input type="checkbox" v-model="onlyUnanswered" @change="fetchQuestions" />
-            <span>仅刷未作答题</span>
+          <label class="quiz-switch" v-if="currentTab === 'practice'">
+            <span class="switch">
+              <input type="checkbox" v-model="onlyUnanswered" @change="fetchQuestions" />
+              <span class="track"></span>
+            </span>
+            <span class="quiz-switch-text">仅刷未作答题</span>
           </label>
-          <label class="quiz-switch-label">
-            <input type="checkbox" v-model="randomOrder" @change="fetchQuestions" />
-            <span>随机乱序</span>
+          <label class="quiz-switch">
+            <span class="switch">
+              <input type="checkbox" v-model="randomOrder" @change="fetchQuestions" />
+              <span class="track"></span>
+            </span>
+            <span class="quiz-switch-text">随机乱序</span>
           </label>
         </div>
       </div>
 
       <!-- 加载中骨架 -->
-      <div v-if="loading" class="card quiz-card" style="padding:32px">
+      <div v-if="loading" class="card quiz-card">
         <Skeleton :count="1" height="28px" width="40%" radius="6px" gap="16px" />
         <Skeleton :count="2" height="20px" width="90%" radius="6px" gap="12px" />
         <div style="margin-top:24px">
@@ -138,7 +149,9 @@
 
       <!-- 空状态 -->
       <div v-else-if="questions.length === 0" class="card empty-card">
-        <div class="empty-icon">{{ currentTab === 'wrongbook' ? '🎉' : '📝' }}</div>
+        <div class="empty-icon">
+          <AppIcon :name="currentTab === 'wrongbook' ? 'trophy' : 'pencil'" :size="36" />
+        </div>
         <h3>{{ emptyTitle }}</h3>
         <p class="muted">{{ emptyDesc }}</p>
         <button
@@ -146,7 +159,7 @@
           class="btn btn-primary"
           @click="switchTab('practice')"
         >
-          前往刷题练习 →
+          前往刷题练习 <AppIcon name="arrow-right" :size="15" />
         </button>
       </div>
 
@@ -160,9 +173,10 @@
               <span class="badge" :class="typeBadgeClass(currentQ.type)">{{ typeText(currentQ.type) }}</span>
               <span class="mono quiz-num-tag">#{{ currentQ.ordinal }}</span>
               <span v-if="currentQ.is_answered" class="badge" :class="currentQ.is_correct ? 'badge-easy' : 'badge-hard'">
-                {{ currentQ.is_correct ? '✓ 上次做对' : '✕ 上次做错' }}
+                <AppIcon :name="currentQ.is_correct ? 'check' : 'x'" :size="11" />
+                {{ currentQ.is_correct ? '上次做对' : '上次做错' }}
               </span>
-              <span v-if="currentQ.wrong_count > 1" class="badge" style="color:var(--red)">
+              <span v-if="currentQ.wrong_count > 1" class="badge badge-hard">
                 累积做错 {{ currentQ.wrong_count }} 次
               </span>
             </div>
@@ -170,12 +184,11 @@
             <div class="quiz-head-actions">
               <!-- 问 AI 按钮 -->
               <button
-                class="btn btn-xs btn-outline"
-                style="border-color:var(--accent);color:var(--accent)"
+                class="btn btn-xs btn-outline quiz-ai-btn"
                 title="针对当前题目向 AI 导师提问与考点深挖"
                 @click="openAiDrawer"
               >
-                🤖 问 AI
+                <AppIcon name="robot" :size="13" /> 问 AI
               </button>
               <!-- 斩题按钮 -->
               <button
@@ -184,7 +197,7 @@
                 :title="currentQ.is_slashed ? '已从错题本消除' : '斩掉此题（移出错题本）'"
                 @click="toggleSlash(currentQ)"
               >
-                {{ currentQ.is_slashed ? '🗡️ 已斩题' : '🗡️ 斩题' }}
+                <AppIcon name="flame" :size="13" /> {{ currentQ.is_slashed ? '已斩题' : '斩题' }}
               </button>
               <!-- 收藏按钮 -->
               <button
@@ -193,7 +206,7 @@
                 :title="currentQ.is_favorite ? '取消收藏' : '收藏此题'"
                 @click="toggleFavorite(currentQ)"
               >
-                {{ currentQ.is_favorite ? '★ 已收藏' : '☆ 收藏' }}
+                <AppIcon name="sparkle" :size="13" /> {{ currentQ.is_favorite ? '已收藏' : '收藏' }}
               </button>
             </div>
           </div>
@@ -201,7 +214,7 @@
           <!-- 题干 -->
           <div class="quiz-stem">
             <span class="quiz-q-idx mono">{{ currentIndex + 1 }}.</span>
-            <div class="quiz-stem-text" v-html="renderMd(currentQ.stem)"></div>
+            <div class="quiz-stem-text markdown-body" v-html="renderMd(currentQ.stem)"></div>
           </div>
 
           <!-- 选项列表 -->
@@ -218,9 +231,9 @@
               <div class="opt-prefix mono">{{ key }}</div>
               <div class="opt-content">{{ text }}</div>
               <div class="opt-indicator">
-                <span v-if="isOptionCorrect(key)" class="indicator-tag correct">✔</span>
-                <span v-else-if="isOptionUserWrong(key)" class="indicator-tag wrong">✘</span>
-                <span v-else-if="currentQ.type === 'multiple' && multiSelected.includes(key)" class="indicator-tag selected">●</span>
+                <span v-if="isOptionCorrect(key)" class="indicator-tag correct"><AppIcon name="check" :size="16" /></span>
+                <span v-else-if="isOptionUserWrong(key)" class="indicator-tag wrong"><AppIcon name="x" :size="16" /></span>
+                <span v-else-if="currentQ.type === 'multiple' && multiSelected.includes(key)" class="indicator-tag selected"><AppIcon name="check" :size="16" /></span>
               </div>
             </button>
           </div>
@@ -240,7 +253,7 @@
           <!-- 答题结果横幅 -->
           <transition name="fade">
             <div v-if="currentResult || (currentQ.is_answered && currentQ.answer)" class="quiz-result-banner" :class="isCurrentCorrect ? 'res-correct' : 'res-wrong'">
-              <div class="res-icon">{{ isCurrentCorrect ? '🎉' : '❌' }}</div>
+              <div class="res-icon"><AppIcon :name="isCurrentCorrect ? 'check' : 'x'" :size="20" /></div>
               <div class="res-msg">
                 <div class="res-title">
                   {{ isCurrentCorrect ? '回答正确！' : '回答错误！' }}
@@ -248,14 +261,14 @@
                 </div>
                 <div class="res-sub">
                   你的选择：{{ currentResult?.user_answer || currentQ.user_answer || '未记录' }}
-                  <span v-if="currentResult?.wrong_count" style="margin-left:8px;color:var(--red)">
+                  <span v-if="currentResult?.wrong_count" class="res-wrong-count">
                     (累积做错 {{ currentResult.wrong_count }} 次)
                   </span>
                 </div>
               </div>
               <div class="res-actions">
-                <button class="btn btn-xs btn-primary" @click="openAiDrawer">🤖 追问 AI 导师</button>
-                <button class="btn btn-xs btn-ghost" @click="retryCurrentQuestion">重新作答</button>
+                <button class="btn btn-xs btn-primary" @click="openAiDrawer"><AppIcon name="robot" :size="13" /> 追问 AI 导师</button>
+                <button class="btn btn-xs btn-ghost" @click="retryCurrentQuestion"><AppIcon name="refresh" :size="12" /> 重新作答</button>
               </div>
             </div>
           </transition>
@@ -263,13 +276,13 @@
           <!-- 详细解析展示区 -->
           <transition name="fade">
             <div v-if="currentResult?.analysis || (currentQ.is_answered && currentQ.analysis)" class="quiz-analysis-box">
-              <div class="analysis-header" style="display:flex;justify-content:space-between;align-items:center">
-                <span class="analysis-title">📖 考点与详细解析</span>
-                <button class="btn btn-xs btn-ghost" style="color:var(--accent)" @click="openAiDrawer">
-                  🤖 追问 AI / 举工业落地例子 →
+              <div class="analysis-header">
+                <span class="analysis-title"><AppIcon name="book" :size="15" /> 考点与详细解析</span>
+                <button class="btn btn-xs btn-ghost" @click="openAiDrawer">
+                  <AppIcon name="robot" :size="13" /> 追问 AI / 举工业落地例子 <AppIcon name="arrow-right" :size="12" />
                 </button>
               </div>
-              <div class="statement analysis-content" v-html="renderMd(currentResult?.analysis || currentQ.analysis || '')"></div>
+              <div class="statement analysis-content markdown-body" v-html="renderMd(currentResult?.analysis || currentQ.analysis || '')"></div>
             </div>
           </transition>
 
@@ -277,14 +290,14 @@
           <div class="quiz-card-footer">
             <div class="quiz-nav-btns">
               <button class="btn btn-sm" :disabled="currentIndex === 0" @click="navigateQuestion(currentIndex - 1)">
-                ← 上一题 (←)
+                <AppIcon name="chevron-left" :size="14" /> 上一题
               </button>
               <button
                 class="btn btn-sm btn-primary"
                 :disabled="currentIndex >= questions.length - 1"
                 @click="navigateQuestion(currentIndex + 1)"
               >
-                下一题 (→ / Enter)
+                下一题 <AppIcon name="chevron-right" :size="14" />
               </button>
             </div>
 
@@ -292,7 +305,7 @@
               {{ currentIndex + 1 }} / {{ questions.length }}
             </div>
 
-            <!-- 快捷键提示条 -->
+            <!-- 快捷键提示条（触屏端隐藏） -->
             <div class="quiz-keyboard-tips">
               <span class="kbd-tip"><kbd>1-4</kbd> / <kbd>A-D</kbd> 选择</span>
               <span class="kbd-tip"><kbd>Enter</kbd> 提交/下一题</span>
@@ -329,8 +342,8 @@
               <span class="curated-badge">{{ cat }}</span>
               <span class="curated-star mono">{{ b.answered }}/{{ b.total }} 题</span>
             </div>
-            <h3 class="curated-title" style="margin:10px 0 6px">{{ b.bank }}</h3>
-            
+            <h3 class="curated-title">{{ b.bank }}</h3>
+
             <div class="bank-progress-bar">
               <div
                 class="bank-progress-fill"
@@ -341,12 +354,12 @@
               ></div>
             </div>
 
-            <div class="curated-footer" style="margin-top:12px">
+            <div class="curated-footer">
               <div class="bank-stats-text mono">
-                <span style="color:var(--green)">✓ {{ b.correct }}</span>
-                <span v-if="b.wrong > 0" style="color:var(--red);margin-left:8px">✕ {{ b.wrong }}</span>
+                <span class="bank-stat-ok"><AppIcon name="check" :size="13" /> {{ b.correct }}</span>
+                <span v-if="b.wrong > 0" class="bank-stat-bad"><AppIcon name="x" :size="13" /> {{ b.wrong }}</span>
               </div>
-              <span class="curated-link">开始刷此专题 →</span>
+              <span class="curated-link">开始刷此专题 <AppIcon name="arrow-right" :size="13" /></span>
             </div>
           </div>
         </div>
@@ -356,7 +369,7 @@
     <!-- AI 导师抽屉 -->
     <AiTutorDrawer
       :visible="aiDrawerVisible"
-      :title="`🤖 AI 导师 · 第 ${currentQ?.ordinal || currentIndex + 1} 题深度答疑`"
+      :title="`AI 导师 · 第 ${currentQ?.ordinal || currentIndex + 1} 题深度答疑`"
       :context-key="`quiz:${currentQ?.id}`"
       :context-text="aiContext"
       :preset-prompts="quizPresetPrompts"
@@ -369,6 +382,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
 import AiTutorDrawer, { type PromptPreset } from '../components/AiTutorDrawer.vue'
+import AppIcon from '../components/AppIcon.vue'
 import Skeleton from '../components/Skeleton.vue'
 import { renderMarkdown } from '../markdown'
 import { useToast } from '../stores/toast'
@@ -823,439 +837,3 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
 })
 </script>
-
-<style scoped>
-.quiz-container {
-  padding-bottom: 60px;
-}
-
-.quiz-nav-tabs {
-  margin-bottom: 20px;
-}
-
-.quiz-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 14px 20px;
-  margin-bottom: 24px;
-}
-
-.quiz-filter-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.quiz-filter-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.quiz-filter-item select {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  max-width: 420px;
-}
-.quiz-featured {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.quiz-feat-chip {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-dim);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  padding: 5px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.quiz-feat-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.wrongbook-hint {
-  font-size: 14px;
-  color: var(--text-dim);
-}
-
-.quiz-tool-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.quiz-switch-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-dim);
-  cursor: pointer;
-  user-select: none;
-}
-
-.quiz-stage {
-  max-width: 860px;
-  margin: 0 auto;
-}
-
-.quiz-card {
-  padding: 28px 32px;
-}
-
-.quiz-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.quiz-badges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.quiz-num-tag {
-  font-size: 12px;
-  color: var(--text-dim);
-  font-weight: bold;
-}
-
-.quiz-head-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-favorite.active {
-  color: var(--amber);
-  border-color: var(--amber);
-}
-
-.quiz-stem {
-  display: flex;
-  gap: 12px;
-  font-size: 17px;
-  font-weight: 500;
-  line-height: 1.6;
-  margin-bottom: 24px;
-}
-
-.quiz-q-idx {
-  color: var(--accent);
-  font-weight: 700;
-  font-size: 18px;
-}
-
-.quiz-stem-text {
-  flex: 1;
-}
-
-.quiz-options-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.quiz-option-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-card, var(--card));
-  color: var(--text);
-  font-size: 15px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.quiz-option-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.opt-prefix {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  font-weight: 600;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.opt-content {
-  flex: 1;
-  line-height: 1.45;
-}
-
-.opt-indicator {
-  width: 24px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.indicator-tag {
-  font-weight: bold;
-  font-size: 15px;
-}
-
-.indicator-tag.correct {
-  color: var(--green);
-}
-
-.indicator-tag.wrong {
-  color: var(--red);
-}
-
-.indicator-tag.selected {
-  color: var(--accent);
-}
-
-/* 判定反馈样式 */
-.quiz-option-btn.opt-correct {
-  border-color: var(--green) !important;
-  background: var(--green-soft) !important;
-}
-
-.quiz-option-btn.opt-correct .opt-prefix {
-  background: var(--green);
-  color: #fff;
-  border-color: var(--green);
-}
-
-.quiz-option-btn.opt-wrong {
-  border-color: var(--red) !important;
-  background: var(--red-soft) !important;
-}
-
-.quiz-option-btn.opt-wrong .opt-prefix {
-  background: var(--red);
-  color: #fff;
-  border-color: var(--red);
-}
-
-.quiz-option-btn.opt-selected {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.multi-submit-bar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.multi-hint {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.quiz-result-banner {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border-radius: 8px;
-  margin-bottom: 24px;
-}
-
-.quiz-result-banner.res-correct {
-  background: var(--green-soft);
-  border: 1px solid var(--green);
-}
-
-.quiz-result-banner.res-wrong {
-  background: var(--red-soft);
-  border: 1px solid var(--red);
-}
-
-.res-icon {
-  font-size: 24px;
-}
-
-.res-msg {
-  flex: 1;
-}
-
-.res-title {
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-.res-ans {
-  margin-left: 12px;
-  color: var(--text);
-}
-
-.res-sub {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.quiz-analysis-box {
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  padding: 20px 24px;
-  margin-bottom: 24px;
-}
-
-.analysis-header {
-  margin-bottom: 12px;
-}
-
-.analysis-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--accent);
-}
-
-.analysis-content {
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--text);
-}
-
-.quiz-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-
-.quiz-nav-btns {
-  display: flex;
-  gap: 10px;
-}
-
-.quiz-progress-text {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.quiz-keyboard-tips {
-  display: flex;
-  gap: 12px;
-}
-
-.kbd-tip {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-
-kbd {
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  font-family: monospace;
-  font-size: 11px;
-}
-
-/* 34 专题大纲列表 */
-.banks-header {
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
-.category-block {
-  margin-bottom: 32px;
-}
-
-.category-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 17px;
-  margin-bottom: 16px;
-}
-
-.cat-pill {
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.cat-count {
-  font-size: 13px;
-  color: var(--text-dim);
-  font-weight: normal;
-}
-
-.banks-grid {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-}
-
-.bank-card {
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.bank-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-}
-
-.bank-progress-bar {
-  height: 6px;
-  background: var(--surface-2);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.bank-progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.bank-stats-text {
-  font-size: 13px;
-}
-
-.empty-card {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-</style>

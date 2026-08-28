@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container handbook-page">
     <div class="page-head">
       <div>
         <div class="kicker">Handbook & Roadmap</div>
@@ -21,23 +21,25 @@
       </div>
     </div>
 
-    <!-- 导航选项卡 -->
-    <div class="handbook-nav-tabs">
-      <button :class="{ active: currentTab === 'basics' }" @click="currentTab = 'basics'">
-        零基础扫盲
-      </button>
-      <button :class="{ active: currentTab === 'links' }" @click="currentTab = 'links'">
-        顶流开源笔记导航
-      </button>
-      <button :class="{ active: currentTab === 'complexity' }" @click="currentTab = 'complexity'">
-        数据规模与复杂度速查
-      </button>
-      <button :class="{ active: currentTab === 'syntax' }" @click="currentTab = 'syntax'">
-        Python ⇋ C++ 语法对齐
-      </button>
-      <button :class="{ active: currentTab === 'templates' }" @click="currentTab = 'templates'">
-        7 大核心算法通用模板
-      </button>
+    <!-- 导航选项卡：iOS 分段器，移动端可横向滑动 -->
+    <div class="handbook-tabs-wrap">
+      <div class="segmented handbook-tabs">
+        <button :class="{ active: currentTab === 'basics' }" @click="currentTab = 'basics'">
+          零基础扫盲
+        </button>
+        <button :class="{ active: currentTab === 'links' }" @click="currentTab = 'links'">
+          顶流开源笔记导航
+        </button>
+        <button :class="{ active: currentTab === 'complexity' }" @click="currentTab = 'complexity'">
+          数据规模与复杂度速查
+        </button>
+        <button :class="{ active: currentTab === 'syntax' }" @click="currentTab = 'syntax'">
+          Python ⇋ C++ 语法对齐
+        </button>
+        <button :class="{ active: currentTab === 'templates' }" @click="currentTab = 'templates'">
+          7 大核心算法通用模板
+        </button>
+      </div>
     </div>
 
     <!-- 模块 0: 零基础扫盲 -->
@@ -52,13 +54,13 @@
           <li><strong>二分 / 滑动窗口 / 回溯</strong>：中等题三大套路，配合右侧「模板」页直接背骨架。</li>
           <li><strong>动态规划 + 图</strong>：放到最后，前面攒够手感再来啃。</li>
         </ol>
-        <p class="rule-intro" style="margin-bottom:0">
+        <p class="rule-intro rule-flush">
           每道题先想暴力解，再问自己「哪一步在重复劳动」，优化的方向往往就藏在这个答案里。题解看不懂很正常——去「背题」页把对应模板先背下来，回头再看就通了。
         </p>
       </div>
 
       <!-- ACM 模式 vs 力扣模式扫盲 -->
-      <div class="card rule-card" style="margin-top:16px">
+      <div class="card rule-card rule-card-gap">
         <h2>ACM 模式 vs 力扣模式（刷题页可切换）</h2>
         <p class="rule-intro">
           力扣上你只需要写一个函数，平台帮你处理输入输出；而<strong>校招笔试（牛客、各厂自家 OJ）几乎全是 ACM 模式</strong>——自己从标准输入读数据、把答案打印到标准输出。本站两种模式都支持：编辑器工具栏可切换，草稿分开保存。建议笔试前用 ACM 模式练手。
@@ -97,7 +99,7 @@
           </table>
         </div>
 
-        <h3 style="margin-top:24px;font-size:16px">同一道「两数之和」，两种模式的写法对比</h3>
+        <h3 class="rule-h3">同一道「两数之和」，两种模式的写法对比</h3>
         <div class="io-templates-grid">
           <div class="io-temp-box">
             <div class="io-temp-head">
@@ -114,7 +116,7 @@
             <pre class="mono io-pre">{{ ACM_STYLE_CODE }}</pre>
           </div>
         </div>
-        <p class="rule-intro" style="margin:14px 0 0">
+        <p class="rule-intro rule-after">
           力扣模式下模板签名与力扣一致（<code>class Solution</code> / 设计类），评测仍用本题 ACM 用例，由平台代读入。ACM 模式大数据量输入请用「语法对齐」页底部的极速 I/O 模板防 TLE。
         </p>
       </div>
@@ -136,7 +138,10 @@
           <p class="curated-desc">{{ d.what }}</p>
           <div class="curated-footer">
             <span class="curated-tag">{{ d.usage }}</span>
-            <span class="curated-link">{{ selectedDsIdx === idx ? '收起 ▴' : '看用法 ▾' }}</span>
+            <span class="curated-link">
+              {{ selectedDsIdx === idx ? '收起' : '看用法' }}
+              <AppIcon name="chevron-down" :size="13" class="fold-icon" :class="{ open: selectedDsIdx === idx }" />
+            </span>
           </div>
         </div>
       </div>
@@ -149,7 +154,7 @@
             <p class="tpl-desc">{{ currentDs.intro }}</p>
           </div>
           <div class="tpl-actions">
-            <div class="lang-switch-pills">
+            <div class="segmented">
               <button :class="{ active: tplLang === 'python3' }" @click="tplLang = 'python3'">Python 3</button>
               <button :class="{ active: tplLang === 'cpp' }" @click="tplLang = 'cpp'">C++ 20</button>
             </div>
@@ -161,7 +166,7 @@
         </div>
       </div>
 
-      <div class="card rule-card" style="margin-top:16px">
+      <div class="card rule-card rule-card-gap">
         <h2>大 O 复杂度直觉（越大越慢，从左到右恶化）</h2>
         <p class="rule-intro">
           大 O 描述的是「数据量 n 变大时，运行时间增长得多快」。面试中说出复杂度级别，比背出精确数字重要得多：
@@ -181,12 +186,12 @@
                 <td class="mono bold accent-cell">{{ r.big_o }}</td>
                 <td>{{ r.name }}</td>
                 <td>{{ r.typical }}</td>
-                <td style="color:var(--text-dim)">{{ r.intuition }}</td>
+                <td class="muted">{{ r.intuition }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <p class="rule-intro" style="margin:14px 0 0">
+        <p class="rule-intro rule-after">
           拿到题先看数据范围 n，再对照「数据规模与复杂度速查」页倒推允许的复杂度——这是面试秒出思路的关键习惯。
         </p>
       </div>
@@ -211,7 +216,7 @@
           <p class="curated-desc">{{ item.desc }}</p>
           <div class="curated-footer">
             <span class="curated-tag">{{ item.tag }}</span>
-            <span class="curated-link">前往阅读 ↗</span>
+            <span class="curated-link">前往阅读 <AppIcon name="arrow-right" :size="13" class="ext-icon" /></span>
           </div>
         </a>
       </div>
@@ -240,7 +245,7 @@
                 <td class="mono bold accent-cell">{{ r.range }}</td>
                 <td class="mono bold">{{ r.complexity }}</td>
                 <td>{{ r.algorithms }}</td>
-                <td style="color:var(--text-dim)">{{ r.examples }}</td>
+                <td class="muted">{{ r.examples }}</td>
               </tr>
             </tbody>
           </table>
@@ -276,7 +281,7 @@
         </div>
 
         <!-- ACM 模式极速 I/O 模板 -->
-        <h3 style="margin-top:28px;font-size:16px">ACM 模式极速 I/O 输入输出防 TLE 模板</h3>
+        <h3 class="rule-h3">ACM 模式极速 I/O 输入输出防 TLE 模板</h3>
         <div class="io-templates-grid">
           <div class="io-temp-box">
             <div class="io-temp-head">
@@ -322,7 +327,7 @@
               <p class="tpl-desc">{{ currentTemplate.desc }}</p>
             </div>
             <div class="tpl-actions">
-              <div class="lang-switch-pills">
+              <div class="segmented">
                 <button
                   :class="{ active: tplLang === 'python3' }"
                   @click="tplLang = 'python3'"
@@ -355,6 +360,7 @@
 import { computed, ref, watch } from 'vue'
 import { useToast } from '../stores/toast'
 import { useLangPref } from '../stores/pref'
+import AppIcon from '../components/AppIcon.vue'
 
 const toast = useToast()
 const { langPref } = useLangPref()

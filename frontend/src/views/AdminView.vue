@@ -11,26 +11,26 @@
       </div>
     </div>
 
-    <div class="admin-tabs">
-      <button :class="{ active: tab === 'problems' }" @click="tab = 'problems'">题目管理</button>
-      <button :class="{ active: tab === 'jobs' }" @click="tab = 'jobs'">看板管理</button>
-      <button :class="{ active: tab === 'invites' }" @click="tab = 'invites'">邀请码</button>
-      <button :class="{ active: tab === 'ai' }" @click="tab = 'ai'">🤖 AI 内测配置</button>
+    <div class="segmented admin-tabs">
+      <button type="button" :class="{ active: tab === 'problems' }" @click="tab = 'problems'">题目管理</button>
+      <button type="button" :class="{ active: tab === 'jobs' }" @click="tab = 'jobs'">看板管理</button>
+      <button type="button" :class="{ active: tab === 'invites' }" @click="tab = 'invites'">邀请码</button>
+      <button type="button" :class="{ active: tab === 'ai' }" @click="tab = 'ai'"><AppIcon name="robot" :size="14" /> AI 内测配置</button>
     </div>
 
     <!-- 题目管理 -->
     <div v-show="tab === 'problems'" class="card">
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center">
+      <div class="admin-card-toolbar">
         <button class="btn btn-sm btn-primary" :disabled="seeding" @click="reloadSeed">
           {{ seeding ? '导入中…' : '重新导入题库与八股' }}
         </button>
-        <span v-if="seedMsg" style="font-size:13px;color:var(--text-dim)">{{ seedMsg }}</span>
+        <span v-if="seedMsg" class="admin-note">{{ seedMsg }}</span>
       </div>
       <div v-if="problems.length === 0" class="empty">暂无题目，点上方按钮导入种子</div>
       <div v-for="p in problems" :key="p.id" class="admin-row">
-        <span class="badge" :class="`badge-${p.difficulty}`" style="flex:none">{{ p.difficulty }}</span>
-        <span class="grow">{{ problemHeading(p) }} <span style="color:var(--text-faint);font-size:12px">{{ p.slug }}</span></span>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);flex:none">
+        <span class="badge" :class="`badge-${p.difficulty}`">{{ p.difficulty }}</span>
+        <span class="grow">{{ problemHeading(p) }} <span class="admin-dim">{{ p.slug }}</span></span>
+        <label class="admin-check">
           <input type="checkbox" :checked="p.is_published" @change="togglePublish(p)" /> 上架
         </label>
       </div>
@@ -38,11 +38,11 @@
 
     <!-- 看板管理 -->
     <div v-show="tab === 'jobs'">
-      <div class="card" style="padding:18px 20px;margin-bottom:14px">
-        <h3 style="margin-top:0">{{ editingJob ? '编辑岗位' : '新增岗位' }}</h3>
+      <div class="card admin-card">
+        <h3>{{ editingJob ? '编辑岗位' : '新增岗位' }}</h3>
         <div v-if="jobError" class="form-err">{{ jobError }}</div>
         <form @submit.prevent="saveJob">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px">
+          <div class="admin-form-grid">
             <div class="field"><label>公司 *</label><input v-model="jobForm.company" class="input" required /></div>
             <div class="field"><label>岗位 *</label><input v-model="jobForm.position" class="input" required /></div>
             <div class="field"><label>批次</label><input v-model="jobForm.batch" class="input" placeholder="如 2027秋招" /></div>
@@ -66,7 +66,7 @@
             </div>
           </div>
           <div class="field"><label>JD 摘要</label><textarea v-model="jobForm.jd_text" class="textarea" rows="3"></textarea></div>
-          <div style="display:flex;gap:8px">
+          <div class="admin-actions">
             <button class="btn btn-primary btn-sm" type="submit">{{ editingJob ? '保存修改' : '添加岗位' }}</button>
             <button v-if="editingJob" class="btn btn-sm" type="button" @click="resetForm">取消编辑</button>
           </div>
@@ -77,19 +77,19 @@
         <div v-if="jobs.length === 0" class="empty">暂无岗位</div>
         <div v-for="j in jobs" :key="j.id" class="admin-row">
           <span class="grow"><b>{{ j.company }}</b> · {{ j.position }}
-            <span style="color:var(--text-faint);font-size:12px">{{ j.deadline_at ? ` 截止 ${j.deadline_at}` : '' }}</span>
+            <span class="admin-dim">{{ j.deadline_at ? ` 截止 ${j.deadline_at}` : '' }}</span>
           </span>
           <button class="btn btn-sm" @click="editJob(j)">编辑</button>
-          <button class="btn btn-sm" style="color:var(--red)" @click="deleteJob(j)">删除</button>
+          <button class="btn btn-sm btn-danger-text" @click="deleteJob(j)">删除</button>
         </div>
       </div>
     </div>
 
     <div v-show="tab === 'invites'">
-      <div class="card" style="padding:18px 20px;margin-bottom:14px">
-        <h3 style="margin-top:0">创建一次性邀请码</h3>
-        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
-          <div class="field" style="margin:0;min-width:180px">
+      <div class="card admin-card">
+        <h3>创建一次性邀请码</h3>
+        <div class="admin-inline-form">
+          <div class="field">
             <label>有效期</label>
             <select v-model="inviteDays" class="select">
               <option :value="1">1 天</option>
@@ -106,7 +106,7 @@
           <code>{{ newInviteCode }}</code>
           <button class="btn btn-sm" @click="copyInvite">复制</button>
         </div>
-        <div v-if="inviteMessage" style="margin-top:10px;color:var(--text-dim);font-size:13px">
+        <div v-if="inviteMessage" class="admin-note admin-note-block">
           {{ inviteMessage }}
         </div>
       </div>
@@ -116,13 +116,12 @@
         <div v-for="invite in invites" :key="invite.id" class="admin-row">
           <span class="grow">
             <b>#{{ invite.id }}</b>
-            <span style="color:var(--text-faint);font-size:12px"> 有效至 {{ formatInviteTime(invite.expires_at) }}</span>
+            <span class="admin-dim"> 有效至 {{ formatInviteTime(invite.expires_at) }}</span>
           </span>
           <span class="badge" :class="inviteState(invite).className">{{ inviteState(invite).text }}</span>
           <button
             v-if="!invite.used_at && !invite.revoked_at"
-            class="btn btn-sm"
-            style="color:var(--red)"
+            class="btn btn-sm btn-danger-text"
             @click="revokeInvite(invite.id)"
           >撤销</button>
         </div>
@@ -131,29 +130,29 @@
 
     <!-- AI 内测配置 -->
     <div v-show="tab === 'ai'">
-      <div class="card" style="padding:20px 24px;margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div class="card admin-card">
+        <div class="admin-head-row">
           <div>
-            <h3 style="margin:0 0 4px 0">🤖 系统内置共享 AI 助教配置（内测免 Key 模式）</h3>
-            <p class="muted" style="margin:0;font-size:13px">
+            <h3><AppIcon name="robot" :size="17" class="admin-h3-icon" />系统内置共享 AI 助教配置（内测免 Key 模式）</h3>
+            <p class="muted admin-note-block">
               在此配置由你（管理员）统一提供的 API Key。配置后，<strong>所有内测用户登录后无需输入任何 Key 即可直接与 Grok 提问对话</strong>。
             </p>
           </div>
           <span
-            class="badge"
+            class="badge admin-key-badge"
             :class="aiConfig.has_key ? 'badge-easy' : 'badge-hard'"
-            style="font-size:12px;padding:4px 10px"
           >
-            {{ aiConfig.has_key ? `✓ 已启用内置 Key (${aiConfig.masked_key})` : '✕ 尚未配置内置 Key' }}
+            <AppIcon :name="aiConfig.has_key ? 'check' : 'x'" :size="12" />
+            {{ aiConfig.has_key ? `已启用内置 Key (${aiConfig.masked_key})` : '尚未配置内置 Key' }}
           </span>
         </div>
 
-        <div v-if="aiMsg" :class="aiMsgType === 'error' ? 'form-err' : 'form-success'" style="margin-bottom:14px">
+        <div v-if="aiMsg" :class="aiMsgType === 'error' ? 'form-err' : 'form-success'">
           {{ aiMsg }}
         </div>
 
         <form @submit.prevent="saveAiConfig">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+          <div class="admin-form-grid admin-form-grid-wide">
             <div class="field">
               <label>Antithor / OpenAI 接口地址 (Base URL) *</label>
               <input
@@ -172,7 +171,7 @@
                 placeholder="grok-4.6-xhigh"
               />
             </div>
-            <div class="field" style="grid-column:1/-1">
+            <div class="field admin-field-full">
               <label>系统内置 API Key (支持 Antithor 密钥) *</label>
               <input
                 v-model="aiForm.api_key"
@@ -180,20 +179,20 @@
                 class="input mono"
                 :placeholder="aiConfig.has_key ? `留空保持当前密钥 (${aiConfig.masked_key})，输入新密钥覆盖` : 'sk-xxxxxxxxxxxxxxxxxxxxxxxx'"
               />
-              <small style="color:var(--text-faint);display:block;margin-top:6px;font-size:12px">
-                🔒 安全承诺：此 Key 仅保存在服务器数据库 WAL 中，绝不下发给普通用户的前端 JS 或网络抓包，普通用户只能通过服务器代理进行安全问答。
+              <small class="admin-field-hint">
+                安全承诺：此 Key 仅保存在服务器数据库 WAL 中，绝不下发给普通用户的前端 JS 或网络抓包，普通用户只能通过服务器代理进行安全问答。
               </small>
             </div>
           </div>
 
-          <div style="margin-top:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div class="admin-actions">
             <button class="btn btn-primary" :disabled="savingAi" type="submit">
-              {{ savingAi ? '保存中…' : '💾 保存并应用全局内置 Key' }}
+              {{ savingAi ? '保存中…' : '保存并应用全局内置 Key' }}
             </button>
             <button class="btn btn-outline" :disabled="testingAi" type="button" @click="testAiConnection">
-              {{ testingAi ? '测试中…' : '🔄 测试中转站连接与拉取模型' }}
+              <AppIcon name="refresh" :size="14" /> {{ testingAi ? '测试中…' : '测试中转站连接与拉取模型' }}
             </button>
-            <span v-if="aiTestResult" style="font-size:13px;color:var(--green)">{{ aiTestResult }}</span>
+            <span v-if="aiTestResult" class="admin-ok">{{ aiTestResult }}</span>
           </div>
         </form>
       </div>
@@ -204,6 +203,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { api } from '../api'
+import AppIcon from '../components/AppIcon.vue'
 import { problemHeading, type InviteCreated, type InviteSummary, type Job, type ProblemListItem } from '../types'
 
 interface AdminProblem extends ProblemListItem {

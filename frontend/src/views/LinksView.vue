@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container links-page">
     <div v-if="error" class="error-banner">
       <span>{{ error }}</span>
       <button type="button" class="btn btn-sm" @click="loadLinks">重试</button>
@@ -17,7 +17,7 @@
         <h2>{{ category }}</h2>
         <div class="link-grid">
           <a v-for="item in items" :key="item.url + item.title" class="card link-card" :href="item.url" target="_blank" rel="noopener">
-            <div class="link-title">{{ item.title }} <span class="ext">↗</span></div>
+            <div class="link-title">{{ item.title }} <AppIcon name="arrow-right" :size="14" class="ext" /></div>
             <div v-if="item.note" class="link-note">{{ item.note }}</div>
           </a>
         </div>
@@ -31,6 +31,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 import type { LinkItem } from '../types'
+import AppIcon from '../components/AppIcon.vue'
 
 const links = ref<LinkItem[]>([])
 const loading = ref(true)

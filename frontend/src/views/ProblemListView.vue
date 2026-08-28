@@ -54,11 +54,11 @@
       <div v-else-if="filtered.length === 0" class="empty">没有匹配的题目</div>
       <template v-else>
         <div class="list-head">
-          <span class="sortable-th" @click="toggleSort('id')"># {{ sortField === 'id' ? (sortAsc ? '▲' : '▼') : '' }}</span>
-          <span class="sortable-th" @click="toggleSort('status')">状态 {{ sortField === 'status' ? (sortAsc ? '▲' : '▼') : '' }}</span>
-          <span class="sortable-th" @click="toggleSort('title')">题目 {{ sortField === 'title' ? (sortAsc ? '▲' : '▼') : '' }}</span>
-          <span class="sortable-th" @click="toggleSort('difficulty')">难度 {{ sortField === 'difficulty' ? (sortAsc ? '▲' : '▼') : '' }}</span>
-          <span class="sortable-th" @click="toggleSort('source')">来源 {{ sortField === 'source' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          <span class="sortable-th" @click="toggleSort('id')"># <AppIcon v-if="sortField === 'id'" name="chevron-down" :size="11" class="sort-caret" :class="{ asc: sortAsc }" /></span>
+          <span class="sortable-th" @click="toggleSort('status')">状态 <AppIcon v-if="sortField === 'status'" name="chevron-down" :size="11" class="sort-caret" :class="{ asc: sortAsc }" /></span>
+          <span class="sortable-th" @click="toggleSort('title')">题目 <AppIcon v-if="sortField === 'title'" name="chevron-down" :size="11" class="sort-caret" :class="{ asc: sortAsc }" /></span>
+          <span class="sortable-th" @click="toggleSort('difficulty')">难度 <AppIcon v-if="sortField === 'difficulty'" name="chevron-down" :size="11" class="sort-caret" :class="{ asc: sortAsc }" /></span>
+          <span class="sortable-th" @click="toggleSort('source')">来源 <AppIcon v-if="sortField === 'source'" name="chevron-down" :size="11" class="sort-caret" :class="{ asc: sortAsc }" /></span>
           <span>标签</span>
           <span></span>
         </div>
@@ -70,8 +70,8 @@
         >
           <span class="p-idx">{{ p.leetcode_id ?? String(i + 1).padStart(2, '0') }}</span>
           <span class="p-check">
-            <span v-if="p.my_status === 'solved'" class="solved" title="已通过">✓</span>
-            <span v-else-if="p.my_status === 'attempted'" class="attempted" title="尝试过">●</span>
+            <span v-if="p.my_status === 'solved'" class="solved" title="已通过"><AppIcon name="check" :size="14" :stroke-width="2.6" /></span>
+            <span v-else-if="p.my_status === 'attempted'" class="attempted-dot" title="尝试过"></span>
             <span v-else class="todo">·</span>
           </span>
           <span class="p-main">
@@ -81,7 +81,7 @@
           <span class="badge" :class="`badge-${p.difficulty}`">{{ difficultyText(p.difficulty) }}</span>
           <span class="p-src">{{ sourceBadgeTexts(p, true).join(' · ') }}</span>
           <span class="p-tags">{{ p.tags.slice(0, 3).join(' · ') }}</span>
-          <span class="p-arrow">→</span>
+          <span class="p-arrow"><AppIcon name="chevron-right" :size="15" /></span>
         </RouterLink>
       </template>
     </div>
@@ -91,6 +91,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '../api'
+import AppIcon from '../components/AppIcon.vue'
 import Skeleton from '../components/Skeleton.vue'
 import { belongsToSource, problemHeading, sourceBadgeTexts, type Difficulty, type ProblemListItem } from '../types'
 

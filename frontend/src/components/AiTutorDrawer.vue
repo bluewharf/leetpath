@@ -1,28 +1,34 @@
 <template>
   <div v-if="visible" class="drawer-backdrop" @click.self="$emit('close')">
-    <div class="drawer card">
+    <div class="drawer">
       <!-- 头部 -->
       <div class="drawer-head">
         <div class="drawer-title-group">
           <div class="drawer-kicker">AI Tutor & In-Context Assistant</div>
-          <h3 class="drawer-title">{{ title || '🤖 AI 导师智能答疑' }}</h3>
+          <h3 class="drawer-title">
+            <AppIcon name="robot" :size="17" class="drawer-title-icon" />
+            <span class="drawer-title-text">{{ title || 'AI 导师智能答疑' }}</span>
+          </h3>
         </div>
         <div class="drawer-actions">
           <button class="btn btn-xs" :title="`当前模型: ${ai.selectedModel.value}`" @click="showSettings = true">
-            <span class="mono" style="font-size:12px">⚡ {{ ai.selectedModel.value || '未选模型' }}</span>
+            <AppIcon name="sparkle" :size="12" />
+            <span class="mono drawer-model-name">{{ ai.selectedModel.value || '未选模型' }}</span>
           </button>
-          <button class="btn btn-xs btn-ghost" @click="$emit('close')">✕</button>
+          <button class="btn btn-xs btn-ghost drawer-close-btn" title="关闭" @click="$emit('close')">
+            <AppIcon name="x" :size="14" />
+          </button>
         </div>
       </div>
 
       <!-- 未配置提示 -->
       <div v-if="!ai.isConfigured.value" class="drawer-warning-card">
-        <p>⚠️ <strong>尚未配置 AI API Key</strong></p>
-        <p class="muted" style="margin:4px 0 10px;font-size:13px">
+        <p><strong>尚未配置 AI API Key</strong></p>
+        <p class="muted drawer-warning-sub">
           支持接入 DeepSeek、硅基流动、Claude、OpenRouter 或自定义中转站。
         </p>
         <button class="btn btn-sm btn-primary" @click="showSettings = true">
-          ⚙️ 立即前往配置 Base URL 与 Key
+          <AppIcon name="gear" :size="14" /> 立即前往配置 Base URL 与 Key
         </button>
       </div>
 
@@ -46,48 +52,48 @@
       <div class="drawer-messages" ref="msgContainer">
         <div v-for="(msg, idx) in messages" :key="idx" class="chat-bubble" :class="`bubble-${msg.role}`">
           <div class="bubble-avatar">
-            {{ msg.role === 'assistant' ? '🤖' : '👤' }}
+            <AppIcon v-if="msg.role === 'assistant'" name="robot" :size="16" />
+            <span v-else>我</span>
           </div>
           <div class="bubble-body">
             <div class="bubble-header">
               <span class="bubble-name">{{ msg.role === 'assistant' ? `AI 导师 (${ai.selectedModel.value})` : '我' }}</span>
               <div class="bubble-header-actions" v-if="msg.role === 'assistant'">
                 <span v-if="msg.isCached" class="cached-badge" title="从本地浏览器直接秒级载入，未调用网络 API">
-                  ⚡ 命中本地缓存 (0 Token)
+                  <AppIcon name="sparkle" :size="10" /> 命中本地缓存 (0 Token)
                 </span>
                 <button
                   v-if="msg.isCached && msg.originalPrompt"
-                  class="btn btn-xs btn-ghost"
-                  style="font-size:11px;color:var(--accent)"
+                  class="btn btn-xs btn-ghost bubble-regen"
                   :disabled="generating"
                   @click="reGenerate(msg.originalPrompt)"
                 >
-                  🔄 重新生成
+                  <AppIcon name="refresh" :size="11" /> 重新生成
                 </button>
                 <button
                   v-if="msg.content"
                   class="btn btn-xs btn-ghost bubble-copy"
                   @click="copyText(typeof msg.content === 'string' ? msg.content : '')"
                 >
-                  复制
+                  <AppIcon name="copy" :size="11" /> 复制
                 </button>
               </div>
             </div>
             <div v-if="msg.images?.length" class="msg-images">
               <img v-for="(src, imgIdx) in msg.images" :key="imgIdx" :src="src" alt="粘贴的截图" />
             </div>
-            <div class="statement bubble-markdown" v-html="renderMd(typeof msg.content === 'string' ? msg.content : '')"></div>
+            <div class="statement bubble-markdown markdown-body" v-html="renderMd(typeof msg.content === 'string' ? msg.content : '')"></div>
           </div>
         </div>
 
         <!-- 正在生成的流式消息 -->
         <div v-if="generating" class="chat-bubble bubble-assistant">
-          <div class="bubble-avatar">🤖</div>
+          <div class="bubble-avatar"><AppIcon name="robot" :size="16" /></div>
           <div class="bubble-body">
             <div class="bubble-header">
               <span class="bubble-name">AI 导师思考中...</span>
             </div>
-            <div class="statement bubble-markdown" v-html="renderMd(streamBuffer || '...')"></div>
+            <div class="statement bubble-markdown markdown-body" v-html="renderMd(streamBuffer || '...')"></div>
             <div class="stream-cursor"></div>
           </div>
         </div>
@@ -98,7 +104,9 @@
         <div v-if="pendingImages.length" class="composer-previews">
           <div v-for="(src, idx) in pendingImages" :key="idx" class="composer-preview">
             <img :src="src" alt="待发送截图" />
-            <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)">×</button>
+            <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)">
+              <AppIcon name="x" :size="10" />
+            </button>
           </div>
         </div>
         <textarea
@@ -128,9 +136,9 @@
               title="添加截图"
               :disabled="generating"
               @click="fileEl?.click()"
-            >📎 截图</button>
+            ><AppIcon name="plus" :size="14" /> 截图</button>
             <button v-if="generating" class="btn btn-sm btn-outline" @click="abort">
-              ⏹ 停止生成
+              <AppIcon name="x" :size="13" /> 停止生成
             </button>
             <button
               v-else
@@ -138,7 +146,7 @@
               :disabled="(!inputQuestion.trim() && !pendingImages.length) || !ai.isConfigured.value"
               @click="onPromptClick(inputQuestion)"
             >
-              发送 (Enter)
+              <AppIcon name="send" :size="13" /> 发送 (Enter)
             </button>
           </div>
         </div>
@@ -153,6 +161,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import AiSettingsModal from './AiSettingsModal.vue'
+import AppIcon from './AppIcon.vue'
 import { renderMarkdown } from '../markdown'
 import { useAiStore, type AiMessage } from '../stores/ai'
 import { useToast } from '../stores/toast'
@@ -393,291 +402,3 @@ watch(
   { immediate: true },
 )
 </script>
-
-<style scoped>
-.drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
-  z-index: 900;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.drawer {
-  width: 100%;
-  max-width: 580px;
-  height: 100vh;
-  border-radius: 0;
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-card, var(--card));
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
-  animation: slideIn 0.2s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.drawer-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.drawer-kicker {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-}
-
-.drawer-title {
-  margin: 2px 0 0;
-  font-size: 16px;
-}
-
-.drawer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.drawer-warning-card {
-  margin: 16px 20px;
-  padding: 14px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  background: rgba(245, 158, 11, 0.08);
-}
-
-.quick-prompts-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-}
-
-.quick-lbl {
-  font-size: 12px;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-.quick-chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: nowrap;
-}
-
-.chip-btn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--accent-soft);
-  color: var(--text);
-  font-size: 12px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.chip-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.drawer-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.chat-bubble {
-  display: flex;
-  gap: 12px;
-}
-
-.bubble-user {
-  flex-direction: row-reverse;
-}
-
-.bubble-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.bubble-body {
-  max-width: 86%;
-}
-
-.bubble-user .bubble-body {
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  padding: 10px 14px;
-  border-radius: 10px;
-  border-top-right-radius: 2px;
-}
-
-.bubble-assistant .bubble-body {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  padding: 12px 16px;
-  border-radius: 10px;
-  border-top-left-radius: 2px;
-}
-
-.bubble-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  gap: 8px;
-}
-
-.bubble-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.bubble-name {
-  font-size: 12px;
-  color: var(--text-dim);
-  font-weight: 600;
-}
-
-.cached-badge {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--green-soft);
-  color: var(--green);
-  border: 1px solid var(--green);
-}
-
-.bubble-markdown {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.drawer-input-bar {
-  padding: 14px 20px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.drawer-textarea {
-  width: 100%;
-  resize: none;
-  font-size: 16px;
-  margin-bottom: 8px;
-  user-select: text;
-  -webkit-user-select: text;
-  touch-action: manipulation;
-}
-
-.drawer-send-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.composer-previews {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.composer-preview {
-  position: relative;
-  width: 64px;
-  height: 64px;
-}
-
-.composer-preview img,
-.msg-images img {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.msg-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.msg-images img {
-  width: 96px;
-  height: 96px;
-}
-
-.preview-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: none;
-  background: var(--red, #c44);
-  color: #fff;
-  font-size: 12px;
-  line-height: 18px;
-  cursor: pointer;
-}
-
-.input-bottom-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.drawer-hint {
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.stream-cursor {
-  display: inline-block;
-  width: 6px;
-  height: 14px;
-  background: var(--accent);
-  margin-left: 4px;
-  vertical-align: middle;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-</style>

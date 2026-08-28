@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="plan-wrap">
     <!-- 场景 A: 存在激活的打卡计划 -->
     <div v-if="activePlan" class="card active-plan-card">
       <!-- 计划头部 -->
@@ -58,26 +58,30 @@
       <div class="today-mission-box">
         <div class="today-mission-head">
           <div class="today-target-line">
-            <span class="today-tag">🎯 {{ todayHeadline }}</span>
+            <span class="today-tag">{{ todayHeadline }}</span>
             <template v-if="planPhase === 'active'">
               <span class="today-count mono">
                 已完成 <strong>{{ todayProgress.count }}</strong> / {{ todayQuota }} 题
               </span>
-              <span v-if="todayProgress.completed" class="today-badge-ok">✨ 今日打卡已达标！</span>
+              <span v-if="todayProgress.completed" class="today-badge-ok">
+                <AppIcon name="sparkle" :size="12" />
+                今日打卡已达标！
+              </span>
               <span v-else class="today-badge-pending">
-                ⏳ 还差 {{ Math.max(0, todayQuota - todayProgress.count) }} 题达标
+                <AppIcon name="clock" :size="12" />
+                还差 {{ Math.max(0, todayQuota - todayProgress.count) }} 题达标
               </span>
             </template>
           </div>
         </div>
 
-        <div v-if="planPhase === 'upcoming'" class="empty" style="padding:12px 0">
+        <div v-if="planPhase === 'upcoming'" class="empty">
           计划将于 {{ formatZhDate(activePlan.startDate) }} 开始，今天暂无打卡任务。
         </div>
-        <div v-else-if="planPhase === 'ended'" class="empty" style="padding:12px 0">
+        <div v-else-if="planPhase === 'ended'" class="empty">
           计划已于 {{ formatZhDate(planEndDate) }} 结束。可点右上角切换或重置后再开新计划。
         </div>
-        <div v-else-if="todayProblems.length === 0" class="empty" style="padding:12px 0">
+        <div v-else-if="todayProblems.length === 0" class="empty">
           今日没有编排题目（当天题量为 0）。
         </div>
         <div class="today-problems-list" v-else>
@@ -95,11 +99,13 @@
             </div>
 
             <div class="tp-actions">
-              <span v-if="p.my_status === 'solved'" class="badge" style="color:var(--green)">
-                ✓ 已解决
+              <span v-if="p.my_status === 'solved'" class="tp-solved">
+                <AppIcon name="check" :size="13" />
+                已解决
               </span>
               <RouterLink :to="`/problems/${p.slug}`" class="btn btn-sm btn-primary">
-                {{ p.my_status === 'solved' ? '再刷一遍 →' : '去完成此题 →' }}
+                {{ p.my_status === 'solved' ? '再刷一遍' : '去完成此题' }}
+                <AppIcon name="arrow-right" :size="13" />
               </RouterLink>
             </div>
           </div>
@@ -110,14 +116,18 @@
     <!-- 场景 B: 暂无激活计划，展示开启打卡引导横幅 -->
     <div v-else class="card plan-cta-card" @click="$emit('open-modal')">
       <div class="cta-left">
-        <div class="cta-badge">🔥 自律冲刺</div>
+        <div class="cta-badge">
+          <AppIcon name="flame" :size="12" />
+          自律冲刺
+        </div>
         <h3 class="cta-title">制定你的 2 周 / 7 天刷题打卡冲刺计划</h3>
         <p class="cta-desc">
           设定专属学习周期，每日定量突破核心高频题，用持续打卡点亮你的算法成就墙！
         </p>
       </div>
       <button class="btn btn-primary cta-btn">
-        🚀 选择 / 开启打卡计划
+        选择 / 开启打卡计划
+        <AppIcon name="arrow-right" :size="15" />
       </button>
     </div>
   </div>
@@ -125,6 +135,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppIcon from './AppIcon.vue'
 import { addDays, formatMdSlash, formatZhDate, formatZhMd, todayLocalDate } from '../dates'
 import { useStudyPlan } from '../stores/plan'
 import { useToast } from '../stores/toast'

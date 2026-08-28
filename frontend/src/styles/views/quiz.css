@@ -1,0 +1,1147 @@
+/* ==========================================================================
+   quiz.css — 八股刷题页（QuizView）+ AI 导师抽屉（AiTutorDrawer）
+   --------------------------------------------------------------------------
+   - 答题卡：iOS 大圆角列表行选项（选中=accent 描边+soft 底 / 正确=green / 错误=red）
+   - 模式切换复用 base .segmented，外包 .quiz-tabs-scroll 横向滚动
+   - 开关复用 base .switch（label > .switch > input + .track）
+   - 抽屉：移动端全屏 / 桌面右侧 380px 磨砂 material-strong sheet
+   说明：遮罩 scrim 与用户气泡内文字反白用的 rgba(0,0,0,.32) / rgba(255,255,255,.x)
+   为 base 未提供语义变量的通用色，四主题下观感一致，特此说明。
+   ========================================================================== */
+
+/* ---------- 页面骨架 ---------- */
+.quiz-container {
+  padding-bottom: 60px;
+}
+/* 页头统计在窄屏允许换行（.head-stats/.stat 基础样式在 base） */
+.quiz-container .head-stats {
+  flex-wrap: wrap;
+  row-gap: 14px;
+}
+
+/* ---------- 模式分段器（5 项，横向可滚动） ---------- */
+.quiz-tabs-scroll {
+  overflow-x: auto;
+  margin-bottom: 20px;
+  scrollbar-width: none;
+  /* 让首尾按钮不被容器 padding 裁切 */
+  padding-bottom: 2px;
+}
+.quiz-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.quiz-nav-tabs {
+  width: max-content;
+  min-width: 100%;
+}
+.quiz-nav-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+/* ---------- 刷题工具栏 ---------- */
+.quiz-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+}
+.quiz-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.quiz-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  min-width: 0;
+}
+.quiz-filter-item .select {
+  max-width: 420px;
+  min-height: 38px;
+}
+
+/* feat chips：badge-tag 胶囊风 */
+.quiz-featured {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.quiz-feat-chip {
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.quiz-feat-chip:hover {
+  color: var(--text);
+  background: var(--surface-3);
+}
+.quiz-feat-chip.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* 模式提示行 */
+.wrongbook-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  color: var(--text-dim);
+}
+.wrongbook-hint strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.wrongbook-hint .hint-icon {
+  color: var(--accent);
+  flex: none;
+}
+.wrongbook-hint .hint-icon-red {
+  color: var(--red);
+}
+.wrongbook-hint .hint-icon-amber {
+  color: var(--amber);
+}
+.wrongbook-hint .btn {
+  margin-left: 6px;
+}
+
+/* iOS 开关组（结构：label.quiz-switch > span.switch > input + span.track） */
+.quiz-tool-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.quiz-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  min-height: 32px;
+}
+.quiz-switch-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ---------- 答题卡主体 ---------- */
+.quiz-stage {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.quiz-card {
+  padding: 28px 32px;
+}
+.quiz-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.quiz-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.quiz-badges .badge {
+  gap: 4px;
+}
+.quiz-num-tag {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+.quiz-head-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.quiz-ai-btn {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.quiz-ai-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* 收藏激活态（配合 .btn-favorite.active，amber 语义高亮） */
+.btn-favorite.active {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
+/* 题干 */
+.quiz-stem {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.quiz-q-idx {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.75;
+  flex: none;
+}
+.quiz-stem-text {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+}
+.quiz-stem-text > :first-child {
+  margin-top: 0;
+}
+
+/* 选项列表：iOS 大圆角列表行 */
+.quiz-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.quiz-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+.quiz-option-btn:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+}
+.quiz-option-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.quiz-option-btn:disabled {
+  cursor: default;
+}
+.opt-prefix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 13px;
+  flex: none;
+  transition: all 0.18s ease;
+}
+.opt-content {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
+.opt-indicator {
+  width: 24px;
+  flex: none;
+  display: flex;
+  justify-content: center;
+}
+.indicator-tag {
+  display: inline-flex;
+}
+.indicator-tag.correct {
+  color: var(--green);
+}
+.indicator-tag.wrong {
+  color: var(--red);
+}
+.indicator-tag.selected {
+  color: var(--accent);
+}
+
+/* 选项三态：多选选中 / 正确 / 错误 */
+.quiz-option-btn.opt-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.quiz-option-btn.opt-selected .opt-prefix {
+  background: var(--accent);
+  color: #fff;
+}
+.quiz-option-btn.opt-correct {
+  border-color: var(--green);
+  background: var(--green-soft);
+}
+.quiz-option-btn.opt-correct .opt-prefix {
+  background: var(--green);
+  color: #fff;
+}
+.quiz-option-btn.opt-wrong {
+  border-color: var(--red);
+  background: var(--red-soft);
+}
+.quiz-option-btn.opt-wrong .opt-prefix {
+  background: var(--red);
+  color: #fff;
+}
+
+/* 多选提交条 */
+.multi-submit-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.multi-hint {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* 结果横幅：soft 底 + 圆形状态图标 */
+.quiz-result-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+.quiz-result-banner.res-correct {
+  background: var(--green-soft);
+}
+.quiz-result-banner.res-wrong {
+  background: var(--red-soft);
+}
+.res-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex: none;
+}
+.res-correct .res-icon {
+  background: var(--green);
+}
+.res-wrong .res-icon {
+  background: var(--red);
+}
+.res-msg {
+  flex: 1;
+  min-width: 0;
+}
+.res-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.res-ans {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.res-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.res-wrong-count {
+  margin-left: 8px;
+  color: var(--red);
+}
+.res-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+/* 解析盒：surface-2 大圆角块 */
+.quiz-analysis-box {
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+}
+.analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.analysis-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent);
+}
+.analysis-content > :last-child {
+  margin-bottom: 0;
+}
+
+/* 底部导航与键盘提示 */
+.quiz-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--border);
+}
+.quiz-nav-btns {
+  display: flex;
+  gap: 10px;
+}
+.quiz-progress-text {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.quiz-keyboard-tips {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.kbd-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.quiz-container kbd {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border-strong);
+  border-bottom-width: 1.5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* fade 过渡（模板 transition name="fade" 使用） */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ---------- 专题库大纲（Banks 视图） ---------- */
+.banks-view .banks-header {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.banks-view .banks-header h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.banks-view .banks-header p {
+  margin: 0;
+}
+.category-block {
+  margin-bottom: 32px;
+}
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  margin: 0 0 16px;
+}
+.cat-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.cat-count {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-weight: 400;
+}
+/* .curated-grid 基座由本簇自包含（旧 styles.css 已下线），与首页簇互不影响 */
+.banks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.banks-view .curated-card {
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.banks-view .curated-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-border);
+}
+.banks-view .curated-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.banks-view .curated-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.banks-view .curated-star {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.banks-view .curated-title {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  margin: 10px 0 6px;
+}
+.bank-progress-bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.bank-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.banks-view .curated-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.bank-stats-text {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bank-stat-ok {
+  color: var(--green);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.bank-stat-bad {
+  color: var(--red);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.banks-view .curated-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---------- 空状态 ---------- */
+.empty-card {
+  text-align: center;
+  padding: 64px 24px;
+}
+.empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+.empty-card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.empty-card p {
+  margin: 0 0 20px;
+}
+
+/* ==========================================================================
+   AI 导师抽屉（iOS sheet 风）
+   ========================================================================== */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  /* scrim 遮罩：base 未提供变量，四主题通用黑色半透明 */
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 12px;
+  animation: drawer-fade 0.2s ease;
+}
+.drawer {
+  width: 380px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--material-strong);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: drawer-slide-in 0.25s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0.5;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes drawer-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 抽屉头部 */
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 0.5px solid var(--border);
+}
+.drawer-title-group {
+  min-width: 0;
+}
+.drawer-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.drawer-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 0;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.drawer-title-icon {
+  color: var(--accent);
+  flex: none;
+}
+.drawer-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.drawer-model-name {
+  font-size: 11.5px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.drawer-close-btn {
+  min-width: 30px;
+}
+
+/* 未配置警告卡（amber 语义色复用 base 变量） */
+.drawer-warning-card {
+  margin: 14px 16px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--amber-soft);
+}
+.drawer-warning-card p {
+  margin: 0;
+}
+.drawer-warning-card strong {
+  color: var(--amber);
+}
+.drawer-warning-sub {
+  margin-top: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+/* 快捷追问 chips：胶囊 badge 风，横向滚动 */
+.quick-prompts-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.quick-prompts-bar::-webkit-scrollbar {
+  display: none;
+}
+.quick-lbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.quick-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.chip-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chip-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.chip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 对话区 */
+.drawer-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chat-bubble {
+  display: flex;
+  gap: 10px;
+}
+.bubble-user {
+  flex-direction: row-reverse;
+}
+.bubble-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex: none;
+}
+.bubble-assistant .bubble-avatar {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bubble-user .bubble-avatar {
+  background: var(--accent);
+  color: #fff;
+}
+.bubble-body {
+  max-width: 86%;
+  min-width: 0;
+}
+/* 用户气泡：accent 底白字 */
+.bubble-user .bubble-body {
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border-top-right-radius: 4px;
+}
+/* AI 气泡：surface-2 底 */
+.bubble-assistant .bubble-body {
+  background: var(--surface-2);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border-top-left-radius: 4px;
+}
+/* 用户气泡内 markdown 反白（base .markdown-body 默认 var(--text)，需覆盖） */
+.bubble-user .bubble-body .markdown-body {
+  color: #fff;
+}
+.bubble-user .bubble-body .markdown-body code {
+  /* 反白代码片：base 无此语义变量，用白色透明底 */
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.bubble-user .bubble-body .markdown-body a {
+  color: #fff;
+  text-decoration-color: rgba(255, 255, 255, 0.5);
+}
+.bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.bubble-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.bubble-name {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.bubble-user .bubble-name {
+  color: inherit;
+  opacity: 0.75;
+}
+.cached-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green);
+}
+.bubble-regen {
+  font-size: 11px;
+}
+.bubble-markdown {
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+.bubble-markdown > :last-child {
+  margin-bottom: 0;
+}
+.msg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.msg-images img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+}
+
+/* 流式光标 */
+.stream-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: drawer-blink 1s infinite;
+}
+@keyframes drawer-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 底部输入条 */
+.drawer-input-bar {
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 0.5px solid var(--border);
+}
+.drawer-textarea {
+  width: 100%;
+  resize: none;
+  font-size: 15px;
+  margin-bottom: 8px;
+  user-select: text;
+  -webkit-user-select: text;
+  touch-action: manipulation;
+}
+.composer-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.composer-preview {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.composer-preview img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+}
+.preview-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--red);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.input-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.drawer-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.drawer-send-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+@media (min-width: 1800px) {
+  .quiz-stage {
+    max-width: 1560px;
+  }
+}
+
+@media (max-width: 1023px) {
+  /* 页头统计更紧凑 */
+  .quiz-container .head-stats {
+    gap: 14px 22px;
+  }
+  .quiz-container .head-stats .stat .num {
+    font-size: 22px;
+  }
+
+  /* 分段器触控目标 ≥44px */
+  .quiz-nav-tabs button {
+    min-height: 44px;
+    padding: 8px 16px;
+    font-size: 13.5px;
+  }
+
+  /* 工具栏纵向铺开 */
+  .quiz-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .quiz-filter-group {
+    gap: 12px;
+  }
+  .quiz-filter-item {
+    width: 100%;
+    min-width: 0;
+    display: block; /* 打破 flex 内在尺寸循环，label 独占一行 */
+  }
+  .quiz-filter-item > label, .quiz-filter-item > span:first-child {
+    display: block;
+    margin-bottom: 6px;
+  }
+  .quiz-filter-item .select {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .quiz-feat-chip {
+    min-height: 36px;
+    padding: 8px 14px;
+  }
+  .quiz-tool-actions {
+    gap: 20px;
+  }
+  .quiz-switch {
+    min-height: 44px;
+  }
+
+  /* 答题卡留白收紧但仍宽松 */
+  .quiz-card {
+    padding: 20px 18px;
+  }
+  .quiz-card-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .quiz-head-actions .btn {
+    min-height: 36px;
+  }
+  .quiz-option-btn {
+    padding: 16px;
+    gap: 12px;
+    min-height: 52px;
+  }
+
+  /* 结果横幅纵向排列，操作按钮撑满 */
+  .quiz-result-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .res-actions {
+    width: 100%;
+  }
+  .res-actions .btn {
+    flex: 1;
+    min-height: 40px;
+  }
+
+  /* 底部：切题按钮双列大触控，键盘提示触屏端隐藏 */
+  .quiz-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .quiz-nav-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .quiz-nav-btns .btn {
+    min-height: 44px;
+  }
+  .quiz-progress-text {
+    text-align: center;
+  }
+  .quiz-keyboard-tips {
+    display: none;
+  }
+
+  .banks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* 抽屉：移动端全屏 sheet */
+  .drawer-backdrop {
+    padding: 0;
+  }
+  .drawer {
+    width: 100%;
+    border-radius: 0;
+    border: none;
+    animation: drawer-slide-up 0.28s cubic-bezier(0.2, 0.6, 0.3, 1);
+  }
+  @keyframes drawer-slide-up {
+    from {
+      transform: translateY(24px);
+      opacity: 0.5;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  .drawer-hint {
+    display: none;
+  }
+  .drawer-send-row .btn {
+    min-height: 40px;
+  }
+}

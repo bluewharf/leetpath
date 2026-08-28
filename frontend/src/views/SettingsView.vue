@@ -44,11 +44,11 @@
       <section class="card settings-card">
         <h2>修改密码</h2>
         <form class="settings-form" @submit.prevent="onChangePassword">
-          <div class="form-group">
+          <div class="field">
             <label>当前密码</label>
             <input v-model="oldPassword" class="input" type="password" autocomplete="current-password" required />
           </div>
-          <div class="form-group">
+          <div class="field">
             <label>新密码（至少 8 位）</label>
             <input
               v-model="newPassword"
@@ -59,7 +59,7 @@
               minlength="8"
             />
           </div>
-          <div class="form-group">
+          <div class="field">
             <label>确认新密码</label>
             <input
               v-model="confirmPassword"

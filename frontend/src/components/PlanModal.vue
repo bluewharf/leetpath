@@ -6,16 +6,20 @@
           <h2>选择或制定你的刷题打卡计划</h2>
           <p class="modal-sub">自选开始 / 结束日期和每天题量，系统按日历把题目排进每一天</p>
         </div>
-        <button class="btn btn-ghost btn-xs close-btn" @click="$emit('close')">✕</button>
+        <button class="close-btn" aria-label="关闭" @click="$emit('close')">
+          <AppIcon name="x" :size="14" />
+        </button>
       </div>
 
       <!-- 标签页：精选官方计划 vs 自定义计划 -->
-      <div class="modal-tabs">
+      <div class="segmented modal-tabs">
         <button :class="{ active: tab === 'preset' }" @click="tab = 'preset'">
-          🌟 精选专题计划
+          <AppIcon name="sparkle" :size="13" />
+          精选专题计划
         </button>
         <button :class="{ active: tab === 'custom' }" @click="tab = 'custom'">
-          🛠️ 自定义天数计划
+          <AppIcon name="gear" :size="13" />
+          自定义天数计划
         </button>
       </div>
 
@@ -126,7 +130,7 @@
 
         <div v-if="formError" class="form-err">{{ formError }}</div>
         <div class="custom-preview-tip">
-          📅 {{ formatZhDate(customStart) }} — {{ formatZhDate(customEnd) }}，共
+          {{ formatZhDate(customStart) }} — {{ formatZhDate(customEnd) }}，共
           <strong>{{ daysSafe }}</strong> 天。
           每日 {{ goalSafe }} 题，共需 <strong>{{ requestedCount }}</strong> 题。
           <span v-if="problems.length === 0">题库为空，无法开启。</span>
@@ -142,7 +146,7 @@
       <div class="modal-actions">
         <button class="btn btn-ghost" @click="$emit('close')">取消</button>
         <button class="btn btn-primary" :disabled="!canStart" @click="handleStartPlan">
-          🚀 立即开启打卡计划
+          立即开启打卡计划
         </button>
       </div>
     </div>
@@ -151,6 +155,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import AppIcon from './AppIcon.vue'
 import { formatZhDate, todayLocalDate } from '../dates'
 import {
   PRESET_PLANS,

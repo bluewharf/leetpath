@@ -1,0 +1,346 @@
+/* ==========================================================================
+   jobs.css — 校招看板（JobsView + JobBoard）Apple 风
+   --------------------------------------------------------------------------
+   - 公司卡：iOS 分组卡（圆角 + 展开 chevron 旋转）
+   - 岗位抽屉：inset 列表感（surface-2 内嵌卡 + 发丝描边）
+   - 投递状态流转：capsule 胶囊
+   - 字号钩子：.job-card / .pos-title 必须保留（base.css 强压规则依赖）
+   ========================================================================== */
+
+/* ---------- 页眉附注 ---------- */
+.jobs-head-note {
+  color: var(--text-dim);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ---------- 顶部状态条 ---------- */
+.job-stats-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.stat-pill strong { color: var(--text); font-weight: 700; }
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--green-soft);
+}
+.tracked-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+.tracked-count strong { font-weight: 700; }
+
+/* ---------- 筛选栏（沿用 base .filters，仅补充看板专有件） ---------- */
+.job-filters .search-job-input { flex: 1; min-width: 200px; max-width: 340px; }
+.job-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  min-height: 36px;
+}
+.job-checkbox-label input { accent-color: var(--accent); width: 15px; height: 15px; }
+.problem-limits {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+
+/* ---------- 骨架屏 ---------- */
+.job-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.job-skeleton-card { padding: 18px; }
+
+/* ---------- 公司分组卡 ---------- */
+.company-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+.company-card {
+  padding: 16px 20px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.company-card.is-expanded {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-lg);
+}
+.company-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.company-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+  flex: none;
+}
+.company-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.company-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.company-name {
+  font-size: 16.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.pos-count-tag {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.company-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  min-width: 0;
+}
+.dday-pill {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 650;
+  padding: 2px 9px;
+  border-radius: 999px;
+  flex: none;
+}
+.dday-pill.urgent { color: var(--red); background: var(--red-soft); }
+.dday-pill.ok { color: var(--green); background: var(--green-soft); }
+.dday-pill.normal { color: var(--text-dim); background: var(--surface-2); }
+.roles-preview {
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.company-actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.expand-btn .expand-chevron { transition: transform 0.22s cubic-bezier(0.2, 0.6, 0.3, 1); }
+.company-card.is-expanded .expand-btn .expand-chevron { transform: rotate(180deg); }
+/* 外链小箭头：arrow-right 旋转 45° 模拟 iOS 打开指示 */
+.icon-open { transform: rotate(-45deg); }
+
+/* ---------- 岗位抽屉 ---------- */
+.positions-drawer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border);
+}
+.drawer-enter-active, .drawer-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.drawer-enter-from, .drawer-leave-to { opacity: 0; transform: translateY(-4px); }
+
+.role-filter-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.chip-btn {
+  background: var(--surface-2);
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 550;
+  padding: 5px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.chip-btn:hover { background: var(--surface-3); color: var(--text); }
+.chip-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 650; }
+
+/* ---------- 岗位 inset 列表 ---------- */
+.positions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pos-card {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  transition: border-color 0.15s ease;
+  /* 屏外岗位卡跳过布局与绘制（单家公司可达数百个岗位），估算高度兜底 */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+.pos-card:hover { border-color: var(--border-strong); }
+.pos-card.is-tracked { border-left: 3px solid var(--accent); }
+.pos-card.is-closed { opacity: 0.55; }
+.pos-top-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pos-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.pos-title { font-weight: 700; letter-spacing: -0.01em; }
+.dday-mini {
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.dday-mini.urgent { color: var(--red); background: var(--red-soft); }
+.dday-mini.ok { color: var(--green); background: var(--green-soft); }
+.dday-mini.closed { color: var(--text-faint); background: var(--surface-3); }
+.pos-actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.pos-time-line {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 6px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.jd-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.jd-toggle:hover { color: var(--accent-hover); }
+.jd-toggle .jd-chevron { transition: transform 0.2s ease; }
+.jd-toggle.open .jd-chevron { transform: rotate(180deg); }
+.pos-jd-content pre {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-family: inherit;
+  line-height: 1.7;
+  margin: 8px 0 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: var(--text-dim);
+}
+
+/* ---------- 投递状态流转（capsule 胶囊） ---------- */
+.tracker-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.tracker-lbl { color: var(--text-faint); flex: none; }
+.tracker-steps { display: flex; gap: 6px; flex-wrap: wrap; }
+.step-chip {
+  background: var(--surface);
+  border: 0.5px solid var(--border-strong);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 550;
+  padding: 3px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: all 0.15s ease;
+}
+.step-chip:hover { border-color: var(--accent); color: var(--accent); }
+.step-chip.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 650;
+  box-shadow: var(--shadow-accent);
+}
+
+/* ---------- 移动端 ≤1023px：宽松、可换行、触控目标 ≥44px ---------- */
+@media (max-width: 1023px) {
+  .jobs-head-note { white-space: normal; }
+  .job-filters .search-job-input { max-width: none; flex-basis: 100%; }
+  .job-filters .select { flex: 1; min-width: 140px; }
+  .job-checkbox-label { min-height: 44px; }
+  .problem-limits { margin-left: 0; flex-basis: 100%; }
+  .job-skeleton-grid { grid-template-columns: 1fr; }
+  .company-card { padding: 14px 16px; }
+  .company-head { flex-wrap: wrap; }
+  .company-actions { flex-basis: 100%; }
+  .company-actions .btn { flex: 1; min-height: 44px; font-size: 14px; }
+  .chip-btn { padding: 10px 14px; font-size: 13px; }
+  .step-chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    font-size: 12.5px;
+  }
+  .jd-toggle { min-height: 44px; font-size: 13px; }
+  .pos-actions .btn { min-height: 44px; font-size: 14px; }
+  .pos-top-line { align-items: flex-start; }
+}
+
+/* ---------- 宽屏 ≥1800px ---------- */
+@media (min-width: 1800px) {
+  .company-grid { gap: 14px; }
+  .positions-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+}

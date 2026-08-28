@@ -1,65 +1,112 @@
 <template>
   <div>
-    <header class="topbar" v-if="auth.me">
-      <RouterLink class="brand" to="/">leet<span class="path">path</span></RouterLink>
-      <span class="brand-version" :title="`当前部署版本 v${appVersion}`">v{{ appVersion }}</span>
-      <nav>
-        <RouterLink to="/leaderboard" :class="{ active: route.path === '/leaderboard' }">排行榜</RouterLink>
-        <RouterLink to="/problems" :class="{ active: route.path.startsWith('/problems') }">题库</RouterLink>
-        <RouterLink to="/quiz" :class="{ active: route.path.startsWith('/quiz') }">八股刷题</RouterLink>
-        <RouterLink to="/review" :class="{ active: route.path === '/review' }">背题</RouterLink>
-        <RouterLink to="/handbook" :class="{ active: route.path === '/handbook' }">新手速查</RouterLink>
-        <RouterLink to="/jobs" :class="{ active: route.path === '/jobs' }">秋招看板</RouterLink>
-        <RouterLink to="/links" :class="{ active: route.path === '/links' }">八股笔记</RouterLink>
-        <RouterLink v-if="auth.me.is_admin" to="/admin" :class="{ active: route.path === '/admin' }">管理</RouterLink>
-      </nav>
-      <div class="user">
-        <!-- AI 设置 -->
-        <button
-          class="lang-toggle-btn ai-settings-btn"
-          :title="aiStore.isConfigured.value ? `当前 AI: ${aiStore.selectedModel.value}（点击设置）` : '点击配置自定义 AI 密钥与模型'"
-          @click="showAiSettings = true"
-        >
-          <span class="ai-ico">🤖</span>
-          <span class="lang-text">{{ aiStore.isConfigured.value ? (aiStore.selectedModel.value.length > 10 ? aiStore.selectedModel.value.slice(0, 8) + '..' : aiStore.selectedModel.value) : 'AI 设置' }}</span>
-        </button>
+    <!-- 登录后：档案刊物壳（报头行 + 发丝规线栏目条 + 内容栏） -->
+    <div class="app-shell" v-if="auth.me">
+      <header class="masthead">
+        <div class="masthead-inner">
+          <div class="masthead-top">
+            <div class="masthead-brand">
+              <RouterLink class="brand" to="/">leet<span class="path">path</span></RouterLink>
+              <span class="brand-version" :title="`当前部署版本 v${appVersion}`">v{{ appVersion }}</span>
+            </div>
+            <span class="masthead-edition">Campus Edition · 2026</span>
 
-        <!-- 全局语言偏好切换（移动端隐藏，做题页/背题页内可切） -->
-        <button
-          class="lang-toggle-btn desktop-only"
-          :title="langPref === 'python3' ? '当前全局语言: Python 3（点击切换到 C++）' : '当前全局语言: C++（点击切换到 Python 3）'"
-          @click="toggleLang"
-        >
-          <span class="lang-text mono">{{ langPref === 'python3' ? 'Python3' : 'C++' }}</span>
-        </button>
+            <div class="masthead-controls">
+              <!-- AI 设置 -->
+              <button
+                class="topbar-btn"
+                :title="aiStore.isConfigured.value ? `当前 AI: ${aiStore.selectedModel.value}（点击设置）` : '点击配置自定义 AI 密钥与模型'"
+                @click="showAiSettings = true"
+              >
+                <AppIcon name="robot" :size="17" />
+              </button>
+              <!-- 全局语言偏好切换 -->
+              <button
+                class="topbar-btn desktop-only"
+                :title="langPref === 'python3' ? '当前全局语言: Python 3（点击切换到 C++）' : '当前全局语言: C++（点击切换到 Python 3）'"
+                @click="toggleLang"
+              >
+                <span class="mono">{{ langPref === 'python3' ? 'Py' : 'C++' }}</span>
+              </button>
+              <!-- 全站字号自由调节 -->
+              <button class="topbar-btn desktop-only" :title="fontSizeTooltip" @click="cycleFontSize">
+                <span style="font-weight: 700">aA</span>
+                <span style="font-size: 10px; opacity: 0.7">{{ fontSizeLabel }}</span>
+              </button>
+              <!-- 主题选择：六套主题全家桶 -->
+              <div class="theme-picker">
+                <button
+                  class="topbar-btn"
+                  :title="`当前主题：${currentThemeName}（点击更换）`"
+                  @click.stop="showThemeMenu = !showThemeMenu"
+                >
+                  <AppIcon name="palette" :size="17" />
+                </button>
+                <div v-if="showThemeMenu" class="theme-menu-backdrop" @click="showThemeMenu = false"></div>
+                <div v-if="showThemeMenu" class="theme-menu">
+                  <button
+                    v-for="t in themeList"
+                    :key="t.id"
+                    :class="{ active: t.id === currentTheme }"
+                    @click="pickTheme(t.id)"
+                  >
+                    <span class="theme-dot" :style="{ background: themeDots[t.id] }"></span>
+                    {{ t.name }}
+                    <span v-if="t.id === currentTheme" class="check"><AppIcon name="check" :size="13" /></span>
+                  </button>
+                </div>
+              </div>
 
-        <!-- 全站字号自由调节（移动端隐藏） -->
-        <button
-          class="font-size-btn desktop-only"
-          :title="fontSizeTooltip"
-          @click="cycleFontSize"
-        >
-          <span>aA</span>
-          <span class="font-label">{{ fontSizeLabel }}</span>
-        </button>
+              <div class="masthead-user">
+                <RouterLink class="user-chip" to="/settings" title="账号设置：改密与头像">
+                  <UserAvatar :username="auth.me.username" :avatar-url="auth.me.avatar_url" />
+                  <span class="username">{{ auth.me.username }}</span>
+                </RouterLink>
+                <button class="btn btn-sm desktop-only" @click="onLogout">退出</button>
+              </div>
+            </div>
+          </div>
 
-        <!-- 四态主题切换：浅色 ➔ 深色 ➔ 赛博霓虹 ➔ 豆沙护眼 -->
-        <button
-          class="theme-btn"
-          :title="themeTooltip"
-          @click="onToggleTheme"
-        >
-          {{ themeIcon }}
-        </button>
-        <RouterLink class="user-chip" to="/settings" title="账号设置：改密与头像">
-          <UserAvatar :username="auth.me.username" :avatar-url="auth.me.avatar_url" />
-          <span class="username">{{ auth.me.username }}</span>
-        </RouterLink>
-        <button class="btn btn-sm" @click="onLogout">退出</button>
+          <nav class="masthead-nav">
+            <RouterLink to="/" exact-active-class="active">
+              <span class="tab-icon"><AppIcon name="home" :size="15" /></span>首页
+            </RouterLink>
+            <RouterLink to="/leaderboard" :class="{ active: route.path === '/leaderboard' }">
+              <span class="tab-icon"><AppIcon name="trophy" :size="15" /></span>排行榜
+            </RouterLink>
+            <RouterLink to="/problems" :class="{ active: route.path.startsWith('/problems') }">
+              <span class="tab-icon"><AppIcon name="list" :size="15" /></span>题库
+            </RouterLink>
+            <RouterLink to="/quiz" :class="{ active: route.path.startsWith('/quiz') }">
+              <span class="tab-icon"><AppIcon name="pencil" :size="15" /></span>八股刷题
+            </RouterLink>
+            <RouterLink to="/review" :class="{ active: route.path === '/review' }">
+              <span class="tab-icon"><AppIcon name="cards" :size="15" /></span>背题
+            </RouterLink>
+            <RouterLink to="/handbook" :class="{ active: route.path === '/handbook' }">
+              <span class="tab-icon"><AppIcon name="book" :size="15" /></span>新手速查
+            </RouterLink>
+            <RouterLink to="/jobs" :class="{ active: route.path === '/jobs' }">
+              <span class="tab-icon"><AppIcon name="briefcase" :size="15" /></span>秋招看板
+            </RouterLink>
+            <RouterLink to="/links" :class="{ active: route.path === '/links' }">
+              <span class="tab-icon"><AppIcon name="link" :size="15" /></span>八股笔记
+            </RouterLink>
+            <RouterLink v-if="auth.me.is_admin" to="/admin" :class="{ active: route.path === '/admin' }">
+              <span class="tab-icon"><AppIcon name="gear" :size="15" /></span>管理
+            </RouterLink>
+          </nav>
+        </div>
+      </header>
+
+      <div class="main-pane">
+        <RouterView />
       </div>
-    </header>
+    </div>
 
-    <RouterView />
+    <!-- 未登录（登录/注册页）：裸渲染 -->
+    <RouterView v-else />
+
     <Toast />
     <FloatingAiAssistant />
     <AiSettingsModal v-if="showAiSettings" @close="showAiSettings = false" />
@@ -67,31 +114,31 @@
 
     <nav class="bottom-tabs" v-if="auth.me">
       <RouterLink to="/" exact-active-class="active">
-        <span class="tab-icon">⌂</span>首页
+        <span class="tab-icon"><AppIcon name="home" :size="21" /></span>首页
       </RouterLink>
       <RouterLink to="/leaderboard" :class="{ active: route.path === '/leaderboard' }">
-        <span class="tab-icon">♜</span>榜单
+        <span class="tab-icon"><AppIcon name="trophy" :size="21" /></span>榜单
       </RouterLink>
       <RouterLink to="/problems" :class="{ active: route.path.startsWith('/problems') }">
-        <span class="tab-icon">≡</span>题库
+        <span class="tab-icon"><AppIcon name="list" :size="21" /></span>题库
       </RouterLink>
       <RouterLink to="/quiz" :class="{ active: route.path.startsWith('/quiz') }">
-        <span class="tab-icon">✎</span>刷八股
+        <span class="tab-icon"><AppIcon name="pencil" :size="21" /></span>刷八股
       </RouterLink>
       <RouterLink to="/review" :class="{ active: route.path === '/review' }">
-        <span class="tab-icon">✦</span>背题
+        <span class="tab-icon"><AppIcon name="cards" :size="21" /></span>背题
       </RouterLink>
       <RouterLink to="/handbook" :class="{ active: route.path === '/handbook' }">
-        <span class="tab-icon">§</span>手册
+        <span class="tab-icon"><AppIcon name="book" :size="21" /></span>手册
       </RouterLink>
       <RouterLink to="/jobs" :class="{ active: route.path === '/jobs' }">
-        <span class="tab-icon">▦</span>秋招
+        <span class="tab-icon"><AppIcon name="briefcase" :size="21" /></span>秋招
       </RouterLink>
       <RouterLink to="/links" :class="{ active: route.path === '/links' }">
-        <span class="tab-icon">⇱</span>八股
+        <span class="tab-icon"><AppIcon name="link" :size="21" /></span>八股
       </RouterLink>
       <RouterLink v-if="auth.me.is_admin" to="/admin" :class="{ active: route.path === '/admin' }">
-        <span class="tab-icon">⚙</span>管理
+        <span class="tab-icon"><AppIcon name="gear" :size="21" /></span>管理
       </RouterLink>
     </nav>
   </div>
@@ -101,6 +148,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AiSettingsModal from './components/AiSettingsModal.vue'
+import AppIcon from './components/AppIcon.vue'
 import FloatingAiAssistant from './components/FloatingAiAssistant.vue'
 import LeaderboardPopup from './components/LeaderboardPopup.vue'
 import Toast from './components/Toast.vue'
@@ -108,7 +156,7 @@ import UserAvatar from './components/UserAvatar.vue'
 import { useAiStore } from './stores/ai'
 import { useAuthStore } from './stores/auth'
 import { useFontSize, useLangPref } from './stores/pref'
-import { getTheme, toggleTheme, type Theme } from './theme'
+import { getTheme, setTheme, THEME_LIST, type Theme } from './theme'
 import { api } from './api'
 import type { ActivityHeartbeatRequest } from './types'
 
@@ -172,20 +220,26 @@ function syncHeartbeat() {
 function onActivityVisibilityChange() { syncHeartbeat() }
 
 const currentTheme = ref<Theme>(getTheme())
+const showThemeMenu = ref(false)
+const themeList = THEME_LIST
 
-const themeIcon = computed(() => {
-  if (currentTheme.value === 'light') return '☀'
-  if (currentTheme.value === 'dark') return '☾'
-  if (currentTheme.value === 'cyber') return '🌌'
-  return '🍵'
-})
+/** 各主题色板圆点（菜单里的主题缩样） */
+const themeDots: Record<Theme, string> = {
+  paper: '#bd3f0e',
+  ink: '#e8601f',
+  slate: '#56718c',
+  oat: '#97795a',
+  cyber: '#00f2fe',
+  sepia: '#2e7d32',
+}
 
-const themeTooltip = computed(() => {
-  if (currentTheme.value === 'light') return '当前：极简冷白（点击切换为黑曜石深色）'
-  if (currentTheme.value === 'dark') return '当前：黑曜石深色（点击切换为赛博极客霓虹）'
-  if (currentTheme.value === 'cyber') return '当前：赛博极客霓虹（点击切换为豆沙护眼绿）'
-  return '当前：豆沙护眼绿（点击切换为极简冷白）'
-})
+const currentThemeName = computed(() => THEME_LIST.find((t) => t.id === currentTheme.value)?.name ?? '')
+
+function pickTheme(t: Theme) {
+  setTheme(t)
+  currentTheme.value = t
+  showThemeMenu.value = false
+}
 
 const fontSizeLabel = computed(() => {
   if (fontSize.value === 'sm') return '小'
@@ -198,10 +252,6 @@ const fontSizeTooltip = computed(() => {
   if (fontSize.value === 'md') return '当前字号：标准中号（点击切换为护眼大号）'
   return '当前字号：护眼大号（点击切换为紧凑小号）'
 })
-
-function onToggleTheme() {
-  currentTheme.value = toggleTheme()
-}
 
 watch(() => [auth.me?.id, route.path], syncHeartbeat)
 watch(() => [auth.me?.id, route.path], () => {

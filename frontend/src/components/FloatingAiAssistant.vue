@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 1. 全局悬浮胶囊 (Sleek Cyber Glass Floating Capsule) -->
+    <!-- 1. 全局悬浮按钮（52px 圆形 accent 渐变，可拖拽） -->
     <div
       v-if="!assistant.isVisible.value && auth.me"
       class="floating-capsule"
@@ -12,31 +12,11 @@
       @click="onCapsuleClick"
       title="按住拖拽位置 · 点击唤起 AI 导师"
     >
-      <div class="capsule-inner">
-        <!-- 科技光芒图标 -->
-        <div class="capsule-icon-box">
-          <svg class="spark-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z"
-              fill="var(--accent)"
-              stroke="var(--accent)"
-              stroke-width="1.5"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </div>
-
-        <div class="capsule-info">
-          <div class="capsule-row-top">
-            <span class="capsule-brand">LeetPath AI</span>
-            <span class="capsule-dot" :class="{ ready: ai.isConfigured.value }"></span>
-          </div>
-          <span class="capsule-sub mono">{{ contextBadgeText }}</span>
-        </div>
-      </div>
+      <AppIcon name="sparkle" :size="24" :stroke-width="2" />
+      <span class="capsule-dot" :class="{ ready: ai.isConfigured.value }"></span>
     </div>
 
-    <!-- 2. 悬浮智能交互窗口 (Glassmorphic Neo-Dark Window) -->
+    <!-- 2. 悬浮智能交互窗口（macOS 磨砂面板，可拖拽/缩放/最大化） -->
     <div
       v-if="assistant.isVisible.value"
       class="floating-window-backdrop"
@@ -49,16 +29,23 @@
         :style="windowStyle"
         @paste="onWindowPaste"
       >
-        <!-- 窗口顶栏（极简高端拖拽条） -->
+        <!-- 窗口顶栏（macOS 标题栏：左关闭圆点 · 标题居中 · 右操作组；按住可拖动） -->
         <div
           class="f-window-head"
           @pointerdown="onWindowPointerDown"
           @touchstart="onWindowTouchStart"
           title="按住顶部可自由拖动位置"
         >
+          <!-- macOS 交通灯：只保留关闭红点（阻止冒泡，避免误触发拖拽） -->
+          <div class="f-traffic" @mousedown.stop @pointerdown.stop @touchstart.stop>
+            <button class="traffic-dot traffic-close" title="最小化收起" @click="assistant.close()">
+              <AppIcon name="x" :size="9" :stroke-width="2.6" />
+            </button>
+          </div>
+
           <div class="f-head-info">
             <div class="f-head-badge">
-              <span class="sparkle-mini">✦</span>
+              <AppIcon name="sparkle" :size="10" class="badge-sparkle" />
               <span class="badge-source-label">{{ contextTypeLabel }}</span>
               <span class="badge-model-tag mono">{{ ai.selectedModel.value || '未选模型' }}</span>
             </div>
@@ -70,10 +57,7 @@
           <div class="f-head-actions" @mousedown.stop @pointerdown.stop @touchstart.stop>
             <!-- 新建会话 / 清空记忆 -->
             <button class="win-btn" title="新建会话 / 清空历史记忆 (0 Token 重置)" @click="onNewChat">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+              <AppIcon name="plus" :size="15" />
             </button>
             <!-- 智能压缩上下文 -->
             <button
@@ -92,10 +76,7 @@
             </button>
             <!-- 设置按钮 -->
             <button class="win-btn" title="AI 设置与模型配置" @click="showSettings = true">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
+              <AppIcon name="gear" :size="15" />
             </button>
             <!-- 居中复位 -->
             <button
@@ -126,24 +107,17 @@
                 <path d="M4 15V5a1 1 0 0 1 1-1h10" />
               </svg>
             </button>
-            <!-- 关闭/最小化 -->
-            <button class="win-btn win-close" title="最小化收起" @click="assistant.close()">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
           </div>
         </div>
 
         <!-- 未配置 API Key 引导 -->
         <div v-if="!ai.isConfigured.value" class="f-config-guide">
-          <div class="guide-icon">⚡</div>
+          <div class="guide-icon"><AppIcon name="sparkle" :size="18" /></div>
           <div class="guide-text">
             <h4>尚未配置大模型 API Key</h4>
             <p>
               已默认接入 Antithor 专属中转站，可
-              <a href="https://api.antithor.asia" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;font-weight:600">点击登录 antithor 获取 key ↗</a>
+              <a href="https://api.antithor.asia" target="_blank" rel="noopener noreferrer" class="guide-link">点击登录 antithor 获取 key ↗</a>
             </p>
           </div>
           <button class="btn btn-xs btn-primary guide-btn" @click="showSettings = true">
@@ -164,8 +138,7 @@
               :disabled="generating"
               @click="onSendPrompt(p.prompt)"
             >
-              <span class="chip-glow"></span>
-              <span class="chip-label">{{ p.label }}</span>
+              {{ p.label }}
             </button>
           </div>
         </div>
@@ -181,12 +154,7 @@
             <!-- 头像标识 -->
             <div class="msg-avatar">
               <div v-if="msg.role === 'assistant'" class="assistant-avatar-badge">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
-                  <path
-                    d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
+                <AppIcon name="sparkle" :size="13" />
               </div>
               <div v-else class="user-avatar-badge">
                 {{ (auth.me?.username || 'U').slice(0, 1).toUpperCase() }}
@@ -201,7 +169,7 @@
                 </span>
                 <div class="msg-actions" v-if="msg.role === 'assistant'">
                   <span v-if="msg.isCached" class="tag-cache" title="已从本地浏览器 0 Token 秒级读取">
-                    ⚡ 0 Token 缓存
+                    <AppIcon name="sparkle" :size="9" /> 0 Token 缓存
                   </span>
                   <button
                     v-if="msg.isCached && msg.originalPrompt"
@@ -209,7 +177,7 @@
                     :disabled="generating"
                     @click="onSendPrompt(msg.originalPrompt, true)"
                   >
-                    🔄 重新生成
+                    <AppIcon name="refresh" :size="11" /> 重新生成
                   </button>
                   <button
                     v-if="msg.content"
@@ -232,12 +200,7 @@
           <div v-if="generating" class="msg-bubble-group role-assistant">
             <div class="msg-avatar">
               <div class="assistant-avatar-badge pulsing">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
-                  <path
-                    d="M12 2L14.4 8.6L21 11L14.4 13.4L12 20L9.6 13.4L3 11L9.6 8.6L12 2Z"
-                    fill="currentColor"
-                  />
-                </svg>
+                <AppIcon name="sparkle" :size="13" />
               </div>
             </div>
             <div class="msg-card">
@@ -256,7 +219,7 @@
             <div v-if="pendingImages.length" class="composer-previews">
               <div v-for="(src, idx) in pendingImages" :key="idx" class="composer-preview">
                 <img :src="src" alt="待发送截图" />
-                <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)">×</button>
+                <button type="button" class="preview-remove" title="去掉这张图" @click="pendingImages.splice(idx, 1)"><AppIcon name="x" :size="10" :stroke-width="2.5" /></button>
               </div>
             </div>
             <textarea
@@ -273,7 +236,7 @@
             <div class="composer-toolbar">
               <div class="composer-status">
                 <span class="status-shield" :class="tokenLevelClass" :title="`当前会话预估已占用 ${currentTotalTokens} Tokens，总预算上限 ${ai.maxContextTokens.value} Tokens`">
-                  ⚡ 记忆占用: {{ formatTokens(currentTotalTokens) }} / {{ formatTokens(ai.maxContextTokens.value) }} ({{ tokenPercent }}%)
+                  <AppIcon name="sparkle" :size="11" /> 记忆占用: {{ formatTokens(currentTotalTokens) }} / {{ formatTokens(ai.maxContextTokens.value) }} ({{ tokenPercent }}%)
                 </span>
               </div>
               
@@ -304,7 +267,7 @@
                   class="btn-stop"
                   @click="abort"
                 >
-                  <span class="stop-icon">■</span> 停止
+                  <span class="stop-icon"></span> 停止
                 </button>
                 <button
                   v-else
@@ -313,10 +276,7 @@
                   @click="onSendPrompt(inputQuestion)"
                   title="发送提问 (Enter)"
                 >
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="19" x2="12" y2="5" />
-                    <polyline points="5 12 12 5 19 12" />
-                  </svg>
+                  <AppIcon name="send" :size="14" />
                 </button>
               </div>
             </div>
@@ -342,6 +302,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AiSettingsModal from './AiSettingsModal.vue'
+import AppIcon from './AppIcon.vue'
 import {
   CAPSULE_FALLBACK_SIZE,
   WINDOW_FALLBACK_SIZE,
@@ -1009,763 +970,3 @@ onBeforeUnmount(() => {
   window.visualViewport?.removeEventListener('resize', onViewportChange)
 })
 </script>
-
-<style scoped>
-/* 1. 悬浮胶囊球 (Themed Floating Capsule) */
-.floating-capsule {
-  position: fixed;
-  bottom: 28px;
-  right: 28px;
-  z-index: 850;
-  cursor: grab;
-  border-radius: 40px;
-  padding: 1px;
-  background: var(--accent-border, var(--border));
-  box-shadow: 0 8px 24px var(--shadow-lg, rgba(0, 0, 0, 0.4));
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  -webkit-touch-callout: none;
-}
-
-.floating-capsule * {
-  touch-action: none;
-  pointer-events: none;
-}
-
-.floating-capsule:hover {
-  transform: translateY(-2px) scale(1.02);
-  border-color: var(--accent);
-  box-shadow: 0 12px 32px var(--shadow-accent, rgba(0, 0, 0, 0.5));
-}
-
-.floating-capsule.is-dragging,
-.floating-capsule.is-dragging:hover {
-  cursor: grabbing;
-  transform: scale(1.04);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-  transition: none;
-}
-
-.capsule-inner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 16px 7px 10px;
-  border-radius: 40px;
-  background: var(--surface, #1f2125);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border);
-}
-
-.capsule-icon-box {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-}
-
-.spark-icon {
-  width: 15px;
-  height: 15px;
-  animation: sparkSpin 12s linear infinite;
-}
-
-@keyframes sparkSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.capsule-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.capsule-row-top {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.capsule-brand {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.2px;
-}
-
-.capsule-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-faint);
-}
-
-.capsule-dot.ready {
-  background: var(--green, #10b981);
-  box-shadow: 0 0 6px var(--green, #10b981);
-}
-
-.capsule-sub {
-  font-size: 10.5px;
-  color: var(--text-dim);
-}
-
-/* 2. 悬浮智能交互窗口 (Themed Floating Window) */
-.floating-window-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 920;
-  pointer-events: none;
-}
-
-.floating-window-backdrop.maximized {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.floating-window {
-  position: fixed;
-  width: 580px;
-  height: 740px;
-  min-width: 380px;
-  min-height: 480px;
-  max-width: calc(100vw - 24px);
-  max-height: calc(100vh - 24px);
-  resize: both;
-  background: var(--surface, #1f2125);
-  border: 1px solid var(--border-strong, var(--border));
-  backdrop-filter: blur(28px);
-  border-radius: var(--radius, 14px);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border);
-  pointer-events: auto;
-  overflow: hidden;
-  animation: windowIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.floating-window.is-max {
-  position: relative !important;
-  left: auto !important;
-  top: auto !important;
-  width: 980px !important;
-  height: 88vh !important;
-  max-width: 95vw !important;
-  max-height: 92vh !important;
-  resize: none;
-}
-
-@keyframes windowIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 顶栏拖拽条 */
-.f-window-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-2, #282b31);
-  cursor: grab;
-  user-select: none;
-  touch-action: none;
-}
-
-.f-window-head:active {
-  cursor: grabbing;
-}
-
-.f-head-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 3px;
-}
-
-.sparkle-mini {
-  color: var(--accent);
-  font-size: 11px;
-}
-
-.badge-source-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.3px;
-}
-
-.badge-model-tag {
-  font-size: 10px;
-  color: var(--text-dim);
-  background: var(--surface-3, #34383f);
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-}
-
-.f-title {
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text);
-  max-width: 380px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.f-head-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: default;
-}
-
-.win-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface-3, #34383f);
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.win-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
-  border-color: var(--border-strong);
-}
-
-.win-close:hover {
-  background: var(--red-soft, rgba(192, 73, 47, 0.15));
-  color: var(--red, #c0492f);
-  border-color: var(--red);
-}
-
-/* 引导配置 */
-.f-config-guide {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 12px 16px 0;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: var(--amber-soft, rgba(168, 121, 42, 0.12));
-  border: 1px solid var(--border);
-}
-
-.guide-icon {
-  font-size: 18px;
-}
-
-.guide-text h4 {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--amber, #d97706);
-}
-
-.guide-text p {
-  margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.guide-btn {
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-/* 快捷 Chips */
-.f-chips-wrapper {
-  padding: 10px 16px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
-}
-
-.f-chips-track {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: thin;
-}
-
-.f-chips-track::-webkit-scrollbar {
-  height: 3px;
-}
-
-.f-chips-track::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 3px;
-}
-
-.chip-pill {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 12px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.chip-pill:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
-  transform: translateY(-1px);
-}
-
-/* 消息流区域 */
-.f-messages-container {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.msg-bubble-group {
-  display: flex;
-  gap: 10px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.msg-bubble-group.role-user {
-  flex-direction: row-reverse;
-}
-
-.msg-avatar {
-  flex-shrink: 0;
-}
-
-.assistant-avatar-badge {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-accent);
-}
-
-.assistant-avatar-badge.pulsing {
-  animation: pulseGlow 1.5s infinite alternate;
-}
-
-@keyframes pulseGlow {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  100% { transform: scale(1.05); opacity: 1; }
-}
-
-.user-avatar-badge {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.msg-card {
-  flex: 1;
-  min-width: 0;
-  max-width: calc(100% - 38px);
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.role-user .msg-card {
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  padding: 10px 14px;
-  border-radius: var(--radius, 10px);
-  border-top-right-radius: 2px;
-}
-
-.role-assistant .msg-card {
-  background: var(--surface-2, #282b31);
-  border: 1px solid var(--border);
-  padding: 12px 14px;
-  border-radius: var(--radius, 10px);
-  border-top-left-radius: 2px;
-}
-
-.msg-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  gap: 8px;
-}
-
-.msg-sender {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-dim);
-}
-
-.msg-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tag-cache {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--green-soft);
-  color: var(--green);
-  border: 1px solid var(--green);
-}
-
-.btn-text-action {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 11px;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-.btn-text-action:hover {
-  color: var(--text);
-  background: var(--surface-3);
-}
-
-.msg-markdown {
-  font-size: 13.5px;
-  line-height: 1.65;
-  color: var(--text);
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-/* 严格约束所有 Markdown 内部元素不超出 */
-.msg-markdown :deep(pre) {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  overflow-x: auto !important;
-  white-space: pre-wrap !important;
-  word-break: break-all !important;
-  background: var(--bg) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
-  padding: 10px 12px !important;
-  margin: 8px 0 !important;
-  font-size: 12.5px !important;
-  line-height: 1.5 !important;
-  color: var(--text) !important;
-}
-
-.msg-markdown :deep(code) {
-  font-family: var(--mono) !important;
-  font-size: 12.5px !important;
-  word-break: break-word !important;
-}
-
-.msg-markdown :deep(p),
-.msg-markdown :deep(ul),
-.msg-markdown :deep(ol),
-.msg-markdown :deep(li),
-.msg-markdown :deep(blockquote) {
-  max-width: 100% !important;
-  overflow-wrap: break-word !important;
-  word-break: break-word !important;
-  margin: 6px 0 !important;
-  color: var(--text);
-}
-
-.msg-markdown :deep(h1),
-.msg-markdown :deep(h2),
-.msg-markdown :deep(h3),
-.msg-markdown :deep(h4) {
-  max-width: 100% !important;
-  overflow-wrap: break-word !important;
-  word-break: break-word !important;
-  color: var(--text) !important;
-  margin: 12px 0 6px 0 !important;
-}
-
-.msg-markdown :deep(table) {
-  display: block !important;
-  max-width: 100% !important;
-  overflow-x: auto !important;
-  border-collapse: collapse !important;
-  margin: 8px 0 !important;
-}
-
-.msg-markdown :deep(th),
-.msg-markdown :deep(td) {
-  border: 1px solid var(--border) !important;
-  padding: 6px 10px !important;
-  font-size: 12px !important;
-  color: var(--text);
-}
-
-/* 底部编辑器 */
-.f-bottom-composer {
-  padding: 14px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--surface-2);
-}
-
-.composer-box {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  padding: 8px 10px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.composer-box:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
-}
-
-.composer-textarea {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-size: 16px;
-  line-height: 1.5;
-  resize: none;
-  outline: none;
-  padding: 2px;
-  user-select: text;
-  -webkit-user-select: text;
-  touch-action: manipulation;
-}
-
-.composer-previews {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.composer-preview {
-  position: relative;
-  width: 64px;
-  height: 64px;
-}
-
-.composer-preview img,
-.msg-images img {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.msg-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.msg-images img {
-  width: 96px;
-  height: 96px;
-}
-
-.preview-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: none;
-  background: var(--red, #c44);
-  color: #fff;
-  font-size: 12px;
-  line-height: 18px;
-  cursor: pointer;
-}
-
-.btn-attach {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.btn-attach:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.composer-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-}
-
-.status-shield {
-  font-size: 11px;
-  color: var(--text-dim);
-  font-family: var(--mono);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.status-shield.token-normal {
-  color: var(--text-dim);
-}
-
-.status-shield.token-warning {
-  color: var(--amber);
-  font-weight: 600;
-}
-
-.status-shield.token-danger {
-  color: var(--red);
-  font-weight: 700;
-}
-
-.composer-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-send {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
-}
-
-.btn-send:hover:not(:disabled) {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-}
-
-.btn-send:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.btn-stop {
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--red);
-  background: var(--red-soft);
-  color: var(--red);
-  font-size: 11px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.typing-cursor {
-  display: inline-block;
-  width: 6px;
-  height: 14px;
-  background: var(--accent);
-  margin-left: 4px;
-  vertical-align: middle;
-  animation: blink 1s infinite;
-}
-
-.f-resize-corner {
-  position: absolute;
-  right: 3px;
-  bottom: 3px;
-  color: var(--text-faint);
-  pointer-events: none;
-  user-select: none;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-/* 底栏在 ≤1023px 出现：默认停在 tab 栏 + safe-area 上方，不挡 背题/手册，也不压题面 */
-@media (max-width: 1023px) {
-  .floating-capsule {
-    bottom: calc(var(--bottom-nav-h, 56px) + 12px);
-    right: 12px;
-  }
-}
-
-@media (max-width: 768px) {
-  .floating-window {
-    left: 0 !important;
-    top: auto !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 82vh !important;
-    border-radius: 16px 16px 0 0;
-    max-width: 100vw;
-    resize: none;
-  }
-}
-</style>

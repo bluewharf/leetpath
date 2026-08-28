@@ -1,0 +1,470 @@
+/* ==========================================================================
+   刷题簇：题库列表（ProblemListView）+ 刷题工作台（ProblemView）
+   设计：iOS inset 分组列表 + 磨砂吸顶工具条，颜色全部走 base.css 变量
+   契约钩子（字号强压依赖，勿删）：.p-row .p-title .statement .markdown-body
+   ========================================================================== */
+
+/* ---------- 题库列表 ---------- */
+.list-card { overflow: hidden; }
+
+.list-head {
+  display: grid;
+  grid-template-columns: 52px 36px 1fr 90px 90px 180px 30px;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  border-bottom: 0.5px solid var(--border);
+  align-items: center;
+}
+.sortable-th {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+.sortable-th:hover { color: var(--text-dim); }
+.sort-caret { color: var(--accent); transition: transform 0.2s ease; }
+.sort-caret.asc { transform: rotate(180deg); }
+
+.p-row {
+  display: grid;
+  grid-template-columns: 52px 36px 1fr 90px 90px 180px 30px;
+  gap: 10px;
+  padding: 13px 18px;
+  border-bottom: 0.5px solid var(--border);
+  align-items: center;
+  color: var(--text);
+  font-size: 15px;
+  transition: background 0.15s ease;
+}
+.p-row:last-child { border-bottom: none; }
+.p-row:hover { background: var(--surface-2); text-decoration: none; }
+.p-idx { font-family: var(--mono); color: var(--text-faint); font-size: 12px; }
+.p-check { display: flex; justify-content: center; align-items: center; }
+.p-check .solved { color: var(--green); display: inline-flex; }
+.attempted-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+.p-check .todo { color: var(--text-faint); }
+.p-main { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.p-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.p-slug { font-family: var(--mono); color: var(--text-faint); font-size: 11.5px; }
+.p-src { color: var(--text-dim); font-size: 12.5px; }
+.p-tags {
+  color: var(--text-faint);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.p-arrow { color: var(--text-faint); display: flex; justify-content: flex-end; transition: all 0.15s ease; }
+.p-row:hover .p-arrow { color: var(--accent); transform: translateX(2px); }
+
+/* ---------- 工作台整体布局 ---------- */
+.problem-layout {
+  display: grid;
+  gap: 0;
+  align-items: start;
+  min-height: calc(100vh - 160px);
+}
+.pane { min-width: 0; }
+.pane-statement {
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: calc(100vh - 140px);
+}
+.pane-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.pane-right .card { overflow: hidden; }
+
+.statement-title { font-size: var(--font-title); margin-top: 4px; }
+.problem-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 6px; }
+.problem-limits { font-size: 12px; color: var(--text-faint); font-family: var(--mono); }
+.solution-title { font-size: 18px; margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+
+/* 左侧桌面 Tab（题目描述 / 题解） */
+.pane-tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  border-bottom: 0.5px solid var(--border);
+  padding-bottom: 10px;
+}
+.pane-tab {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.pane-tab:hover { color: var(--text); background: var(--surface-2); }
+.pane-tab.active { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- 顶部辅助工具栏（返回 / 计时器 / 禅模式） ---------- */
+.workspace-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 10px 12px;
+  flex-wrap: wrap;
+}
+.workspace-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.workspace-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.back-link { color: var(--text-dim); }
+.problem-title-inline {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 计时器胶囊 */
+.stopwatch-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  box-shadow: var(--shadow);
+}
+.stopwatch-badge.running {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.stopwatch-badge.urgent { border-color: var(--red); color: var(--red); }
+.timer-icon { display: inline-flex; color: var(--text-dim); }
+.stopwatch-badge.urgent .timer-icon { color: var(--red); }
+.timer-text { font-weight: 700; min-width: 44px; text-align: center; }
+.timer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--text-dim);
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+.timer-btn:hover { color: var(--accent); }
+/* 暂停符号（AppIcon 无 pause，用纯 CSS 双竖条） */
+.pause-glyph {
+  display: inline-block;
+  width: 9px;
+  height: 11px;
+  border-left: 3px solid currentColor;
+  border-right: 3px solid currentColor;
+  box-sizing: border-box;
+}
+.mode-btn {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+.mode-btn:hover { background: var(--surface-3); }
+
+.zen-btn { font-size: 12.5px; }
+.zen-btn.active { background: var(--accent); color: #fff; }
+.zen-btn.active:hover { background: var(--accent-hover); }
+
+/* 禅模式：放宽容器并隐藏全局刊头 */
+.zen-container { max-width: 100% !important; padding: 12px 18px !important; }
+.zen-container .topbar,
+body:has(.zen-container) .masthead { display: none !important; }
+
+/* ---------- 桌面分栏拖拽手柄 ---------- */
+.split-resizer {
+  width: 6px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+  user-select: none;
+}
+.split-resizer .resizer-line {
+  width: 2px;
+  height: 48px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  transition: background 0.15s ease, height 0.15s ease;
+}
+.split-resizer:hover, .split-resizer.active { background: var(--accent-soft); }
+.split-resizer:hover .resizer-line, .split-resizer.active .resizer-line {
+  background: var(--accent);
+  height: 80px;
+}
+.is-dragging { cursor: col-resize !important; user-select: none !important; }
+
+/* ---------- 编辑器卡 ---------- */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--surface-2);
+}
+.editor-lang-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 4px 10px;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+}
+/* 评测模式切换复用 base 的 .segmented（iOS 分段器），此处仅补禁用态 */
+.mode-switch { flex: none; }
+.segmented button:disabled { opacity: 0.4; cursor: not-allowed; }
+.save-hint {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  margin-left: auto;
+}
+.shortcut-tip { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+/* AI 助教入口：描边按钮叠加强调色 */
+.ai-btn { border-color: var(--accent-border); color: var(--accent); }
+.ai-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+.acm-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 14px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+.acm-hint-link { color: var(--accent); text-decoration: none; white-space: nowrap; font-weight: 550; }
+.acm-hint-link:hover { text-decoration: underline; }
+
+/* CodeMirror 容器（行为契约：高度与字号强压保持一致） */
+.editor-wrap { height: 48vh; min-height: 320px; }
+.editor-wrap .cm-editor { height: 100%; font-size: var(--font-editor) !important; }
+.editor-wrap .cm-editor .cm-content { font-family: var(--mono); padding: 12px 0; }
+.editor-wrap .cm-gutters { padding: 6px 0; }
+
+/* ---------- 评测结果面板 ---------- */
+.result-panel { max-height: 36vh; overflow-y: auto; }
+.result-body { padding: 16px 18px; }
+.result-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.result-head .runtime { font-size: 12.5px; color: var(--text-dim); font-family: var(--mono); }
+.result-empty-note { font-size: 12px; color: var(--text-faint); }
+
+.compile-pre {
+  margin: 0;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.io-block { margin-top: 8px; }
+.io-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+  font-weight: 650;
+  font-family: var(--mono);
+}
+
+.tc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  transition: background 0.15s ease;
+}
+.tc-row + .tc-row { margin-top: 2px; }
+.tc-row:hover { background: var(--surface-2); }
+.tc-ord { color: var(--text-faint); width: 36px; flex: none; font-family: var(--mono); font-size: 12px; }
+.tc-sample { color: var(--text-faint); font-size: 11.5px; }
+.tc-status { padding: 1px 10px; font-size: 12px; }
+.tc-time { margin-left: auto; color: var(--text-faint); font-size: 12px; font-family: var(--mono); }
+.tc-detail { padding: 4px 12px 12px 46px; }
+.tc-detail pre {
+  margin: 0;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ---------- 提交历史 ---------- */
+.sub-history { margin-top: 28px; }
+.sub-history h3 { font-size: 15px; }
+.sub-item { border-top: 0.5px solid var(--border); padding: 9px 2px; }
+.sub-line {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+.sub-line:hover { background: var(--surface-2); }
+.sub-lang { font-size: 12px; }
+.sub-io { font-size: 11px; color: var(--text-faint); }
+.sub-runtime { color: var(--text-faint); font-size: 12px; }
+.sub-time { color: var(--text-faint); font-size: 12px; margin-left: auto; font-family: var(--mono); }
+.history-code-box { margin-top: 6px; }
+.history-code-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 4px; }
+.history-pre {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+/* 移动端 Tabs 默认隐藏（≤1023px 才显示） */
+.mobile-tabs { display: none; }
+
+/* ========== 移动端（≤1023px）：宽松布局、≥44px 触控目标 ========== */
+@media (max-width: 1023px) {
+  /* 题库列表：改两行卡片式 */
+  .list-head { display: none; }
+  .p-row {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "check main diff"
+      "check tags diff";
+    row-gap: 3px;
+    padding: 14px 14px;
+  }
+  .p-idx { display: none; }
+  .p-check { grid-area: check; align-self: center; }
+  .p-main { grid-area: main; flex-direction: column; align-items: flex-start; gap: 1px; }
+  .p-slug { max-width: 100%; }
+  .p-row .badge-easy, .p-row .badge-medium, .p-row .badge-hard { grid-area: diff; align-self: center; }
+  .p-src { display: none; }
+  .p-tags { grid-area: tags; }
+  .p-arrow { display: none; }
+
+  /* 筛选栏：搜索框占满整行 */
+  .filters .input { max-width: none; flex: 1 1 100%; }
+  .filters .select { flex: 1 1 auto; min-height: 40px; }
+
+  /* 工作台：单列布局 */
+  .problem-layout { grid-template-columns: 1fr; }
+  .pane-statement { max-height: none; padding: 20px 18px; }
+  .result-panel { max-height: none; }
+  .editor-wrap { height: 52vh; }
+
+  /* 移动端吸顶 Tabs：iOS 分段器质感 + 磨砂 */
+  .mobile-tabs {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 12px;
+    background: var(--material-strong);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    position: sticky;
+    top: calc(var(--topbar-h) + 8px);
+    z-index: 20;
+    box-shadow: var(--shadow);
+  }
+  .mobile-tabs button {
+    flex: 1;
+    border: none;
+    background: none;
+    min-height: 44px;
+    padding: 10px 0;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 550;
+    color: var(--text-dim);
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mobile-tabs button.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 650;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  /* 工具栏精简换行，触控目标 ≥44px */
+  .workspace-bar { gap: 8px; }
+  .workspace-left { flex: 1 1 100%; }
+  .workspace-bar .btn { min-height: 44px; }
+  .problem-title-inline { font-size: 15px; }
+  .stopwatch-badge { min-height: 44px; padding: 4px 14px; }
+  .timer-btn { min-width: 36px; min-height: 36px; }
+
+  /* 编辑器工具栏：更宽松的换行与触控 */
+  .editor-toolbar { gap: 8px; padding: 12px; }
+  .editor-toolbar .btn { min-height: 44px; }
+  .mode-switch button { min-height: 40px; padding: 8px 16px; }
+  .editor-lang-label { padding: 8px 12px; }
+  .acm-hint { padding: 10px 14px; }
+
+  /* 提交历史 / 测试点行更易点 */
+  .sub-line { padding: 10px 8px; }
+  .tc-row { padding: 10px 12px; }
+  .history-code-actions .btn { min-height: 40px; }
+}
+
+/* ========== 宽屏增强（≥1800px）：编辑器与结果区更高 ========== */
+@media (min-width: 1800px) {
+  .editor-wrap { height: 56vh; }
+  .result-panel { max-height: 42vh; }
+  .pane-statement { max-height: calc(100vh - 120px); }
+}

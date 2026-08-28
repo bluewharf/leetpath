@@ -8,7 +8,7 @@
         :class="`toast-${t.type}`"
         @click="dismiss(t.id)"
       >
-        <span class="toast-icon">{{ iconMap[t.type] }}</span>
+        <span class="toast-icon"><AppIcon :name="iconMap[t.type]" :size="15" /></span>
         <span class="toast-msg">{{ t.message }}</span>
       </div>
     </transition-group>
@@ -16,13 +16,14 @@
 </template>
 
 <script setup lang="ts">
+import AppIcon from './AppIcon.vue'
 import { useToast } from '../stores/toast'
 
 const { toasts, dismiss } = useToast()
 
 const iconMap = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
-}
+  success: 'check',
+  error: 'x',
+  info: 'sparkle',
+} as const
 </script>

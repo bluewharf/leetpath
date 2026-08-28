@@ -11,7 +11,7 @@ import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags } from '@lezer/highlight'
-import { getTheme } from '../theme'
+import { isDarkTheme } from '../theme'
 import type { Language } from '../types'
 
 const props = defineProps<{
@@ -48,8 +48,7 @@ function langExt(lang: Language) {
 }
 
 function themeExt() {
-  const current = getTheme()
-  return (current === 'dark' || current === 'cyber') ? [oneDark, baseTheme()] : [baseTheme(), lightHighlight]
+  return isDarkTheme() ? [oneDark, baseTheme()] : [baseTheme(), lightHighlight]
 }
 
 function baseTheme() {
