@@ -50,9 +50,9 @@ def _remap_choice_answer(user_answer: str, letter_map: dict[str, str]) -> str:
 def assign_category(bank: str) -> str:
     """根据专题名称归类到一级大分类"""
     if bank == "oncall-course" or "项目八股" in bank or "OnCall" in bank:
-        return "项目八股"
-    if "项目知识点" in bank:
-        return "项目知识点"
+        return "OnCall项目"
+    if "面经项目知识点" in bank or "项目知识点" in bank:
+        return "面经项目知识点"
     if bank.startswith("秋招-八股") or bank == "秋招-八股":
         return "八股"
     if "杀手" in bank:

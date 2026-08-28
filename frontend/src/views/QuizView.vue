@@ -345,7 +345,7 @@
       <div class="banks-header card">
         <div class="banks-header-info">
           <h2>{{ bankCount }} 个大模型与算法核心专题库</h2>
-          <p class="muted">涵盖项目八股问答题、Agent Harness、MCP/Skills、Transformer、RAG、强化学习、训练微调与反直觉杀手题，点击专题直接开启专项刷题。</p>
+          <p class="muted">涵盖 OnCall 项目问答、面经项目知识点、八股，以及 Agent Harness、MCP/Skills、Transformer、RAG，点击专题直接刷。</p>
         </div>
       </div>
 
@@ -543,7 +543,7 @@ const groupedBanks = computed(() => {
     })
   }
   const ordered: Record<string, QuizBank[]> = {}
-  const preferred = ['项目知识点', '八股', '项目八股', 'AI Agent 与智能体']
+  const preferred = ['OnCall项目', '面经项目知识点', '八股', 'AI Agent 与智能体']
   for (const cat of preferred) {
     if (map[cat]) ordered[cat] = map[cat]
   }

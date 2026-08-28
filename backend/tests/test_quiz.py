@@ -490,9 +490,9 @@ def test_quiz_seed_includes_oncall_open_ended():
     path = Path(__file__).resolve().parents[1] / "app" / "seed" / "quiz_questions.json"
     questions = json.loads(path.read_text(encoding="utf-8"))
     oncall = [q for q in questions if q["bank"] == "oncall-course"]
-    proj = [q for q in questions if q["bank"] == "秋招-项目知识点"]
+    proj = [q for q in questions if q["bank"] == "面经项目知识点"]
     bagu = [q for q in questions if q["bank"] == "秋招-八股"]
-    legacy = [q for q in questions if q["bank"] not in {"oncall-course", "秋招-项目知识点", "秋招-八股"}]
+    legacy = [q for q in questions if q["bank"] not in {"oncall-course", "面经项目知识点", "秋招-八股"}]
     assert len(questions) == 670 + 63 + 369 + 232
     assert len(legacy) == 670
     assert len(oncall) == 63
@@ -500,9 +500,9 @@ def test_quiz_seed_includes_oncall_open_ended():
     assert len(bagu) == 232
     assert all(q["type"] in {"single", "multiple", "judge"} for q in legacy)
     assert all(q["type"] == "open" for q in oncall + proj + bagu)
-    assert all(q.get("category") == "项目知识点" for q in proj)
+    assert all(q.get("category") == "面经项目知识点" for q in proj)
     assert all(q.get("category") == "八股" for q in bagu)
-    assert all(q["category"] == "项目八股" for q in oncall)
+    assert all(q["category"] == "OnCall项目" for q in oncall)
     assert all(q.get("options") in ({}, None, []) for q in oncall + proj + bagu)
     java_skip = {
         q["ordinal"]
@@ -577,7 +577,7 @@ def test_quiz_loader_imports_open_ended_empty_options(admin_client, tmp_path):
     payload = [
         {
             "bank": "oncall-course",
-            "category": "项目八股",
+            "category": "OnCall项目",
             "ordinal": 1,
             "type": "open",
             "stem": "简单介绍一下这个项目",
@@ -588,7 +588,7 @@ def test_quiz_loader_imports_open_ended_empty_options(admin_client, tmp_path):
         },
         {
             "bank": "oncall-course",
-            "category": "项目八股",
+            "category": "OnCall项目",
             "n": 2,
             "type": "open",
             "stem": "简单说说Eino是什么框架",
@@ -625,7 +625,7 @@ def test_open_ended_reveal_and_empty_options_list(admin_client):
     with dbmod.SessionLocal() as db:
         q = QuizQuestion(
             bank="oncall-course",
-            category="项目八股",
+            category="OnCall项目",
             type="open",
             ordinal=1,
             stem="简单介绍一下这个项目",
@@ -636,7 +636,7 @@ def test_open_ended_reveal_and_empty_options_list(admin_client):
         )
         skip_q = QuizQuestion(
             bank="oncall-course",
-            category="项目八股",
+            category="OnCall项目",
             type="open",
             ordinal=2,
             stem="简单说说Eino是什么框架",
@@ -715,7 +715,7 @@ def test_exam_excludes_open_and_skipped(admin_client):
                 ),
                 QuizQuestion(
                     bank="oncall-course",
-                    category="项目八股",
+                    category="OnCall项目",
                     type="open",
                     ordinal=9,
                     stem="问答题",
@@ -726,7 +726,7 @@ def test_exam_excludes_open_and_skipped(admin_client):
                 ),
                 QuizQuestion(
                     bank="oncall-course",
-                    category="项目八股",
+                    category="OnCall项目",
                     type="open",
                     ordinal=2,
                     stem="Java 题",
